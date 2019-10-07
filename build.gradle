@@ -1,0 +1,16 @@
+plugins {
+    id 'java'
+}
+
+group 'dev.m00nl1ght'
+version '0.1'
+
+sourceCompatibility = 12
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+
+}
