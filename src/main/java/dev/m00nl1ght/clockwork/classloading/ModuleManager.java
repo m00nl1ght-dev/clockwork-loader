@@ -1,10 +1,13 @@
 package dev.m00nl1ght.clockwork.classloading;
 
+import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.util.PluginLoadingException;
 
 import java.lang.module.Configuration;
+import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
+import java.lang.module.ModuleReference;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -14,23 +17,22 @@ public class ModuleManager {
     private final Map<String, String> modules = new HashMap<>();
 
     public void init(List<PluginDefinition> defs) {
-        var found = new ArrayList<String>();
-        defs.forEach(d -> found.addAll(findModules(d.getModuleFinder(), d)));
+        defs.forEach(d -> findModules(d.getModuleFinder(), d));
         var finder = ModuleFinder.compose(defs.stream().map(PluginDefinition::getModuleFinder).toArray(ModuleFinder[]::new));
-        this.moduleLayer = resolveModules(ModuleLayer.boot(), finder, found);
+        this.moduleLayer = resolveModules(ModuleLayer.boot(), finder);
     }
 
-    private List<String> findModules(ModuleFinder finder, PluginDefinition owner) {
+    private void findModules(ModuleFinder finder, PluginDefinition owner) {
         try {
-            return finder.findAll().stream().map(r -> r.descriptor().name()).collect(Collectors.toList());
+            finder.findAll().forEach(m -> modules.put(m.descriptor().name(), owner.getId()));
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, owner);
         }
     }
 
-    private ModuleLayer resolveModules(ModuleLayer parent, ModuleFinder finder, Collection<String> modules) {
+    private ModuleLayer resolveModules(ModuleLayer parent, ModuleFinder finder) {
         try {
-            Configuration config = parent.configuration().resolve(ModuleFinder.of(), finder, modules);
+            Configuration config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
             return parent.defineModules(config, this::createClassLoaderFor);
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, null);
@@ -38,11 +40,24 @@ public class ModuleManager {
     }
 
     private ClassLoader createClassLoaderFor(String moduleName) {
-
+        final var pluginId = modules.get(moduleName);
+        if (pluginId == null) throw PluginLoadingException.generic("Cannot create classloader for unknown module");
+        return new PluginClassloader(pluginId);
     }
 
-    public Class<?> loadClassForPlugin(String className, String pluginId) {
-
+    public Class<?> loadClassForPlugin(PluginContainer<?> plugin, String className) {
+        try {
+            final var clazz = plugin.getModule().getClassLoader().loadClass(className);
+            final var md = clazz.getModule().getDescriptor().name();
+            final var actPlugin = modules.get(md);
+            if (plugin.getId().equals(actPlugin)) {
+                return clazz;
+            } else {
+                throw PluginLoadingException.componentClassIllegal(className, plugin, actPlugin, md);
+            }
+        } catch (ClassNotFoundException e) {
+            throw PluginLoadingException.componentClassNotFound(className, plugin);
+        }
     }
 
     public <T> Class<T> loadClassForPlugin(String className, String pluginId, Class<T> type) {

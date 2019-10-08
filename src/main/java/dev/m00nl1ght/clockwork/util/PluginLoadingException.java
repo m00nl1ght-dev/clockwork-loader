@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.util;
 
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
+import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.resolver.PluginLoadingProblem;
 
@@ -38,6 +39,14 @@ public class PluginLoadingException extends RuntimeException {
 
     public static PluginLoadingException componentMissingTarget(ComponentDefinition definition) {
         return generic("Could not find target [" + definition.getTargetId() + "] for component [" + definition.getId() + "]");
+    }
+
+    public static PluginLoadingException componentClassIllegal(String className, PluginContainer<?> plugin, String actPlugin, String module) {
+        if (actPlugin == null) {
+            return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in external module [" + module + "]");
+        } else {
+            return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in module [" + module + "] of plugin [" + actPlugin + "]");
+        }
     }
 
 }
