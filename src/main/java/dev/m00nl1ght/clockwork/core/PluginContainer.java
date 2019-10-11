@@ -11,16 +11,16 @@ public class PluginContainer<C> {
     private final String displayName;
     private final String description;
     private final List<String> authors;
-    private final Module module;
+    private final Module mainModule;
 
-    protected PluginContainer(PluginDefinition definition, Module module) {
+    protected PluginContainer(PluginDefinition definition, Module mainModule) {
         Preconditions.notNull(definition, "definition");
         this.id = definition.getId();
         this.version = definition.getVersion();
         this.displayName = definition.getDisplayName();
         this.description = definition.getDescription();
         this.authors = definition.getAuthors();
-        this.module = Preconditions.notNull(module, "module");
+        this.mainModule = Preconditions.notNull(mainModule, "module");
     }
 
     public String getId() {
@@ -43,8 +43,8 @@ public class PluginContainer<C> {
         return authors;
     }
 
-    public Module getModule() {
-        return module;
+    public Module getMainModule() {
+        return mainModule;
     }
 
 }

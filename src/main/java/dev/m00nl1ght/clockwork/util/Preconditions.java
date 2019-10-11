@@ -27,4 +27,9 @@ public class Preconditions {
         return object;
     }
 
+    public static <T> Class<T> verifyType(Class<T> type, Class<?> target, String name) {
+        if (!type.isAssignableFrom(target)) throw new IllegalArgumentException(name + " must be an instance of " + target.getSimpleName());
+        return type;
+    }
+
 }

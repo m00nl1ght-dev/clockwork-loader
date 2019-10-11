@@ -4,12 +4,8 @@ import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.util.PluginLoadingException;
 
-import java.lang.module.Configuration;
-import java.lang.module.ModuleDescriptor;
 import java.lang.module.ModuleFinder;
-import java.lang.module.ModuleReference;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class ModuleManager {
 
@@ -32,7 +28,7 @@ public class ModuleManager {
 
     private ModuleLayer resolveModules(ModuleLayer parent, ModuleFinder finder) {
         try {
-            Configuration config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
+            final var config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
             return parent.defineModules(config, this::createClassLoaderFor);
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, null);
@@ -41,13 +37,20 @@ public class ModuleManager {
 
     private ClassLoader createClassLoaderFor(String moduleName) {
         final var pluginId = modules.get(moduleName);
-        if (pluginId == null) throw PluginLoadingException.generic("Cannot create classloader for unknown module");
+        if (pluginId == null) throw PluginLoadingException.generic("Cannot create classloader for unknown module [" + moduleName + "]");
         return new PluginClassloader(pluginId);
+    }
+
+    public Module mainModuleFor(PluginDefinition def) {
+        final var pId = modules.get(def.getMainModule());
+        if (!def.getId().equals(pId)) throw PluginLoadingException.pluginMainModule(def, pId);
+        final var found = moduleLayer.findModule(def.getMainModule());
+        return found.get();
     }
 
     public Class<?> loadClassForPlugin(PluginContainer<?> plugin, String className) {
         try {
-            final var clazz = plugin.getModule().getClassLoader().loadClass(className);
+            final var clazz = plugin.getMainModule().getClassLoader().loadClass(className);
             final var md = clazz.getModule().getDescriptor().name();
             final var actPlugin = modules.get(md);
             if (plugin.getId().equals(actPlugin)) {
@@ -58,10 +61,6 @@ public class ModuleManager {
         } catch (ClassNotFoundException e) {
             throw PluginLoadingException.componentClassNotFound(className, plugin);
         }
-    }
-
-    public <T> Class<T> loadClassForPlugin(String className, String pluginId, Class<T> type) {
-
     }
 
 }

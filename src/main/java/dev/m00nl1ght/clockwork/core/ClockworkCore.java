@@ -43,33 +43,30 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     }
 
     private void buildComponent(ComponentDefinition def) {
-        final var compClass = moduleManager.loadClassForPlugin(def.getComponentClass(), def.getParent().getId());
-        final var plugin = loadedPlugins.computeIfAbsent(def.getParent().getId(), p -> buildPlugin(def.getParent(), compClass.getModule()));
+        final var plugin = loadedPlugins.computeIfAbsent(def.getParent().getId(), p -> buildPlugin(def.getParent()));
+        final var compClass = moduleManager.loadClassForPlugin(plugin, def.getComponentClass());
         final var target = componentTargets.get(def.getTargetId());
         if (target == null) throw PluginLoadingException.componentMissingTarget(def);
         final var component = new ComponentType<>(def, plugin, compClass, target);
         loadedComponents.put(component.getId(), component);
     }
 
-    private PluginContainer<?> buildPlugin(PluginDefinition def, Module module) {
-        final var plugin = new PluginContainer<>(def, module);
+    private PluginContainer<?> buildPlugin(PluginDefinition def) {
+        final var mainModule = moduleManager.moduleFor(def);
+        final var plugin = new PluginContainer<>(def, mainModule);
         loadedPlugins.put(plugin.getId(), plugin);
         for (var targetDef : def.getTargetDefinitions()) buildComponentTarget(targetDef, plugin);
         return plugin;
     }
 
     private void buildComponentTarget(ComponentTargetDefinition def, PluginContainer<?> parent) {
-        final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), parent.getId(), ComponentTarget.class);
+        final var targetClass = moduleManager.loadClassForPlugin(parent, def.getTargetClass());
         final var target = new ComponentTargetType<>(def, parent, targetClass);
         componentTargets.put(target.getId(), target);
     }
 
     public void registerLocator(PluginLoader locator) { // TODO move to builder?
         pluginLocators.add(locator);
-    }
-
-    public void registerComponentTarget(ComponentTargetType<?> targetType) { // TODO move to builder?
-        componentTargets.put(targetType.getId(), targetType);
     }
 
     @Override

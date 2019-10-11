@@ -49,4 +49,12 @@ public class PluginLoadingException extends RuntimeException {
         }
     }
 
+    public static PluginLoadingException pluginMainModule(PluginDefinition definition, String pId) {
+        if (pId == null) {
+            return generic("Main module [" + definition.getMainModule() + "] defined for plugin [" + definition.getId() + "] not found");
+        } else {
+            return generic("Main module [" + definition.getMainModule() + "] defined for plugin [" + definition.getId() + "] is owned by another plugin [" + pId + "]");
+        }
+    }
+
 }

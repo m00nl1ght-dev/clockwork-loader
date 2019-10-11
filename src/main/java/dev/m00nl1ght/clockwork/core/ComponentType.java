@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-public class ComponentType<C, T extends ComponentTarget<T>> {
+public class ComponentType<C, T> {
 
     private final String componentId;
     private final String version;

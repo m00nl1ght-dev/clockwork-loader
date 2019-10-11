@@ -19,13 +19,15 @@ public final class PluginDefinition {
     private final List<ComponentDefinition> components = new ArrayList<>();
     private final List<ComponentTargetDefinition> targets = new ArrayList<>();
     private final ModuleFinder moduleFinder;
+    private final String mainModule;
 
-    public PluginDefinition(String pluginId, String version, String mainClass, String displayName, String description, List<String> authors, List<DependencyDefinition> dependencies, ModuleFinder moduleFinder) {
+    public PluginDefinition(String pluginId, String version, String mainClass, String displayName, String description, List<String> authors, List<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
         this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, CWLPlugin.CORE_TARGET_ID, dependencies, false);
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
         this.authors = Collections.unmodifiableList(Preconditions.notNull(authors, "authors"));
         this.moduleFinder = Preconditions.notNull(moduleFinder, "moduleFinder");
+        this.mainModule = Preconditions.notNullOrBlank(mainModule, "mainModule");
         this.components.add(mainComponent);
     }
 
@@ -43,6 +45,10 @@ public final class PluginDefinition {
 
     public ModuleFinder getModuleFinder() {
         return moduleFinder;
+    }
+
+    public String getMainModule() {
+        return mainModule;
     }
 
     public ComponentDefinition getMainComponent() {
@@ -81,7 +87,7 @@ public final class PluginDefinition {
 
     protected String subId(String componentId) {
         if (mainComponent == null) return componentId;
-        String[] t = componentId.split(":");
+        final var t = componentId.split(":");
         if (t.length > 2) throw new IllegalArgumentException("invalid component id: "  + componentId);
         if (t.length == 1) return getId() + ":" + componentId;
         if (t[0].equals(getId())) return componentId;
@@ -105,6 +111,7 @@ public final class PluginDefinition {
         protected String displayName;
         protected String description = "";
         protected ModuleFinder moduleFinder;
+        protected String mainModule;
         protected final List<String> authors = new ArrayList<>();
         protected final List<DependencyDefinition> dependencies = new ArrayList<>();
 
@@ -114,7 +121,7 @@ public final class PluginDefinition {
         }
 
         public PluginDefinition build() {
-            return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies, moduleFinder);
+            return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies, moduleFinder, mainModule);
         }
 
         public Builder version(String version) {
@@ -127,8 +134,9 @@ public final class PluginDefinition {
             return this;
         }
 
-        public Builder moduleFinder(ModuleFinder moduleFinder) {
+        public Builder moduleFinder(ModuleFinder moduleFinder, String mainModule) {
             this.moduleFinder = moduleFinder;
+            this.mainModule = mainModule;
             return this;
         }
 
