@@ -11,7 +11,7 @@ public final class ComponentTargetType<T> {
     public ComponentTargetType(ComponentTargetDefinition definition, PluginContainer<?> parent, Class<T> targetClass) {
         this.parent = Preconditions.notNull(parent, "parent");
         Preconditions.notNull(definition, "definition");
-        Preconditions.verifyType(targetClass, ComponentTarget.class, "target class");
+        Preconditions.verifyType(targetClass, ComponentTarget.class, "targetClass");
         this.targetClass = Preconditions.notNullAnd(targetClass, o -> definition.getTargetClass().equals(o.getCanonicalName()), "targetClass");
         this.id = definition.getId();
     }

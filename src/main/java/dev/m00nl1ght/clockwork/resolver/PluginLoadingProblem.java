@@ -13,6 +13,10 @@ public abstract class PluginLoadingProblem {
 
     public abstract String getMessage();
 
+    public String format() {
+        return "[" + errored.getId() + "] - " + getMessage();
+    }
+
     public boolean isFatal() {
         return true;
     }

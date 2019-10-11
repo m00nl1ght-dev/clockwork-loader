@@ -4,10 +4,14 @@ import dev.m00nl1ght.clockwork.api.PluginLoader;
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import dev.m00nl1ght.clockwork.util.PluginLoadingException;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 public class ClockworkCore implements ComponentTarget<ClockworkCore> {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private final List<PluginLoader> pluginLocators = new ArrayList<>();
     private final Map<String, ComponentTargetType<?>> componentTargets = new HashMap<>();
@@ -28,13 +32,15 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
         final var fatalProblems = depResolver.getFatalProblems();
         if (!fatalProblems.isEmpty()) {
-            // TODO log problems
+            LOGGER.error("The following fatal problems occured during dependency resolution:");
+            for (var p : fatalProblems) LOGGER.error(p.format());
             throw PluginLoadingException.fatalLoadingProblems(fatalProblems);
         }
 
         final var skips = depResolver.getSkippedProblems();
         if (!skips.isEmpty()) {
-            // TODO log skipped components
+            LOGGER.error("The following optional components have been skipped, because their dependencies are not present:");
+            for (var p : skips) LOGGER.error(p.format());
         }
 
         moduleManager.init(depResolver.getPluginDefinitions());
@@ -52,7 +58,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     }
 
     private PluginContainer<?> buildPlugin(PluginDefinition def) {
-        final var mainModule = moduleManager.moduleFor(def);
+        final var mainModule = moduleManager.mainModuleFor(def);
         final var plugin = new PluginContainer<>(def, mainModule);
         loadedPlugins.put(plugin.getId(), plugin);
         for (var targetDef : def.getTargetDefinitions()) buildComponentTarget(targetDef, plugin);
@@ -65,7 +71,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         componentTargets.put(target.getId(), target);
     }
 
-    public void registerLocator(PluginLoader locator) { // TODO move to builder?
+    public void registerLocator(PluginLoader locator) {
         pluginLocators.add(locator);
     }
 

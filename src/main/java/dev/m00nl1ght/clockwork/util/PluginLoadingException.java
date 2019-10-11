@@ -49,9 +49,21 @@ public class PluginLoadingException extends RuntimeException {
         }
     }
 
-    public static PluginLoadingException pluginMainModule(PluginDefinition definition, String pId) {
+    public static PluginLoadingException componentClassNotFound(String className, PluginContainer<?> plugin) {
+        return generic("Class [" + className + "] defined for plugin [" + plugin.getId() + "] not found");
+    }
+
+    public static PluginLoadingException loaderForUnknownModule(String moduleName) {
+        return generic("Cannot create classloader for unknown module [" + moduleName + "]");
+    }
+
+    public static PluginLoadingException pluginMainModuleNotFound(PluginDefinition definition) {
+        return generic("Main module [" + definition.getMainModule() + "] defined for plugin [" + definition.getId() + "] not found");
+    }
+
+    public static PluginLoadingException pluginMainModuleIllegal(PluginDefinition definition, String pId) {
         if (pId == null) {
-            return generic("Main module [" + definition.getMainModule() + "] defined for plugin [" + definition.getId() + "] not found");
+            return generic("Main module [" + definition.getMainModule() + "] defined for plugin [" + definition.getId() + "] is in a different layer");
         } else {
             return generic("Main module [" + definition.getMainModule() + "] defined for plugin [" + definition.getId() + "] is owned by another plugin [" + pId + "]");
         }
