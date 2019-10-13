@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.List;
 
-public class PluginContainer<C> {
+public class PluginContainer {
 
     private final String id;
     private final String version;

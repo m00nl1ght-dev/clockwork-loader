@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.util;
 
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
+import dev.m00nl1ght.clockwork.core.ComponentTargetDefinition;
 import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.resolver.PluginLoadingProblem;
@@ -41,7 +42,7 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Could not find target [" + definition.getTargetId() + "] for component [" + definition.getId() + "]");
     }
 
-    public static PluginLoadingException componentClassIllegal(String className, PluginContainer<?> plugin, String actPlugin, String module) {
+    public static PluginLoadingException componentClassIllegal(String className, PluginContainer plugin, String actPlugin, String module) {
         if (actPlugin == null) {
             return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in external module [" + module + "]");
         } else {
@@ -49,8 +50,16 @@ public class PluginLoadingException extends RuntimeException {
         }
     }
 
-    public static PluginLoadingException componentClassNotFound(String className, PluginContainer<?> plugin) {
+    public static PluginLoadingException componentClassNotFound(String className, PluginContainer plugin) {
         return generic("Class [" + className + "] defined for plugin [" + plugin.getId() + "] not found");
+    }
+
+    public static PluginLoadingException componentClassDuplicate(ComponentDefinition def, String existing) {
+        return generic("Component class [" + def.getComponentClass() + "] defined for component type [" + def.getId() + "] is already defined for component [" + existing + "]");
+    }
+
+    public static PluginLoadingException targetClassDuplicate(ComponentTargetDefinition def, String existing) {
+        return generic("Target class [" + def.getTargetClass() + "] defined for target type [" + def.getId() + "] is already defined for target [" + existing + "]");
     }
 
     public static PluginLoadingException loaderForUnknownModule(String moduleName) {

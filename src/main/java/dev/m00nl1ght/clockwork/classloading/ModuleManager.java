@@ -12,14 +12,13 @@ import java.util.Objects;
 
 public class ModuleManager {
 
-    private ModuleLayer moduleLayer;
+    private final ModuleLayer moduleLayer;
     private final Map<String, String> modules = new HashMap<>();
 
-    public void init(List<PluginDefinition> defs) {
+    public ModuleManager(List<PluginDefinition> defs) {
         defs.forEach(d -> findModules(d.getModuleFinder(), d));
         final var comp = defs.stream().map(PluginDefinition::getModuleFinder).filter(Objects::nonNull);
         final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
-        if (moduleLayer != null) throw new IllegalStateException();
         this.moduleLayer = resolveModules(ModuleLayer.boot(), finder);
     }
 
@@ -61,9 +60,9 @@ public class ModuleManager {
         return found.get();
     }
 
-    public Class<?> loadClassForPlugin(PluginContainer<?> plugin, String className) {
+    public Class<?> loadClassForPlugin(PluginContainer plugin, String className) {
         try {
-            final var clazz = plugin.getMainModule().getClassLoader().loadClass(className);
+            final var clazz = Class.forName(className, false, plugin.getMainModule().getClassLoader());
             final var md = clazz.getModule().getDescriptor().name();
             final var actPlugin = modules.get(md);
             if (!plugin.getId().equals(actPlugin))

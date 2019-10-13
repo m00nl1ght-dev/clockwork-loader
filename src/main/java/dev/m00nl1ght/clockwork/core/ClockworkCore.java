@@ -15,14 +15,22 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     private final List<PluginLoader> pluginLocators = new ArrayList<>();
     private final Map<String, ComponentTargetType<?>> componentTargets = new HashMap<>();
+    private final Map<Class<?>, ComponentTargetType<?>> classToTargetMap = new HashMap<>();
     private final Map<String, ComponentType<?, ?>> loadedComponents = new HashMap<>();
-    private final Map<String, PluginContainer<?>> loadedPlugins = new HashMap<>();
-    private final ModuleManager moduleManager = new ModuleManager();
+    private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
+    private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
+
+    private ModuleManager moduleManager;
+    private ComponentContainer<ClockworkCore> coreContainer;
 
     protected ClockworkCore() {}
     private static final ClockworkCore INSTANCE = new ClockworkCore();
     public static ClockworkCore getInstance() {
         return INSTANCE;
+    }
+
+    public void registerLocator(PluginLoader locator) {
+        pluginLocators.add(locator);
     }
 
     public void loadPlugins() {
@@ -43,41 +51,61 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
             for (var p : skips) LOGGER.error(p.format());
         }
 
-        moduleManager.init(depResolver.getPluginDefinitions());
+        moduleManager = new ModuleManager(depResolver.getPluginDefinitions());
         depResolver.getLoadingOrder().forEach(this::buildComponent);
-
+        componentTargets.values().forEach(ComponentTargetType::lockRegistry);
+        final var coreTarget = getTargetType(ClockworkCore.class);
+        if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
+        coreContainer = new ComponentContainer<>(coreTarget.get(), this);
+        coreContainer.initComponents();
     }
 
-    private void buildComponent(ComponentDefinition def) {
-        final var plugin = loadedPlugins.computeIfAbsent(def.getParent().getId(), p -> buildPlugin(def.getParent()));
-        final var compClass = moduleManager.loadClassForPlugin(plugin, def.getComponentClass());
-        final var target = componentTargets.get(def.getTargetId());
-        if (target == null) throw PluginLoadingException.componentMissingTarget(def);
-        final var component = new ComponentType<>(def, plugin, compClass, target);
-        loadedComponents.put(component.getId(), component);
-    }
-
-    private PluginContainer<?> buildPlugin(PluginDefinition def) {
+    private PluginContainer buildPlugin(PluginDefinition def) {
         final var mainModule = moduleManager.mainModuleFor(def);
-        final var plugin = new PluginContainer<>(def, mainModule);
+        final var plugin = new PluginContainer(def, mainModule);
         loadedPlugins.put(plugin.getId(), plugin);
         for (var targetDef : def.getTargetDefinitions()) buildComponentTarget(targetDef, plugin);
         return plugin;
     }
 
-    private void buildComponentTarget(ComponentTargetDefinition def, PluginContainer<?> parent) {
-        final var targetClass = moduleManager.loadClassForPlugin(parent, def.getTargetClass());
-        final var target = new ComponentTargetType<>(def, parent, targetClass);
-        componentTargets.put(target.getId(), target);
+    private void buildComponent(ComponentDefinition def) {
+        final var plugin = loadedPlugins.computeIfAbsent(def.getParent().getId(), p -> buildPlugin(def.getParent()));
+        final var compClass = moduleManager.loadClassForPlugin(plugin, def.getComponentClass());
+        final var existing = classToComponentMap.get(compClass);
+        if (existing != null) throw PluginLoadingException.componentClassDuplicate(def, existing.getId());
+        final var target = componentTargets.get(def.getTargetId());
+        if (target == null) throw PluginLoadingException.componentMissingTarget(def);
+        final var component = target.register(def, plugin, compClass);
+        loadedComponents.put(component.getId(), component);
+        classToComponentMap.put(compClass, component);
     }
 
-    public void registerLocator(PluginLoader locator) {
-        pluginLocators.add(locator);
+    private void buildComponentTarget(ComponentTargetDefinition def, PluginContainer parent) {
+        final var targetClass = moduleManager.loadClassForPlugin(parent, def.getTargetClass());
+        final var target = new ComponentTargetType<>(def, parent, targetClass);
+        final var existing = classToTargetMap.get(targetClass);
+        if (existing != null) throw PluginLoadingException.targetClassDuplicate(def, existing.getId());
+        componentTargets.put(target.getId(), target);
+        classToTargetMap.put(targetClass, target);
     }
 
     @Override
     public <C> Optional<C> getComponent(ComponentType<C, ClockworkCore> componentType) {
-        return Optional.empty(); //TODO
+        return coreContainer == null ? Optional.empty() : coreContainer.getComponent(componentType);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Optional<ComponentTargetType<T>> getTargetType(Class<T> targetClass) {
+        final var type = classToTargetMap.get(targetClass);
+        if (type == null) return Optional.empty();
+        return Optional.of((ComponentTargetType<T>) type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T> Optional<ComponentType<T, ?>> getComponentType(Class<T> componentClass) {
+        final var type = classToComponentMap.get(componentClass);
+        if (type == null) return Optional.empty();
+        return Optional.of((ComponentType<T, ?>) type);
     }
 
 }
