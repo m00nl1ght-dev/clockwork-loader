@@ -35,12 +35,12 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     public void loadPlugins() {
         final var depResolver = new DependencyResolver();
-        pluginLocators.forEach(e -> e.load(depResolver::addDefinition));
+        pluginLocators.forEach(e -> e.load(p -> depResolver.addDefinition(p, e)));
         depResolver.resolveAndSort();
 
         final var fatalProblems = depResolver.getFatalProblems();
         if (!fatalProblems.isEmpty()) {
-            LOGGER.error("The following fatal problems occured during dependency resolution:");
+            LOGGER.error("The following fatal problems occurred during dependency resolution:");
             for (var p : fatalProblems) LOGGER.error(p.format());
             throw PluginLoadingException.fatalLoadingProblems(fatalProblems);
         }
@@ -59,6 +59,8 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         coreContainer = new ComponentContainer<>(coreTarget.get(), this);
         coreContainer.initComponents();
     }
+
+
 
     private PluginContainer buildPlugin(PluginDefinition def) {
         final var mainModule = moduleManager.mainModuleFor(def);

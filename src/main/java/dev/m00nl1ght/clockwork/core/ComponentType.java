@@ -32,6 +32,10 @@ public final class ComponentType<C, T> {
         return version;
     }
 
+    public PluginContainer getParent() {
+        return parent;
+    }
+
     public ComponentTargetType<T> getTargetType() {
         return targetType;
     }
@@ -52,7 +56,7 @@ public final class ComponentType<C, T> {
         try {
             return factory == null ? null : factory.create(object);
         } catch (Exception e) {
-            throw new RuntimeException("An error occured trying to initialize component [" + getId() + "]", e);
+            throw new RuntimeException("An error occurred trying to initialize component [" + getId() + "]", e);
         }
     }
 

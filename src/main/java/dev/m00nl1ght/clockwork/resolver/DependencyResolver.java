@@ -1,12 +1,17 @@
 package dev.m00nl1ght.clockwork.resolver;
 
+import dev.m00nl1ght.clockwork.api.PluginLoader;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
 public class DependencyResolver {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     private final Map<String, Node> nodes = new LinkedHashMap<>();
     private final List<PluginDefinition> pluginDefinitions = new ArrayList<>();
@@ -14,8 +19,9 @@ public class DependencyResolver {
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
-    public void addDefinition(PluginDefinition def) {
+    public void addDefinition(PluginDefinition def, PluginLoader loader) {
         addDefinition(def, false);
+        LOGGER.debug("Plugin loader [" + loader.getName() + "] located plugin " + def.toString());
     }
 
     public void addDefinition(PluginDefinition def, boolean preloaded) {

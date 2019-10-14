@@ -8,4 +8,6 @@ public interface PluginLoader {
 
     void load(Consumer<PluginDefinition> pluginConsumer);
 
+    String getName();
+
 }
