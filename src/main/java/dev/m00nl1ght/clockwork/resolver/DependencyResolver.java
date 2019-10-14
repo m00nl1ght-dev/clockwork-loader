@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.resolver;
 
-import dev.m00nl1ght.clockwork.api.PluginLoader;
+import dev.m00nl1ght.clockwork.api.PluginLocator;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
@@ -19,7 +19,7 @@ public class DependencyResolver {
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
-    public void addDefinition(PluginDefinition def, PluginLoader loader) {
+    public void addDefinition(PluginDefinition def, PluginLocator loader) {
         addDefinition(def, false);
         LOGGER.debug("Plugin loader [" + loader.getName() + "] located plugin " + def.toString());
     }

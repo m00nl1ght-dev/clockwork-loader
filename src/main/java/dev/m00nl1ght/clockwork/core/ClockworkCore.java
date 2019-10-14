@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.api.PluginLoader;
+import dev.m00nl1ght.clockwork.api.PluginLocator;
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import dev.m00nl1ght.clockwork.util.PluginLoadingException;
@@ -13,7 +13,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final List<PluginLoader> pluginLocators = new ArrayList<>();
+    private final List<PluginLocator> pluginLocators = new ArrayList<>();
     private final Map<String, ComponentTargetType<?>> componentTargets = new HashMap<>();
     private final Map<Class<?>, ComponentTargetType<?>> classToTargetMap = new HashMap<>();
     private final Map<String, ComponentType<?, ?>> loadedComponents = new HashMap<>();
@@ -29,7 +29,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         return INSTANCE;
     }
 
-    public void registerLocator(PluginLoader locator) {
+    public void registerLocator(PluginLocator locator) {
         pluginLocators.add(locator);
     }
 
