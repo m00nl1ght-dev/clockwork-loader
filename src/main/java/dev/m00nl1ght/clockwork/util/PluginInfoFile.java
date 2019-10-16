@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.util;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
+import dev.m00nl1ght.clockwork.core.ComponentTargetDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 
@@ -57,7 +58,9 @@ public class PluginInfoFile {
         final Optional<List<UnmodifiableConfig>> targets = config.getOptional("targets");
         if (targets.isEmpty()) return;
         for (var conf : targets.get()) {
-            //TODO
+            final String id = conf.get("id");
+            final String targetClass = conf.get("class");
+            ComponentTargetDefinition.build(plugin, id, targetClass);
         }
     }
 

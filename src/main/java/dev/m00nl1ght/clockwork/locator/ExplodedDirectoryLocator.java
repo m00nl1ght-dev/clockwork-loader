@@ -47,6 +47,7 @@ public class ExplodedDirectoryLocator implements PluginLocator {
         if (modules.hasNext()) throw PluginLoadingException.generic(getName() + " found multiple java modules in directory [" + file + "]");
         final var plugin = builder.build();
         pluginInfo.populateComponents(plugin);
+        pluginInfo.populateTargets(plugin);
         pluginConsumer.accept(plugin);
     }
 

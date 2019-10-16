@@ -12,6 +12,7 @@ public final class ComponentTargetDefinition {
         this.parent = Preconditions.notNull(parent, "parent");
         this.id = parent.subId(Preconditions.notNull(id, "component target id"));
         this.targetClass = Preconditions.notNullOrBlank(targetClass, "targetClass");
+        this.parent.addTargetDefinition(this);
     }
 
     public static ComponentTargetDefinition build(PluginDefinition parent, String id, String targetClass) {
