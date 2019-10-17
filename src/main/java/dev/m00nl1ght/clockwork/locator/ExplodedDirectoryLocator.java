@@ -9,11 +9,13 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.lang.module.ModuleFinder;
+import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class ExplodedDirectoryLocator implements PluginLocator {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final String INFO_FILE_PATH = "META-INF/plugin.toml";
 
     private final File lookupPath;
 
@@ -28,19 +30,21 @@ public class ExplodedDirectoryLocator implements PluginLocator {
 
     @Override
     public void load(Consumer<PluginDefinition> pluginConsumer) {
-
+        if (lookupPath.isDirectory() && scanDir(lookupPath, pluginConsumer)) return;
+        final var list = lookupPath.listFiles();
+        if (list != null) Arrays.stream(list).filter(File::isDirectory).forEach(d -> scanDir(d, pluginConsumer));
     }
 
-    private void scanDir(File file, Consumer<PluginDefinition> pluginConsumer) {
-        final var infoFile = new File(file, "META-INF/plugin.toml");
-        if (!file.exists()) return;
+    private boolean scanDir(File file, Consumer<PluginDefinition> pluginConsumer) {
+        final var infoFile = new File(file, INFO_FILE_PATH);
+        if (!file.exists()) return false;
         final var pluginInfo = PluginInfoFile.load(infoFile);
         final var builder = pluginInfo.populatePluginBuilder();
         final var moduleFinder = ModuleFinder.of(file.toPath());
         final var modules = moduleFinder.findAll().iterator();
         if (!modules.hasNext()) {
             LOGGER.debug(getName() + " found plugin.toml, but no java module in dir [" + file + "], ignoring");
-            return;
+            return true;
         }
 
         builder.moduleFinder(moduleFinder, modules.next().descriptor().name());
@@ -49,6 +53,7 @@ public class ExplodedDirectoryLocator implements PluginLocator {
         pluginInfo.populateComponents(plugin);
         pluginInfo.populateTargets(plugin);
         pluginConsumer.accept(plugin);
+        return true;
     }
 
     @Override
