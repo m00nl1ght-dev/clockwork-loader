@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.api.PluginLocator;
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
+import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import dev.m00nl1ght.clockwork.util.PluginLoadingException;
 import org.apache.logging.log4j.LogManager;
@@ -23,10 +24,13 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     private ModuleManager moduleManager;
     private ComponentContainer<ClockworkCore> coreContainer;
 
-    protected ClockworkCore() {}
     private static final ClockworkCore INSTANCE = new ClockworkCore();
     public static ClockworkCore getInstance() {
         return INSTANCE;
+    }
+
+    protected ClockworkCore() {
+        registerLocator(new BootLayerLocator());
     }
 
     public void registerLocator(PluginLocator locator) {

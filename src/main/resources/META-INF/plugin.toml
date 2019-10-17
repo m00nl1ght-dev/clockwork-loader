@@ -1,0 +1,12 @@
+plugin_id = "clockwork"
+display_name = "Clockwork Plugin Loader"
+version = "1.0"
+authors = ["m00nl1ght"]
+main_class = "dev.m00nl1ght.clockwork.core.plugin.CWLPlugin"
+description = '''
+Universal plugin framework for Java
+'''
+
+[[target]]
+id = "core"
+class = "dev.m00nl1ght.clockwork.core.ClockworkCore"

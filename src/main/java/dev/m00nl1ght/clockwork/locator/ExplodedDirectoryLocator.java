@@ -2,20 +2,19 @@ package dev.m00nl1ght.clockwork.locator;
 
 import dev.m00nl1ght.clockwork.api.PluginLocator;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
-import dev.m00nl1ght.clockwork.util.PluginInfoFile;
 import dev.m00nl1ght.clockwork.util.PluginLoadingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.lang.module.ModuleFinder;
+import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
 public class ExplodedDirectoryLocator implements PluginLocator {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String INFO_FILE_PATH = "META-INF/plugin.toml";
 
     private final File lookupPath;
 
@@ -36,9 +35,9 @@ public class ExplodedDirectoryLocator implements PluginLocator {
     }
 
     private boolean scanDir(File file, Consumer<PluginDefinition> pluginConsumer) {
-        final var infoFile = new File(file, INFO_FILE_PATH);
+        final var infoFile = Path.of(file.getPath(), PluginInfoFile.INFO_FILE_DIR, PluginInfoFile.INFO_FILE_NAME).toFile();
         if (!file.exists()) return false;
-        final var pluginInfo = PluginInfoFile.load(infoFile);
+        final var pluginInfo = PluginInfoFile.load(infoFile.toPath());
         final var builder = pluginInfo.populatePluginBuilder();
         final var moduleFinder = ModuleFinder.of(file.toPath());
         final var modules = moduleFinder.findAll().iterator();
