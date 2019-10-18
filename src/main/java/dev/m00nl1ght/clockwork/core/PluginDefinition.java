@@ -26,9 +26,8 @@ public final class PluginDefinition {
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
         this.authors = Collections.unmodifiableList(Preconditions.notNull(authors, "authors"));
-        this.mainModule = Preconditions.notNullOrBlank(mainModule, "mainModule");
-        this.components.add(mainComponent);
         this.moduleFinder = moduleFinder;
+        this.mainModule = mainModule;
     }
 
     public String getId() {
@@ -51,6 +50,10 @@ public final class PluginDefinition {
         return moduleFinder;
     }
 
+    /**
+     * Returns the name of the java module containing this plugin,
+     * or {@code null} for plugins that are loaded from the boot layer.
+     */
     public String getMainModule() {
         return mainModule;
     }

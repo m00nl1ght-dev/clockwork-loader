@@ -46,7 +46,9 @@ public class ModuleManager {
     }
 
     public Module mainModuleFor(PluginDefinition def) {
-        final var found = moduleLayer.findModule(def.getMainModule());
+        final var moduleName = def.getMainModule();
+        if (moduleName == null) return null;
+        final var found = moduleLayer.findModule(moduleName);
         if (found.isEmpty()) throw PluginLoadingException.pluginMainModuleNotFound(def);
 
         final var name = found.get().getName();
@@ -62,8 +64,9 @@ public class ModuleManager {
 
     public Class<?> loadClassForPlugin(PluginContainer plugin, String className) {
         try {
-            final var clazz = Class.forName(className, false, plugin.getMainModule().getClassLoader());
-            final var md = clazz.getModule().getDescriptor().name();
+            final var module = plugin.getMainModule();
+            final var clazz = Class.forName(className, false, module == null ? ClassLoader.getSystemClassLoader() : module.getClassLoader());
+            final var md = clazz.getModule().getDescriptor().name(); // TODO null check descriptor
             final var actPlugin = modules.get(md);
             if (!plugin.getId().equals(actPlugin))
                 throw PluginLoadingException.componentClassIllegal(className, plugin, actPlugin, md);

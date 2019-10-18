@@ -20,7 +20,7 @@ public class PluginContainer {
         this.displayName = definition.getDisplayName();
         this.description = definition.getDescription();
         this.authors = definition.getAuthors();
-        this.mainModule = Preconditions.notNull(mainModule, "module");
+        this.mainModule = mainModule;
     }
 
     public String getId() {
@@ -43,6 +43,10 @@ public class PluginContainer {
         return authors;
     }
 
+    /**
+     * Returns the java module containing this plugin,
+     * or {@code null} for plugins that are loaded from the boot layer.
+     */
     public Module getMainModule() {
         return mainModule;
     }

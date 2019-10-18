@@ -58,7 +58,7 @@ public class JarFileLocator implements PluginLocator {
         } catch (PluginLoadingException e) {
             throw e;
         } catch (Exception e) {
-            LOGGER.warn("Failed to read jar file " + file, e);
+            throw PluginLoadingException.generic("Failed to read jar file " + file, e);
         }
     }
 
