@@ -1,18 +1,2 @@
-plugins {
-    id 'java'
-}
 
-group 'dev.m00nl1ght'
 version '0.1'
-
-sourceCompatibility = 12
-
-repositories {
-    mavenCentral()
-}
-
-dependencies {
-    compile group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
-    compile group: 'com.electronwill.night-config', name: 'core', version: '3.6.0'
-    compile group: 'com.electronwill.night-config', name: 'toml', version: '3.6.0'
-}

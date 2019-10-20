@@ -1,3 +1,4 @@
 rootProject.name = 'clockwork'
-include 'example-plugin'
-
+include 'core'
+include 'test-env'
+include 'test-plugin'

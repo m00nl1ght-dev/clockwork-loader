@@ -1,0 +1,26 @@
+
+plugins {
+    id 'java'
+    id 'application'
+    id 'org.javamodularity.moduleplugin' version '1.6.0'
+}
+
+version rootProject.version
+mainClassName = "$moduleName/dev.m00nl1ght.clockwork.test.TestLauncher"
+
+sourceCompatibility = 12
+targetCompatibility = 12
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
+    implementation project(':core')
+}
+
+run {
+    workingDir rootProject.rootDir
+    dependsOn(':test-plugin:build')
+}
