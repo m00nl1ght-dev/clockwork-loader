@@ -1,19 +1,20 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
-import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
+import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.Optional;
 
 public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final List<PluginLocator> pluginLocators = new ArrayList<>();
     private final Map<String, ComponentTargetType<?>> componentTargets = new HashMap<>();
     private final Map<Class<?>, ComponentTargetType<?>> classToTargetMap = new HashMap<>();
     private final Map<String, ComponentType<?, ?>> loadedComponents = new HashMap<>();
@@ -28,17 +29,9 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         return INSTANCE;
     }
 
-    protected ClockworkCore() {
-        registerLocator(new BootLayerLocator());
-    }
-
-    public void registerLocator(PluginLocator locator) {
-        pluginLocators.add(locator);
-    }
-
-    public void loadPlugins() {
+    public void loadPlugins(Collection<PluginLocator> locators) {
         final var depResolver = new DependencyResolver();
-        pluginLocators.forEach(e -> e.load(p -> depResolver.addDefinition(p, e)));
+        locators.forEach(e -> e.findAll().forEach(p -> depResolver.addDefinition(p, e)));
         depResolver.resolveAndSort();
 
         final var fatalProblems = depResolver.getFatalProblems();

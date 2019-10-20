@@ -9,17 +9,17 @@ import java.lang.module.ModuleReference;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-public class BootLayerLocator implements PluginLocator {
+public class BootLayerLocator extends AbstractCachedLocator {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     @Override
-    public void load(Consumer<PluginDefinition> pluginConsumer) {
+    protected void scan(Consumer<PluginDefinition> pluginConsumer) {
         final var modules = ModuleLayer.boot().configuration().modules();
-        for (var module : modules) load(module.reference(), pluginConsumer);
+        for (var module : modules) scan(module.reference(), pluginConsumer);
     }
 
-    private void load(ModuleReference moduleReference, Consumer<PluginDefinition> pluginConsumer) {
+    private void scan(ModuleReference moduleReference, Consumer<PluginDefinition> pluginConsumer) {
         final var moduleName = moduleReference.descriptor().name();
         if (moduleReference.location().isEmpty()) return;
         try {

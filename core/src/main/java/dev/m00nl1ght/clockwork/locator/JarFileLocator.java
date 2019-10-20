@@ -10,7 +10,7 @@ import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
 import java.util.function.Consumer;
 
-public class JarFileLocator implements PluginLocator {
+public class JarFileLocator extends AbstractCachedLocator {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -26,7 +26,7 @@ public class JarFileLocator implements PluginLocator {
     }
 
     @Override
-    public void load(Consumer<PluginDefinition> pluginConsumer) {
+    protected void scan(Consumer<PluginDefinition> pluginConsumer) {
         final var list = lookupPath.listFiles();
         if (list != null) {
             for (var file : list) scanFile(file.toPath(), pluginConsumer);

@@ -11,7 +11,7 @@ import java.nio.file.Path;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class ExplodedDirectoryLocator implements PluginLocator {
+public class ExplodedDirectoryLocator extends AbstractCachedLocator {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -27,7 +27,7 @@ public class ExplodedDirectoryLocator implements PluginLocator {
     }
 
     @Override
-    public void load(Consumer<PluginDefinition> pluginConsumer) {
+    protected void scan(Consumer<PluginDefinition> pluginConsumer) {
         if (lookupPath.isDirectory() && scanDir(lookupPath.toPath(), pluginConsumer)) return;
         final var list = lookupPath.listFiles();
         if (list != null) Arrays.stream(list).filter(File::isDirectory).forEach(d -> scanDir(d.toPath(), pluginConsumer));
