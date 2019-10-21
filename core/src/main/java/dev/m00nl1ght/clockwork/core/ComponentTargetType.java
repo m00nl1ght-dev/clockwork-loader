@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.event.EventSystem;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.*;
@@ -9,10 +10,12 @@ public final class ComponentTargetType<T> {
     private final String id;
     private final Class<T> targetClass;
     private final PluginContainer parent;
+    private boolean lockRegistry = false;
+    private final EventSystem<T> eventSystem;
     private final Map<String, ComponentType<?, T>> components = new HashMap<>();
     private final List<ComponentType<?, T>> compList = new ArrayList<>();
     private final List<ComponentType<?, T>> compListReadOnly = Collections.unmodifiableList(compList);
-    private boolean lockRegistry = false;
+
 
     public ComponentTargetType(ComponentTargetDefinition definition, PluginContainer parent, Class<T> targetClass) {
         this.parent = Preconditions.notNull(parent, "parent");
@@ -20,6 +23,7 @@ public final class ComponentTargetType<T> {
         Preconditions.verifyType(targetClass, ComponentTarget.class, "targetClass");
         this.targetClass = Preconditions.notNullAnd(targetClass, o -> definition.getTargetClass().equals(o.getCanonicalName()), "targetClass");
         this.id = definition.getId();
+        this.eventSystem = new EventSystem<>();
     }
 
     protected <C> ComponentType<C, T> register(ComponentDefinition def, PluginContainer plugin, Class<C> compClass) {

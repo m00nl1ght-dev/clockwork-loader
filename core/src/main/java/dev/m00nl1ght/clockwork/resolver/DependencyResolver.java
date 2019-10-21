@@ -21,7 +21,7 @@ public class DependencyResolver {
 
     public void addDefinition(PluginDefinition def, PluginLocator loader) {
         addDefinition(def, false);
-        LOGGER.debug("Plugin loader [" + loader.getName() + "] located plugin " + def.toString());
+        LOGGER.debug(loader.getName() + " located plugin [" + def.toString() + "]");
     }
 
     public void addDefinition(PluginDefinition def, boolean preloaded) {

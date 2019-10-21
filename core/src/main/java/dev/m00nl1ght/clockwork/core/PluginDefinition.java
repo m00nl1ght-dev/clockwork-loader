@@ -102,7 +102,7 @@ public final class PluginDefinition {
 
     @Override
     public String toString() {
-        return displayName + " [" + getId() + ":" + getVersion() + "]";
+        return getId() + ":" + getVersion();
     }
 
     public static Builder builder(String pluginId) {
