@@ -5,3 +5,5 @@
 /test-plugin/build/
 /.idea/
 /out/
+
+.attach_pid*

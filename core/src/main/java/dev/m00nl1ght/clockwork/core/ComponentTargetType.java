@@ -23,7 +23,7 @@ public final class ComponentTargetType<T> {
         Preconditions.verifyType(targetClass, ComponentTarget.class, "targetClass");
         this.targetClass = Preconditions.notNullAnd(targetClass, o -> definition.getTargetClass().equals(o.getCanonicalName()), "targetClass");
         this.id = definition.getId();
-        this.eventSystem = new EventSystem<>();
+        this.eventSystem = new EventSystem<>(componentTarget);
     }
 
     protected <C> ComponentType<C, T> register(ComponentDefinition def, PluginContainer plugin, Class<C> compClass) {
