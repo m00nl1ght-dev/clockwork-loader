@@ -18,8 +18,8 @@ public class EventListener<C, E, T extends ComponentTarget<T>> {
     }
 
     public void accept(E event, T object) {
-        final var comp = eventType.getSystem().getComponentTarget().getComponent(component);
-        comp.ifPresent(c -> consumer.accept(c, event));
+        final var comp = object.getComponent(component);
+        if (comp != null) consumer.accept(comp, event);
     }
 
 }

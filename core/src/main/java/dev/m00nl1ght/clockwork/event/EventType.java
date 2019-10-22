@@ -2,23 +2,26 @@ package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 
+import java.util.ArrayList;
 import java.util.List;
 
-@SuppressWarnings("unchecked")
 public class EventType<E, T extends ComponentTarget<T>> {
 
-    private final EventListener[] listeners;
+    private final List<EventListener<?, E, T>> listeners = new ArrayList<>();
     private final EventSystem<T> system;
 
-    protected EventType(EventSystem<T> system, List<EventListener<?, E, T>> listeners) {
-        this.listeners = listeners.toArray(EventListener[]::new);
+    protected EventType(EventSystem<T> system) {
         this.system = system;
     }
 
     public void post(E event, T object) {
         for (var eventListener : listeners) {
-            ((EventListener<?, E, T>) eventListener).accept(event, object);
+            eventListener.accept(event, object);
         }
+    }
+
+    protected void registerListener(EventListener<?, E, T> listener) {
+        listeners.add(listener);
     }
 
     public EventSystem<T> getSystem() {

@@ -85,8 +85,8 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     }
 
     @Override
-    public <C> Optional<C> getComponent(ComponentType<C, ClockworkCore> componentType) {
-        return coreContainer == null ? Optional.empty() : coreContainer.getComponent(componentType);
+    public <C> C getComponent(ComponentType<C, ClockworkCore> componentType) {
+        return coreContainer == null ? null : coreContainer.getComponent(componentType);
     }
 
     @SuppressWarnings("unchecked")

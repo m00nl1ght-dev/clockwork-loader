@@ -2,8 +2,6 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-import java.util.Optional;
-
 public class ComponentContainer<T> {
 
     private final ComponentTargetType<T> targetType;
@@ -21,11 +19,11 @@ public class ComponentContainer<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public <C> Optional<C> getComponent(ComponentType<C, T> componentType) {
-        if (componentType.getTargetType() != this.targetType) return Optional.empty();
-        Object comp = components[componentType.getInternalID()];
-        if (comp == null) return Optional.empty();
-        return Optional.of((C) comp);
+    public <C> C getComponent(ComponentType<C, T> componentType) {
+        if (componentType.getTargetType() != this.targetType) return null;
+        var comp = components[componentType.getInternalID()];
+        if (comp == null) return null;
+        return (C) comp;
     }
 
     protected <C> void setComponent(ComponentType<C, T> componentType, C value) {
