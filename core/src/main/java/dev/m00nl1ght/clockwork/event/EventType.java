@@ -1,31 +1,36 @@
 package dev.m00nl1ght.clockwork.event;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.core.ComponentTargetType;
+import dev.m00nl1ght.clockwork.core.ComponentType;
 
-import java.util.ArrayList;
-import java.util.List;
+import java.util.function.BiConsumer;
 
-public class EventType<E, T extends ComponentTarget<T>> {
+public class EventType<E, T> {
 
-    private final List<EventListener<?, E, T>> listeners = new ArrayList<>();
-    private final EventSystem<T> system;
+    private EventListener<?, E, T> listenerChainFirst;
+    private EventListener<?, E, T> listenerChainLast;
+    private final ComponentTargetType<T> target;
 
-    protected EventType(EventSystem<T> system) {
-        this.system = system;
+    public EventType(ComponentTargetType<T> target) {
+        this.target = target;
     }
 
     public void post(E event, T object) {
-        for (var eventListener : listeners) {
-            eventListener.accept(event, object);
+        var c = listenerChainFirst;
+        while (c != null) {
+            c.accept(event, object);
+            c = c.next;
         }
     }
 
-    protected void registerListener(EventListener<?, E, T> listener) {
-        listeners.add(listener);
+    public final synchronized <C> void registerListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
+        final var last = new EventListener<>(this, componentType, consumer);
+        listenerChainLast.next = last;
+        listenerChainLast = last;
     }
 
-    public EventSystem<T> getSystem() {
-        return system;
+    public final ComponentTargetType<T> getTarget() {
+        return target;
     }
 
 }

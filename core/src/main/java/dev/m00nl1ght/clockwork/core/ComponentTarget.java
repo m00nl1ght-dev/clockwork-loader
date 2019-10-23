@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import java.util.Optional;
 
-public interface ComponentTarget<T extends ComponentTarget<T>> {
+public interface ComponentTarget<T> {
 
     <C> C getComponent(ComponentType<C, T> componentType);
 
