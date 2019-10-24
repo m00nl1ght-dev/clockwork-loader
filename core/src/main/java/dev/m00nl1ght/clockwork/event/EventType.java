@@ -10,17 +10,20 @@ public class EventType<E, T> {
     private EventListener<?, E, T> listenerChainFirst;
     private EventListener<?, E, T> listenerChainLast;
     private final ComponentTargetType<T> target;
+    private final Class<E> eventClass;
 
-    public EventType(ComponentTargetType<T> target) {
+    public EventType(ComponentTargetType<T> target, Class<E> eventClass) {
         this.target = target;
+        this.eventClass = eventClass;
     }
 
-    public void post(E event, T object) {
+    public E post(T object, E event) {
         var c = listenerChainFirst;
         while (c != null) {
             c.accept(event, object);
             c = c.next;
         }
+        return event;
     }
 
     public final synchronized <C> void registerListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
@@ -31,6 +34,10 @@ public class EventType<E, T> {
 
     public final ComponentTargetType<T> getTarget() {
         return target;
+    }
+
+    public Class<E> getEventClass() {
+        return eventClass;
     }
 
 }

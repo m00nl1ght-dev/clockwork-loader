@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.lang.module.ModuleFinder;
@@ -22,7 +21,7 @@ public final class PluginDefinition {
     private final String mainModule;
 
     public PluginDefinition(String pluginId, String version, String mainClass, String displayName, String description, List<String> authors, List<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
-        this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, CWLPlugin.CORE_TARGET_ID, dependencies, false);
+        this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, ClockworkCore.CORE_TARGET_ID, dependencies, false);
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
         this.authors = Collections.unmodifiableList(Preconditions.notNull(authors, "authors"));

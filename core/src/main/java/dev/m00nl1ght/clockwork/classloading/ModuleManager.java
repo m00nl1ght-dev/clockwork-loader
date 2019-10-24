@@ -5,14 +5,18 @@ import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 
 import java.lang.module.ModuleFinder;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.lang.module.ModuleReference;
+import java.lang.module.ResolvedModule;
+import java.net.URI;
+import java.net.URL;
+import java.net.URLClassLoader;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public class ModuleManager {
 
     private final ModuleLayer moduleLayer;
+    private ClassLoader urlLoader;
     private final Map<String, String> modules = new HashMap<>();
 
     public ModuleManager(List<PluginDefinition> defs) {
@@ -33,17 +37,28 @@ public class ModuleManager {
     private ModuleLayer resolveModules(ModuleLayer parent, ModuleFinder finder) {
         try {
             final var config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
+            final var urls = moduleLayer.configuration().modules().stream()
+                    .map(ResolvedModule::reference).map(ModuleReference::location)
+                    .filter(Optional::isPresent).map(Optional::get).map(this::transformURI).collect(Collectors.toList());
+            urlLoader = new URLClassLoader("CWLPluginLayer", urls.toArray(URL[]::new), ClassLoader.getSystemClassLoader());
             return parent.defineModules(config, this::createClassLoaderFor);
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, null);
         }
     }
 
+    private URL transformURI(URI uri) {
+        try {
+            return uri.toURL();
+        } catch (Exception e) {
+            throw new RuntimeException("wut?", e);
+        }
+    }
+
     private ClassLoader createClassLoaderFor(String moduleName) {
         final var pluginId = modules.get(moduleName);
         if (pluginId == null) throw PluginLoadingException.loaderForUnknownModule(moduleName);
-        // TODO implement custom classloader for plugins
-        return new PluginClassloader(pluginId, ClassLoader.getSystemClassLoader());
+        return new PluginClassloader(pluginId, urlLoader);
     }
 
     public Module mainModuleFor(PluginDefinition def) {

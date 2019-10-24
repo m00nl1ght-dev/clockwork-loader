@@ -33,9 +33,10 @@ public final class ComponentTargetType<T> {
         return componentType;
     }
 
-    public void registerEvent(Class<?> eventClass) {
-        final var prev = events.putIfAbsent(eventClass, new EventType<>(this));
-        if (prev != null) throw PluginLoadingException.generic("Event class [" + eventClass.getSimpleName() + "] already registered");
+    public <E> EventType<E, T> registerEvent(Class<E> eventClass) {
+        final var evt = new EventType<>(this, eventClass);
+        if (events.putIfAbsent(eventClass, evt) != null) throw PluginLoadingException.generic("Event class [" + eventClass.getSimpleName() + "] already registered");
+        return evt;
     }
 
     public <E, C> void registerEventListener(Class<E> eventClass, ComponentType<C, T> component, BiConsumer<C, E> listener) {

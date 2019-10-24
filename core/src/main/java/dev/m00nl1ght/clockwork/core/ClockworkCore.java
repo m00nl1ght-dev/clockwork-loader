@@ -14,6 +14,7 @@ import java.util.Optional;
 public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    public static final String CORE_TARGET_ID = "clockwork:core";
 
     private final Map<String, ComponentTargetType<?>> componentTargets = new HashMap<>();
     private final Map<Class<?>, ComponentTargetType<?>> classToTargetMap = new HashMap<>();
@@ -24,12 +25,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     private ModuleManager moduleManager;
     private ComponentContainer<ClockworkCore> coreContainer;
 
-    private static final ClockworkCore INSTANCE = new ClockworkCore();
-    public static ClockworkCore getInstance() {
-        return INSTANCE;
-    }
-
-    public void loadPlugins(Collection<PluginLocator> locators) {
+    public synchronized void loadPlugins(Collection<PluginLocator> locators) {
         final var depResolver = new DependencyResolver();
         locators.forEach(e -> e.findAll().forEach(p -> depResolver.addDefinition(p, e)));
         depResolver.resolveAndSort();
@@ -50,6 +46,9 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         moduleManager = new ModuleManager(depResolver.getPluginDefinitions());
         depResolver.getLoadingOrder().forEach(this::buildComponent);
         componentTargets.values().forEach(ComponentTargetType::lockRegistry);
+    }
+
+    public synchronized void constructPlugins() {
         final var coreTarget = getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
         coreContainer = new ComponentContainer<>(coreTarget.get(), this);
@@ -97,10 +96,18 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<ComponentType<T, ?>> getComponentType(Class<T> componentClass) {
+    public <C, T> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
         final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
-        return Optional.of((ComponentType<T, ?>) type);
+        if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
+        return Optional.of((ComponentType<C, T>) type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C> Optional<ComponentType<C, ?>> getComponentType(Class<C> componentClass) {
+        final var type = classToComponentMap.get(componentClass);
+        if (type == null) return Optional.empty();
+        return Optional.of((ComponentType<C, ?>) type);
     }
 
 }
