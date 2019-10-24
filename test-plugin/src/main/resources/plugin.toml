@@ -6,3 +6,11 @@ main_class = "dev.m00nl1ght.clockwork.test.plugin.TestPlugin"
 description = '''
 Test Plugin for Dev environment
 '''
+
+[[dependency]]
+id = "test-env"
+
+[[component]]
+id = "test-component"
+class = "dev.m00nl1ght.clockwork.test.plugin.TestComponent"
+target = "test-env:test-target"

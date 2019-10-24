@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.resolver;
 
+import dev.m00nl1ght.clockwork.core.PluginLoadingProblem;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
@@ -30,7 +31,7 @@ public class DependencyResolver {
     }
 
     private void addDefinition(ComponentDefinition def, boolean preloaded) {
-        Node existing = nodes.get(def.getId());
+        final var existing = nodes.get(def.getId());
         if (existing != null) addProblem(PluginLoadingProblem.duplicateIdFound(def, existing.def));
         nodes.put(def.getId(), new Node(def, preloaded));
     }
@@ -41,8 +42,8 @@ public class DependencyResolver {
     }
 
     private void findDeps(Node node) {
-        for (DependencyDefinition dep : node.def.getDependencies()) {
-            Node depNode = nodes.get(dep.getComponentId());
+        for (var dep : node.def.getDependencies()) {
+            final var depNode = nodes.get(dep.getComponentId());
             if (depNode != null && depNode.flag != Flag.SKIPPED && dep.acceptsVersion(depNode.def.getVersion())) {
                 depNode.depOf.add(node);
             } else {
@@ -53,7 +54,7 @@ public class DependencyResolver {
 
     private void missingDep(Node node, DependencyDefinition dep, Node depNode) {
         if (node.flag == Flag.SKIPPED) return; node.flag = Flag.SKIPPED;
-        boolean depSkipped = depNode != null && depNode.flag == Flag.SKIPPED;
+        final var depSkipped = depNode != null && depNode.flag == Flag.SKIPPED;
         addProblem(PluginLoadingProblem.depNotFound(node.def, dep, depNode == null ? null : depNode.def, depSkipped));
         // Also remove any components that are already processed and depend on the skipped one
         for (var nextSkip : node.depOf) {

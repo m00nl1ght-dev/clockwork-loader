@@ -9,6 +9,13 @@ version rootProject.version
 sourceCompatibility = 12
 targetCompatibility = 12
 
+sourceSets {
+    main {
+        output.resourcesDir = file('build/bin')
+        java.outputDir = file('build/bin')
+    }
+}
+
 repositories {
     mavenCentral()
 }

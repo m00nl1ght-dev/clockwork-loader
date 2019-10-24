@@ -5,13 +5,12 @@ import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 
 import java.lang.module.ModuleFinder;
-import java.lang.module.ModuleReference;
-import java.lang.module.ResolvedModule;
 import java.net.URI;
 import java.net.URL;
-import java.net.URLClassLoader;
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ModuleManager {
 
@@ -37,11 +36,7 @@ public class ModuleManager {
     private ModuleLayer resolveModules(ModuleLayer parent, ModuleFinder finder) {
         try {
             final var config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
-            final var urls = moduleLayer.configuration().modules().stream()
-                    .map(ResolvedModule::reference).map(ModuleReference::location)
-                    .filter(Optional::isPresent).map(Optional::get).map(this::transformURI).collect(Collectors.toList());
-            urlLoader = new URLClassLoader("CWLPluginLayer", urls.toArray(URL[]::new), ClassLoader.getSystemClassLoader());
-            return parent.defineModules(config, this::createClassLoaderFor);
+            return parent.defineModulesWithOneLoader(config, ClassLoader.getSystemClassLoader());
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, null);
         }
@@ -53,12 +48,6 @@ public class ModuleManager {
         } catch (Exception e) {
             throw new RuntimeException("wut?", e);
         }
-    }
-
-    private ClassLoader createClassLoaderFor(String moduleName) {
-        final var pluginId = modules.get(moduleName);
-        if (pluginId == null) throw PluginLoadingException.loaderForUnknownModule(moduleName);
-        return new PluginClassloader(pluginId, urlLoader);
     }
 
     public Module mainModuleFor(PluginDefinition def) {

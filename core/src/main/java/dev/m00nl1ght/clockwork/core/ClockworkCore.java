@@ -14,7 +14,8 @@ import java.util.Optional;
 public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    public static final String CORE_TARGET_ID = "clockwork:core";
+    public static final String CORE_PLUGIN_ID = "clockwork";
+    public static final String CORE_TARGET_ID = CORE_PLUGIN_ID + ":core";
 
     private final Map<String, ComponentTargetType<?>> componentTargets = new HashMap<>();
     private final Map<Class<?>, ComponentTargetType<?>> classToTargetMap = new HashMap<>();

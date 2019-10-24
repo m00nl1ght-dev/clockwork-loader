@@ -1,7 +1,4 @@
-package dev.m00nl1ght.clockwork.resolver;
-
-import dev.m00nl1ght.clockwork.core.ComponentDefinition;
-import dev.m00nl1ght.clockwork.core.DependencyDefinition;
+package dev.m00nl1ght.clockwork.core;
 
 public abstract class PluginLoadingProblem {
 

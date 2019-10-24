@@ -2,9 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 
 public final class ComponentDefinition {
 
@@ -17,13 +15,13 @@ public final class ComponentDefinition {
 
     private final boolean optional;
 
-    public ComponentDefinition(PluginDefinition parent, String id, String version, String componentClass, String targetId, List<DependencyDefinition> dependencies, boolean optional) {
+    protected ComponentDefinition(PluginDefinition parent, String id, String version, String componentClass, String targetId, Collection<DependencyDefinition> dependencies, boolean optional) {
         this.parent = Preconditions.notNull(parent, "parent");
         this.id = parent.subId(Preconditions.notNull(id, "component id"));
         this.version = Preconditions.notNullOrBlank(version, "version"); //TODO verify semver
         this.componentClass = Preconditions.notNullOrBlank(componentClass, "componentClass");
         this.targetId = Preconditions.notNullOrBlank(targetId, "targetId");
-        this.dependencies = Collections.unmodifiableList(Preconditions.notNull(dependencies, "dependencies"));
+        this.dependencies = List.copyOf(Preconditions.notNull(dependencies, "dependencies"));
         this.optional = optional;
         this.parent.addComponent(this);
     }
@@ -65,13 +63,18 @@ public final class ComponentDefinition {
         return new Builder(plugin, componentId);
     }
 
+    private static String pluginId(String id) {
+        final var i = id.indexOf(':');
+        return i < 0 ? id : id.substring(0, i);
+    }
+
     public static class Builder {
 
         protected final PluginDefinition plugin;
         protected final String componentId;
         protected String componentClass;
         protected String targetId;
-        protected final List<DependencyDefinition> dependencies = new ArrayList<>();
+        protected final Map<String, DependencyDefinition> dependencies = new HashMap<>();
         protected boolean optional = false;
 
         protected Builder(PluginDefinition plugin, String componentId) {
@@ -80,7 +83,9 @@ public final class ComponentDefinition {
         }
 
         public ComponentDefinition build() {
-            return new ComponentDefinition(plugin, componentId, plugin.getVersion(), componentClass, targetId, dependencies, optional);
+            dependencies.computeIfAbsent(plugin.getId(), DependencyDefinition::build);
+            if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDefinition::build);
+            return new ComponentDefinition(plugin, componentId, plugin.getVersion(), componentClass, targetId, dependencies.values(), optional);
         }
 
         public Builder component(String componentClass) {
@@ -94,7 +99,8 @@ public final class ComponentDefinition {
         }
 
         public Builder dependency(DependencyDefinition dependency) {
-            this.dependencies.add(dependency);
+            final var prev = this.dependencies.putIfAbsent(dependency.getComponentId(), dependency);
+            if (prev != null) throw PluginLoadingException.generic("Duplicate dependency: [] Already present: []", dependency, prev);
             return this;
         }
 

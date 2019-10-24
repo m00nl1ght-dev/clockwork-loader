@@ -3,10 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.lang.module.ModuleFinder;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
+import java.util.*;
 import java.util.stream.Stream;
 
 public final class PluginDefinition {
@@ -20,11 +17,11 @@ public final class PluginDefinition {
     private final ModuleFinder moduleFinder;
     private final String mainModule;
 
-    public PluginDefinition(String pluginId, String version, String mainClass, String displayName, String description, List<String> authors, List<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
+    protected PluginDefinition(String pluginId, String version, String mainClass, String displayName, String description, List<String> authors, Collection<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
         this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, ClockworkCore.CORE_TARGET_ID, dependencies, false);
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
-        this.authors = Collections.unmodifiableList(Preconditions.notNull(authors, "authors"));
+        this.authors = List.copyOf(Preconditions.notNull(authors, "authors"));
         this.mainModule = Preconditions.notNullOrBlank(mainModule, "mainModule");
         this.moduleFinder = moduleFinder;
     }
@@ -118,7 +115,7 @@ public final class PluginDefinition {
         protected ModuleFinder moduleFinder;
         protected String mainModule;
         protected final List<String> authors = new ArrayList<>();
-        protected final List<DependencyDefinition> dependencies = new ArrayList<>();
+        protected final Map<String, DependencyDefinition> dependencies = new HashMap<>();
 
         protected Builder(String pluginId) {
             this.id = pluginId;
@@ -126,7 +123,8 @@ public final class PluginDefinition {
         }
 
         public PluginDefinition build() {
-            return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies, moduleFinder, mainModule);
+            if (!id.equals(ClockworkCore.CORE_PLUGIN_ID)) dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDefinition::build);
+            return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies.values(), moduleFinder, mainModule);
         }
 
         public Builder version(String version) {
@@ -166,7 +164,8 @@ public final class PluginDefinition {
         }
 
         public Builder dependency(DependencyDefinition dependency) {
-            this.dependencies.add(dependency);
+            final var prev = this.dependencies.putIfAbsent(dependency.getComponentId(), dependency);
+            if (prev != null) throw PluginLoadingException.generic("Duplicate dependency: [] Already present: []", dependency, prev);
             return this;
         }
 

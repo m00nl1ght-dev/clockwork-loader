@@ -11,6 +11,13 @@ mainClassName = "$moduleName/dev.m00nl1ght.clockwork.test.TestLauncher"
 sourceCompatibility = 12
 targetCompatibility = 12
 
+sourceSets {
+    main {
+        output.resourcesDir = file('build/bin')
+        java.outputDir = file('build/bin')
+    }
+}
+
 repositories {
     mavenCentral()
 }

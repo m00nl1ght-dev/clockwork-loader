@@ -27,9 +27,14 @@ public class EventType<E, T> {
     }
 
     public final synchronized <C> void registerListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
-        final var last = new EventListener<>(this, componentType, consumer);
-        listenerChainLast.next = last;
-        listenerChainLast = last;
+        final var evt = new EventListener<>(this, componentType, consumer);
+        if (listenerChainFirst == null) {
+            listenerChainFirst = evt;
+            listenerChainLast = evt;
+        } else {
+            listenerChainLast.next = evt;
+            listenerChainLast = evt;
+        }
     }
 
     public final ComponentTargetType<T> getTarget() {

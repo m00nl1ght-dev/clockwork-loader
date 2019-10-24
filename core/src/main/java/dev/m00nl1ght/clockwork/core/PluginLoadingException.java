@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.resolver.PluginLoadingProblem;
+import dev.m00nl1ght.clockwork.util.LogUtil;
 
 import java.util.List;
 
@@ -14,12 +14,12 @@ public class PluginLoadingException extends RuntimeException {
         super(msg, cause);
     }
 
-    public static PluginLoadingException generic(String msg) {
-        return new PluginLoadingException(msg);
+    public static PluginLoadingException generic(String msg, Object... objects) {
+        return new PluginLoadingException(LogUtil.format(msg, "[]", objects));
     }
 
-    public static PluginLoadingException generic(String msg, Exception cause) {
-        return new PluginLoadingException(msg, cause);
+    public static PluginLoadingException generic(String msg, Exception cause, Object... objects) {
+        return new PluginLoadingException(LogUtil.format(msg, "[]", objects), cause);
     }
 
     public static PluginLoadingException fatalLoadingProblems(List<PluginLoadingProblem> problems) {

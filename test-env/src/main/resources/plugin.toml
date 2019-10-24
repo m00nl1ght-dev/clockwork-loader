@@ -1,0 +1,12 @@
+plugin_id = "test-env"
+display_name = "Test Environment"
+version = "1.0"
+authors = ["m00nl1ght"]
+main_class = "dev.m00nl1ght.clockwork.test.TestEnvPlugin"
+description = '''
+Test environment for CWL dev workspace
+'''
+
+[[target]]
+id = "test-target"
+class = "dev.m00nl1ght.clockwork.test.TestComponentTarget"
