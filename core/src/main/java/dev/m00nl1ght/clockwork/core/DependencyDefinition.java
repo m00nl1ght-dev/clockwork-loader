@@ -1,5 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
+import com.vdurmont.semver4j.Requirement;
+import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.function.Predicate;
@@ -8,33 +10,31 @@ public final class DependencyDefinition {
 
     private final String componentId;
     private final String descriptor;
-    private final Predicate<String> acceptsVersion;
+    private final Predicate<Semver> acceptsVersion;
 
-    public DependencyDefinition(String componentId, String descriptor, Predicate<String> acceptsVersion) {
+    public DependencyDefinition(String componentId, String descriptor, Predicate<Semver> acceptsVersion) {
         this.componentId = Preconditions.notNullOrBlank(componentId, "componentId");
         this.descriptor = Preconditions.notNullOrBlank(descriptor, "descriptor");
         this.acceptsVersion = Preconditions.notNull(acceptsVersion, "acceptsVersion");
     }
 
-    public static DependencyDefinition build(String componentId, String minVersion, String maxVersion) {
-        Predicate<String> range = v -> true; // TODO implement version range
-        return new DependencyDefinition(componentId, componentId + "[" + minVersion + ";" + maxVersion + "]", range);
+    public static DependencyDefinition build(String componentId, Requirement versionReq) {
+        return new DependencyDefinition(componentId, componentId + "[" + versionReq + "]", versionReq::isSatisfiedBy);
     }
 
-    public static DependencyDefinition build(String componentId, String minVersion) {
-        Predicate<String> range = v -> true; // TODO implement version range
-        return new DependencyDefinition(componentId, componentId + "[" + minVersion + "+]", range);
+    public static DependencyDefinition buildIvyRange(String componentId, String versionRange) {
+        return build(componentId, Requirement.buildIvy(versionRange));
     }
 
-    public static DependencyDefinition build(String componentId) {
-        return new DependencyDefinition(componentId, componentId + "[+]", v -> true);
+    public static DependencyDefinition buildAnyVersion(String componentId) {
+        return new DependencyDefinition(componentId, componentId + "[*]", v -> true);
     }
 
     public String getComponentId() {
         return componentId;
     }
 
-    public boolean acceptsVersion(String version) {
+    public boolean acceptsVersion(Semver version) {
         return acceptsVersion.test(version);
     }
 

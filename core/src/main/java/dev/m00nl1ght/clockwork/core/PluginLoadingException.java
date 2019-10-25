@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.LogUtil;
 
+import java.lang.module.ModuleDescriptor;
 import java.util.List;
 
 public class PluginLoadingException extends RuntimeException {
@@ -38,11 +39,11 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Could not find target [" + definition.getTargetId() + "] for component [" + definition.getId() + "]");
     }
 
-    public static PluginLoadingException componentClassIllegal(String className, PluginContainer plugin, String actPlugin, String module) {
+    public static PluginLoadingException componentClassIllegal(String className, PluginContainer plugin, String actPlugin, ModuleDescriptor module) {
         if (actPlugin == null) {
-            return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in external module [" + module + "]");
+            return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in external module [" + module.name() + "]");
         } else {
-            return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in module [" + module + "] of plugin [" + actPlugin + "]");
+            return generic("Component class [" + className + "] for plugin [" + plugin.getId() + "] found in module [" + module.name() + "] of plugin [" + actPlugin + "]");
         }
     }
 

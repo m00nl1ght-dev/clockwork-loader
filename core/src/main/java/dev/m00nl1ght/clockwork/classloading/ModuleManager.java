@@ -68,10 +68,10 @@ public class ModuleManager {
 
     public Class<?> loadClassForPlugin(String className, PluginContainer plugin) {
         try {
-            final var cl = plugin == null ? Thread.currentThread().getContextClassLoader() : plugin.getMainModule().getClassLoader();
+            final var cl = plugin.getMainModule().getClassLoader();
             final var clazz = Class.forName(className, false, cl);
-            final var md = clazz.getModule().getDescriptor().name();
-            final var actPlugin = modules.get(md);
+            final var md = clazz.getModule().getDescriptor();
+            final var actPlugin = md == null ? null : modules.get(md.name());
             if (!plugin.getId().equals(actPlugin))
                 throw PluginLoadingException.componentClassIllegal(className, plugin, actPlugin, md);
             return clazz;

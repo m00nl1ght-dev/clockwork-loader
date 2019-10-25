@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.lang.module.ModuleFinder;
@@ -17,7 +18,7 @@ public final class PluginDefinition {
     private final ModuleFinder moduleFinder;
     private final String mainModule;
 
-    protected PluginDefinition(String pluginId, String version, String mainClass, String displayName, String description, List<String> authors, Collection<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
+    protected PluginDefinition(String pluginId, Semver version, String mainClass, String displayName, String description, List<String> authors, Collection<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
         this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, ClockworkCore.CORE_TARGET_ID, dependencies, false);
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
@@ -30,7 +31,7 @@ public final class PluginDefinition {
         return mainComponent.getId();
     }
 
-    public String getVersion() {
+    public Semver getVersion() {
         return mainComponent.getVersion();
     }
 
@@ -108,7 +109,7 @@ public final class PluginDefinition {
     public static class Builder {
 
         protected final String id;
-        protected String version;
+        protected Semver version;
         protected String mainClass;
         protected String displayName;
         protected String description = "";
@@ -123,11 +124,11 @@ public final class PluginDefinition {
         }
 
         public PluginDefinition build() {
-            if (!id.equals(ClockworkCore.CORE_PLUGIN_ID)) dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDefinition::build);
+            if (!id.equals(ClockworkCore.CORE_PLUGIN_ID)) dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDefinition::buildAnyVersion);
             return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies.values(), moduleFinder, mainModule);
         }
 
-        public Builder version(String version) {
+        public Builder version(Semver version) {
             this.version = version;
             return this;
         }

@@ -1,24 +1,28 @@
 package dev.m00nl1ght.clockwork.core;
 
+import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-import java.util.*;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class ComponentDefinition {
 
     private final PluginDefinition parent;
     private final String id;
-    private final String version;
+    private final Semver version;
     private final String componentClass;
     private final String targetId;
     private final List<DependencyDefinition> dependencies;
 
     private final boolean optional;
 
-    protected ComponentDefinition(PluginDefinition parent, String id, String version, String componentClass, String targetId, Collection<DependencyDefinition> dependencies, boolean optional) {
+    protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<DependencyDefinition> dependencies, boolean optional) {
         this.parent = Preconditions.notNull(parent, "parent");
         this.id = parent.subId(Preconditions.notNull(id, "component id"));
-        this.version = Preconditions.notNullOrBlank(version, "version"); //TODO verify semver
+        this.version = Preconditions.notNull(version, "version");
         this.componentClass = Preconditions.notNullOrBlank(componentClass, "componentClass");
         this.targetId = Preconditions.notNullOrBlank(targetId, "targetId");
         this.dependencies = List.copyOf(Preconditions.notNull(dependencies, "dependencies"));
@@ -30,7 +34,7 @@ public final class ComponentDefinition {
         return id;
     }
 
-    public String getVersion() {
+    public Semver getVersion() {
         return version;
     }
 
@@ -83,8 +87,8 @@ public final class ComponentDefinition {
         }
 
         public ComponentDefinition build() {
-            dependencies.computeIfAbsent(plugin.getId(), DependencyDefinition::build);
-            if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDefinition::build);
+            dependencies.computeIfAbsent(plugin.getId(), DependencyDefinition::buildAnyVersion);
+            if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDefinition::buildAnyVersion);
             return new ComponentDefinition(plugin, componentId, plugin.getVersion(), componentClass, targetId, dependencies.values(), optional);
         }
 
