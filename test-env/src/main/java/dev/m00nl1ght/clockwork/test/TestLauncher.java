@@ -22,6 +22,7 @@ public class TestLauncher {
         locators.add(new BootLayerLocator());
         locators.add(new JarFileLocator(TEST_PLUGIN_DIR));
         final var cwc = new ClockworkCore();
+        System.setSecurityManager(cwc.createSecurityManager());
         cwc.loadPlugins(locators);
         final var coreTarget = cwc.getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");

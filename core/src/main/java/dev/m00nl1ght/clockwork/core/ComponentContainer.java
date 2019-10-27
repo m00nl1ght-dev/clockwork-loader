@@ -4,9 +4,9 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 public class ComponentContainer<T> {
 
-    private final ComponentTargetType<T> targetType;
-    private final Object[] components;
-    private final T object;
+    protected final ComponentTargetType<T> targetType;
+    protected final Object[] components;
+    protected final T object;
 
     public ComponentContainer(ComponentTargetType<T> targetType, T object) {
         this.object = Preconditions.notNull(object, "object");
@@ -21,9 +21,7 @@ public class ComponentContainer<T> {
     @SuppressWarnings("unchecked")
     public <C> C getComponent(ComponentType<C, T> componentType) {
         if (componentType.getTargetType() != this.targetType) return null;
-        var comp = components[componentType.getInternalID()];
-        if (comp == null) return null;
-        return (C) comp;
+        return (C) components[componentType.getInternalID()];
     }
 
     protected <C> void setComponent(ComponentType<C, T> componentType, C value) {

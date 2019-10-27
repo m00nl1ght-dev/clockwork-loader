@@ -1,10 +1,10 @@
 package dev.m00nl1ght.clockwork.resolver;
 
-import dev.m00nl1ght.clockwork.core.PluginLoadingProblem;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import dev.m00nl1ght.clockwork.core.PluginLoadingProblem;
+import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 

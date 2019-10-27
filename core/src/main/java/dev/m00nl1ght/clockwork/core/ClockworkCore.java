@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
+import dev.m00nl1ght.clockwork.security.ClockworkSecurityManager;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -57,6 +58,10 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
         coreContainer = new ComponentContainer<>(coreTarget.get(), this);
         coreContainer.initComponents();
+    }
+
+    public SecurityManager createSecurityManager() {
+        return new ClockworkSecurityManager(this);
     }
 
     private PluginContainer buildPlugin(PluginDefinition def) {

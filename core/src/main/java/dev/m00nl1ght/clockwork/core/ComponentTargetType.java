@@ -2,7 +2,6 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventType;
-import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.*;
@@ -36,8 +35,14 @@ public final class ComponentTargetType<T> {
 
     @SuppressWarnings("unchecked")
     public <E> EventType<E, T> getEventType(Class<E> eventClass) {
+        Preconditions.notNull(eventClass, "eventClass");
         if (!Event.class.isAssignableFrom(eventClass)) throw new IllegalArgumentException("eventClass must be a sublass of Event.class");
         return (EventType<E, T>) eventTypes.computeIfAbsent(eventClass, k -> new EventType(this, k));
+    }
+
+    public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
+        Preconditions.notNull(type, "type");
+        return new FunctionalSubtarget<>(this, type);
     }
 
     public PluginContainer getParent() {
@@ -68,7 +73,7 @@ public final class ComponentTargetType<T> {
         lockRegistry = true;
     }
 
-    public boolean isRegistryLocked() {
+    protected boolean isRegistryLocked() {
         return lockRegistry;
     }
 
