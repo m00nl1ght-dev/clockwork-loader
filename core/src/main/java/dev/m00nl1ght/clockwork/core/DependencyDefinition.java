@@ -26,6 +26,10 @@ public final class DependencyDefinition {
         return build(componentId, Requirement.buildIvy(versionRange));
     }
 
+    public static DependencyDefinition buildExact(String componentId, Semver version) {
+        return new DependencyDefinition(componentId, componentId + "[" + version + "]", version::isEqualTo);
+    }
+
     public static DependencyDefinition buildAnyVersion(String componentId) {
         return new DependencyDefinition(componentId, componentId + "[*]", v -> true);
     }

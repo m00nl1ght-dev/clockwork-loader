@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.locator;
 
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.event.EventAnnotationProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -45,6 +46,7 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
         }
 
         builder.moduleFinder(moduleFinder, modules.next().descriptor().name());
+        builder.markForProcessor(EventAnnotationProcessor.NAME);
         if (modules.hasNext()) throw PluginLoadingException.generic(getName() + " found multiple java modules in directory [" + path + "]");
         final var plugin = builder.build();
         pluginInfo.populateComponents(plugin);

@@ -2,10 +2,12 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
+import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -22,6 +24,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     private final Map<String, ComponentType<?, ?>> loadedComponents = new HashMap<>();
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
+    private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
 
     private ModuleManager moduleManager;
     private ComponentContainer<ClockworkCore> coreContainer;
@@ -60,6 +63,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         final var mainModule = moduleManager.mainModuleFor(def);
         final var plugin = new PluginContainer(def, mainModule);
         for (var targetDef : def.getTargetDefinitions()) buildComponentTarget(targetDef, plugin);
+        processors.apply(plugin, def.getProcessors());
         return plugin;
     }
 
@@ -73,6 +77,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         final var component = target.register(def, plugin, compClass);
         loadedComponents.put(component.getId(), component);
         classToComponentMap.put(compClass, component);
+        processors.apply(component, def.getProcessors());
     }
 
     private void buildComponentTarget(ComponentTargetDefinition def, PluginContainer parent) {
@@ -82,6 +87,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         if (existing != null) throw PluginLoadingException.targetClassDuplicate(def, existing.getId());
         componentTargets.put(target.getId(), target);
         classToTargetMap.put(targetClass, target);
+        processors.apply(target, def.getProcessors());
     }
 
     @Override

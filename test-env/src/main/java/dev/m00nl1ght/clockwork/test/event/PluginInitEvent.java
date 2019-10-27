@@ -1,6 +1,8 @@
 package dev.m00nl1ght.clockwork.test.event;
 
-public class PluginInitEvent {
+import dev.m00nl1ght.clockwork.event.Event;
+
+public class PluginInitEvent extends Event {
 
 
 

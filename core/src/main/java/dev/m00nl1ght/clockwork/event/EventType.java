@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.event;
 
+import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentTargetType;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 
@@ -17,7 +18,7 @@ public class EventType<E, T> {
         this.eventClass = eventClass;
     }
 
-    public E post(T object, E event) {
+    public E post(ComponentTarget<T> object, E event) {
         var c = listenerChainFirst;
         while (c != null) {
             c.accept(event, object);
@@ -27,7 +28,7 @@ public class EventType<E, T> {
     }
 
     public final synchronized <C> void registerListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
-        final var evt = new EventListener<>(this, componentType, consumer);
+        final var evt = new EventListener<>(componentType, consumer);
         if (listenerChainFirst == null) {
             listenerChainFirst = evt;
             listenerChainLast = evt;

@@ -9,7 +9,7 @@ public class LogUtil {
             p = str.indexOf(tok, p);
             if (p < 0) break;
             final var os = object.toString();
-            str = str.substring(0, p + 1) + os + str.substring(p + 2);
+            str = str.substring(0, p + 1) + os + str.substring(p + 1);
             p += os.length() + 2;
         }
         return str;

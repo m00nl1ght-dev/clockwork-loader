@@ -5,9 +5,13 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.lang.module.ModuleFinder;
 import java.util.*;
+import java.util.function.Predicate;
+import java.util.regex.Pattern;
 import java.util.stream.Stream;
 
 public final class PluginDefinition {
+
+    private static final Predicate<String> VALID_ID = Pattern.compile("^[a-z][a-z0-9_-]{3,32}$").asMatchPredicate();
 
     private final String displayName;
     private final String description;
@@ -17,12 +21,14 @@ public final class PluginDefinition {
     private final List<ComponentTargetDefinition> targets = new ArrayList<>();
     private final ModuleFinder moduleFinder;
     private final String mainModule;
+    private final List<String> processors;
 
-    protected PluginDefinition(String pluginId, Semver version, String mainClass, String displayName, String description, List<String> authors, Collection<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule) {
-        this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, ClockworkCore.CORE_TARGET_ID, dependencies, false);
+    protected PluginDefinition(String pluginId, Semver version, String mainClass, String displayName, String description, List<String> authors, Collection<DependencyDefinition> dependencies, ModuleFinder moduleFinder, String mainModule, List<String> processors) {
+        this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, ClockworkCore.CORE_TARGET_ID, dependencies, false, processors);
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
         this.authors = List.copyOf(Preconditions.notNull(authors, "authors"));
+        this.processors = List.copyOf(Preconditions.notNull(processors, "processors"));
         this.mainModule = Preconditions.notNullOrBlank(mainModule, "mainModule");
         this.moduleFinder = moduleFinder;
     }
@@ -88,13 +94,21 @@ public final class PluginDefinition {
         return authors;
     }
 
+    public List<String> getProcessors() {
+        return processors;
+    }
+
     protected String subId(String componentId) {
-        if (mainComponent == null) return componentId;
-        final var t = componentId.split(":");
-        if (t.length > 2) throw new IllegalArgumentException("invalid component id: "  + componentId);
-        if (t.length == 1) return getId() + ":" + componentId;
-        if (t[0].equals(getId())) return componentId;
-        throw new IllegalArgumentException("component id does not match parent: "  + componentId + " for plugin " + getId());
+        if (mainComponent == null) {
+            if (!VALID_ID.test(componentId)) throw PluginLoadingException.invalidId(this, componentId);
+            return componentId;
+        } else {
+            final var t = componentId.split(":");
+            final var cid = t[t.length-1];
+            if (t.length > 2 || !VALID_ID.test(cid)) throw PluginLoadingException.invalidId(this, componentId);
+            if (t.length == 2 && !t[0].equals(getId())) throw PluginLoadingException.subIdMismatch(this, componentId);
+            return getId() + ":" + cid;
+        }
     }
 
     @Override
@@ -115,7 +129,8 @@ public final class PluginDefinition {
         protected String description = "";
         protected ModuleFinder moduleFinder;
         protected String mainModule;
-        protected final List<String> authors = new ArrayList<>();
+        protected final List<String> authors = new ArrayList<>(3);
+        protected final List<String> processors = new ArrayList<>(3);
         protected final Map<String, DependencyDefinition> dependencies = new HashMap<>();
 
         protected Builder(String pluginId) {
@@ -125,7 +140,7 @@ public final class PluginDefinition {
 
         public PluginDefinition build() {
             if (!id.equals(ClockworkCore.CORE_PLUGIN_ID)) dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDefinition::buildAnyVersion);
-            return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies.values(), moduleFinder, mainModule);
+            return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies.values(), moduleFinder, mainModule, processors);
         }
 
         public Builder version(Semver version) {
@@ -167,6 +182,11 @@ public final class PluginDefinition {
         public Builder dependency(DependencyDefinition dependency) {
             final var prev = this.dependencies.putIfAbsent(dependency.getComponentId(), dependency);
             if (prev != null) throw PluginLoadingException.generic("Duplicate dependency: [] Already present: []", dependency, prev);
+            return this;
+        }
+
+        public Builder markForProcessor(String processor) {
+            this.processors.add(processor);
             return this;
         }
 

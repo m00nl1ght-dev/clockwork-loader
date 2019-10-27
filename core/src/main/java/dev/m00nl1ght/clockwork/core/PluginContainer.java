@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.List;
@@ -7,7 +8,7 @@ import java.util.List;
 public class PluginContainer {
 
     private final String id;
-    private final String version;
+    private final Semver version;
     private final String displayName;
     private final String description;
     private final List<String> authors;
@@ -27,7 +28,7 @@ public class PluginContainer {
         return id;
     }
 
-    public String getVersion() {
+    public Semver getVersion() {
         return version;
     }
 

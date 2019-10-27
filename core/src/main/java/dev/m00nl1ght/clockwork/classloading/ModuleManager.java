@@ -14,15 +14,15 @@ import java.util.Objects;
 
 public class ModuleManager {
 
-    private final ModuleLayer moduleLayer;
-    private ClassLoader urlLoader;
+    private final ModuleLayer.Controller layerController;
     private final Map<String, String> modules = new HashMap<>();
+    private final Module localModule = ModuleManager.class.getModule();
 
     public ModuleManager(List<PluginDefinition> defs) {
         defs.forEach(d -> findModules(d.getModuleFinder(), d));
         final var comp = defs.stream().map(PluginDefinition::getModuleFinder).filter(Objects::nonNull);
         final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
-        this.moduleLayer = resolveModules(ModuleLayer.boot(), finder);
+        this.layerController = buildLayer(ModuleLayer.boot(), finder);
     }
 
     private void findModules(ModuleFinder finder, PluginDefinition owner) {
@@ -33,10 +33,10 @@ public class ModuleManager {
         }
     }
 
-    private ModuleLayer resolveModules(ModuleLayer parent, ModuleFinder finder) {
+    private ModuleLayer.Controller buildLayer(ModuleLayer parent, ModuleFinder finder) {
         try {
             final var config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
-            return parent.defineModulesWithOneLoader(config, ClassLoader.getSystemClassLoader());
+            return ModuleLayer.defineModulesWithOneLoader(config, List.of(parent), ClassLoader.getSystemClassLoader());
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, null);
         }
@@ -52,7 +52,7 @@ public class ModuleManager {
 
     public Module mainModuleFor(PluginDefinition def) {
         final var moduleName = def.getMainModule();
-        final var layer = def.getModuleFinder() == null ? ModuleLayer.boot() : moduleLayer;
+        final var layer = def.getModuleFinder() == null ? ModuleLayer.boot() : layerController.layer();
         final var found = layer.findModule(moduleName);
         if (found.isEmpty()) throw PluginLoadingException.pluginMainModuleNotFound(def);
 
@@ -61,9 +61,16 @@ public class ModuleManager {
         } else {
             final var pId = modules.get(moduleName);
             if (!def.getId().equals(pId)) throw PluginLoadingException.pluginMainModuleIllegal(def, pId);
+            patchModule(found.get());
         }
 
         return found.get();
+    }
+
+    private void patchModule(Module module) {
+        for (var pn : module.getPackages()) {
+            layerController.addOpens(module, pn, localModule);
+        }
     }
 
     public Class<?> loadClassForPlugin(String className, PluginContainer plugin) {

@@ -16,20 +16,14 @@ public class TestEnvPlugin {
     private final TestComponentTarget TEST_TARGET_INSTANCE;
 
     public TestEnvPlugin(ClockworkCore core) {
-        // will no longer be needed once @EventHandler is hooked up
-        final var coreTarget = core.getTargetType(ClockworkCore.class).orElseThrow();
-        final var self = core.getComponentType(TestEnvPlugin.class, ClockworkCore.class).orElseThrow();
-        coreTarget.getEventType(PluginInitEvent.class).registerListener(self, TestEnvPlugin::onInit);
-        // ^^ / ^^
-
         final var testTargetType = core.getTargetType(TestComponentTarget.class).orElseThrow();
         TEST_TARGET_INSTANCE = new TestComponentTarget(testTargetType);
-        TEST_EVENT = testTargetType.registerEvent(TestEvent.class);
+        TEST_EVENT = testTargetType.getEventType(TestEvent.class);
     }
 
     @EventHandler
-    private void onInit(PluginInitEvent event) {
-        LOGGER.info("Firing test event");
+    public void onInit(PluginInitEvent event) {
+        LOGGER.info("Init event received.");
         TEST_EVENT.post(TEST_TARGET_INSTANCE, new TestEvent());
     }
 

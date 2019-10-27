@@ -3,10 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public final class ComponentDefinition {
 
@@ -16,16 +13,18 @@ public final class ComponentDefinition {
     private final String componentClass;
     private final String targetId;
     private final List<DependencyDefinition> dependencies;
+    private final List<String> processors;
 
     private final boolean optional;
 
-    protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<DependencyDefinition> dependencies, boolean optional) {
+    protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<DependencyDefinition> dependencies, boolean optional, List<String> processors) {
         this.parent = Preconditions.notNull(parent, "parent");
         this.id = parent.subId(Preconditions.notNull(id, "component id"));
         this.version = Preconditions.notNull(version, "version");
         this.componentClass = Preconditions.notNullOrBlank(componentClass, "componentClass");
         this.targetId = Preconditions.notNullOrBlank(targetId, "targetId");
         this.dependencies = List.copyOf(Preconditions.notNull(dependencies, "dependencies"));
+        this.processors = List.copyOf(Preconditions.notNull(processors, "processors"));
         this.optional = optional;
         this.parent.addComponent(this);
     }
@@ -58,6 +57,10 @@ public final class ComponentDefinition {
         return parent;
     }
 
+    public List<String> getProcessors() {
+        return processors;
+    }
+
     @Override
     public String toString() {
         return id + ":" + version + " [" + targetId + "]";
@@ -79,6 +82,7 @@ public final class ComponentDefinition {
         protected String componentClass;
         protected String targetId;
         protected final Map<String, DependencyDefinition> dependencies = new HashMap<>();
+        protected final List<String> processors = new ArrayList<>(3);
         protected boolean optional = false;
 
         protected Builder(PluginDefinition plugin, String componentId) {
@@ -89,7 +93,7 @@ public final class ComponentDefinition {
         public ComponentDefinition build() {
             dependencies.computeIfAbsent(plugin.getId(), DependencyDefinition::buildAnyVersion);
             if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDefinition::buildAnyVersion);
-            return new ComponentDefinition(plugin, componentId, plugin.getVersion(), componentClass, targetId, dependencies.values(), optional);
+            return new ComponentDefinition(plugin, componentId, plugin.getVersion(), componentClass, targetId, dependencies.values(), optional, processors);
         }
 
         public Builder component(String componentClass) {
@@ -115,6 +119,11 @@ public final class ComponentDefinition {
 
         public Builder optional() {
             return optional(true);
+        }
+
+        public Builder markForProcessor(String processor) {
+            this.processors.add(processor);
+            return this;
         }
 
     }

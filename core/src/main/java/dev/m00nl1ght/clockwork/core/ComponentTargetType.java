@@ -1,10 +1,11 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventType;
+import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 
 public final class ComponentTargetType<T> {
 
@@ -15,7 +16,7 @@ public final class ComponentTargetType<T> {
     private final Map<String, ComponentType<?, T>> components = new HashMap<>();
     private final List<ComponentType<?, T>> compList = new ArrayList<>();
     private final List<ComponentType<?, T>> compListReadOnly = Collections.unmodifiableList(compList);
-    private final Map<Class<?>, EventType<?, T>> events = new HashMap<>();
+    private final Map<Class<?>, EventType<?, T>> eventTypes = new HashMap<>();
 
     public ComponentTargetType(ComponentTargetDefinition definition, PluginContainer parent, Class<T> targetClass) {
         this.parent = Preconditions.notNull(parent, "parent");
@@ -33,22 +34,10 @@ public final class ComponentTargetType<T> {
         return componentType;
     }
 
-    public <E> EventType<E, T> registerEvent(Class<E> eventClass) {
-        final var evt = new EventType<>(this, eventClass);
-        if (events.putIfAbsent(eventClass, evt) != null) throw PluginLoadingException.generic("Event class [" + eventClass.getSimpleName() + "] already registered");
-        return evt;
-    }
-
-    public <E, C> void registerEventListener(Class<E> eventClass, ComponentType<C, T> component, BiConsumer<C, E> listener) {
-        final var type = getEventType(eventClass);
-        type.registerListener(component, listener);
-    }
-
     @SuppressWarnings("unchecked")
     public <E> EventType<E, T> getEventType(Class<E> eventClass) {
-        final var type = events.get(eventClass);
-        if (type == null) throw new IllegalArgumentException("Event type for class [" + eventClass.getSimpleName() + "] not found");
-        return (EventType<E, T>) type;
+        if (!Event.class.isAssignableFrom(eventClass)) throw new IllegalArgumentException("eventClass must be a sublass of Event.class");
+        return (EventType<E, T>) eventTypes.computeIfAbsent(eventClass, k -> new EventType(this, k));
     }
 
     public PluginContainer getParent() {

@@ -2,10 +2,12 @@ package dev.m00nl1ght.clockwork.locator;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.ComponentTargetDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import dev.m00nl1ght.clockwork.event.EventAnnotationProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -58,7 +60,7 @@ public class PluginInfoFile {
     public PluginDefinition.Builder populatePluginBuilder() {
         final var builder = PluginDefinition.builder(config.get("plugin_id"));
         builder.displayName(config.get("display_name"));
-        builder.version(config.get("version"));
+        builder.version(new Semver(config.get("version"), Semver.SemverType.IVY));
         builder.description(config.getOrElse("description", ""));
         builder.authors(config.getOrElse("authors", List.of()));
         builder.mainClass(config.get("main_class"));
@@ -74,6 +76,7 @@ public class PluginInfoFile {
             final var builder = ComponentDefinition.builder(plugin, conf.get("id"));
             builder.component(conf.get("class"));
             builder.target(conf.get("target"));
+            builder.markForProcessor(EventAnnotationProcessor.NAME);
             final Optional<List<UnmodifiableConfig>> deps = conf.getOptional("dependency");
             deps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
             final Optional<Boolean> optional = conf.getOptional("optional");
@@ -88,15 +91,14 @@ public class PluginInfoFile {
         for (var conf : targets.get()) {
             final String id = conf.get("id");
             final String targetClass = conf.get("class");
-            ComponentTargetDefinition.build(plugin, id, targetClass);
+            ComponentTargetDefinition.build(plugin, id, targetClass, EventAnnotationProcessor.NAME);
         }
     }
 
     private DependencyDefinition buildDep(UnmodifiableConfig conf) {
         final String id = conf.get("id");
         final Optional<String> verStr = conf.getOptional("version");
-        // TODO version range, ...
-        return verStr.map(s -> DependencyDefinition.build(id, s)).orElseGet(() -> DependencyDefinition.build(id));
+        return verStr.map(s -> DependencyDefinition.buildIvyRange(id, s)).orElseGet(() -> DependencyDefinition.buildAnyVersion(id));
     }
 
 }

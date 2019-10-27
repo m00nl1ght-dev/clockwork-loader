@@ -14,11 +14,12 @@ public class TestComponent {
 
     public TestComponent(TestComponentTarget target) {
         this.target = target;
+        LOGGER.info("TestComponent instatiated");
     }
 
     @EventHandler
     protected void onTestEvent(TestEvent event) {
-        LOGGER.info("TestEvent received on " + this.toString());
+        LOGGER.info("TestEvent received");
     }
 
 }
