@@ -13,7 +13,7 @@ public final class ComponentTargetType<T> {
     private final PluginContainer parent;
     private boolean lockRegistry = false;
     private final Map<String, ComponentType<?, T>> components = new HashMap<>();
-    private final List<ComponentType<?, T>> compList = new ArrayList<>();
+    private final ArrayList<ComponentType<?, T>> compList = new ArrayList<>();
     private final List<ComponentType<?, T>> compListReadOnly = Collections.unmodifiableList(compList);
     private final Map<Class<?>, EventType<?, T>> eventTypes = new HashMap<>();
 
@@ -25,7 +25,7 @@ public final class ComponentTargetType<T> {
         this.id = definition.getId();
     }
 
-    protected <C> ComponentType<C, T> register(ComponentDefinition def, PluginContainer plugin, Class<C> compClass) {
+    protected synchronized <C> ComponentType<C, T> register(ComponentDefinition def, PluginContainer plugin, Class<C> compClass) {
         if (lockRegistry) throw new IllegalStateException("target type registry already locked");
         final var componentType = new ComponentType<>(def, plugin, compClass, this, compList.size());
         components.put(componentType.getId(), componentType);
@@ -69,8 +69,9 @@ public final class ComponentTargetType<T> {
         return compList.get(internalID);
     }
 
-    protected void lockRegistry() {
+    protected synchronized void lockRegistry() {
         lockRegistry = true;
+        compList.trimToSize();
     }
 
     protected boolean isRegistryLocked() {

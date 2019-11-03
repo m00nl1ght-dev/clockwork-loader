@@ -5,7 +5,6 @@ import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 
 import java.lang.module.ModuleFinder;
-import java.net.URI;
 import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
@@ -16,6 +15,7 @@ public class ModuleManager {
 
     private final ModuleLayer.Controller layerController;
     private final Map<String, String> modules = new HashMap<>();
+    private final Map<URL, PluginContainer> codeSourceToPlugin = new HashMap<>();
     private final Module localModule = ModuleManager.class.getModule();
 
     public ModuleManager(List<PluginDefinition> defs) {
@@ -36,17 +36,11 @@ public class ModuleManager {
     private ModuleLayer.Controller buildLayer(ModuleLayer parent, ModuleFinder finder) {
         try {
             final var config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
-            return ModuleLayer.defineModulesWithOneLoader(config, List.of(parent), ClassLoader.getSystemClassLoader());
+            final var loader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);
+            loader.initRemotePackageMap(config, List.of(parent));
+            return ModuleLayer.defineModules(config, List.of(parent), m -> loader);
         } catch (Exception e) {
             throw PluginLoadingException.inModuleFinder(e, null);
-        }
-    }
-
-    private URL transformURI(URI uri) {
-        try {
-            return uri.toURL();
-        } catch (Exception e) {
-            throw new RuntimeException("wut?", e);
         }
     }
 
@@ -65,6 +59,22 @@ public class ModuleManager {
         }
 
         return found.get();
+    }
+
+    // TODO better way?
+    public void bindModule(PluginContainer plugin, String moduleName) {
+        final var module = layerController.layer().configuration().findModule(moduleName);
+        if (module.isPresent() && module.get().reference().location().isPresent()) {
+            try {
+                codeSourceToPlugin.put(module.get().reference().location().get().toURL(), plugin);
+            } catch (Exception e) {
+                // ignored
+            }
+        }
+    }
+
+    public PluginContainer getPluginFor(URL codeSource) {
+        return codeSourceToPlugin.get(codeSource);
     }
 
     private void patchModule(Module module) {

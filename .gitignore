@@ -6,4 +6,6 @@
 /.idea/
 /out/
 
+/plugin-data/
+
 .attach_pid*

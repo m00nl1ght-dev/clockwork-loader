@@ -15,7 +15,9 @@ public class ComponentContainer<T> {
     }
 
     public void initComponents() {
-        targetType.getRegisteredTypes().forEach(r -> components[r.getInternalID()] = r.buildComponentFor(object));
+        for (var r : targetType.getRegisteredTypes()) {
+            components[r.getInternalID()] = r.buildComponentFor(object);
+        }
     }
 
     @SuppressWarnings("unchecked")

@@ -25,11 +25,21 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
+    private final ComponentContainer<ClockworkCore> coreContainer;
+    private final ModuleManager moduleManager;
 
-    private ModuleManager moduleManager;
-    private ComponentContainer<ClockworkCore> coreContainer;
+    private ClockworkCore(DependencyResolver depResolver) {
+        moduleManager = new ModuleManager(depResolver.getPluginDefinitions());
+        depResolver.getPluginDefinitions().forEach(this::buildPlugin);
+        depResolver.getLoadingOrder().forEach(this::buildComponent);
+        componentTargets.values().forEach(ComponentTargetType::lockRegistry);
+        final var coreTarget = getTargetType(ClockworkCore.class);
+        if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
+        coreContainer = new ComponentContainer<>(coreTarget.get(), this);
+        coreContainer.initComponents();
+    }
 
-    public synchronized void loadPlugins(Collection<PluginLocator> locators) {
+    public static ClockworkCore load(Collection<PluginLocator> locators) {
         final var depResolver = new DependencyResolver();
         locators.forEach(e -> e.findAll().forEach(p -> depResolver.addDefinition(p, e)));
         depResolver.resolveAndSort();
@@ -47,28 +57,20 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
             for (var p : skips) LOGGER.error(p.format());
         }
 
-        moduleManager = new ModuleManager(depResolver.getPluginDefinitions());
-        depResolver.getLoadingOrder().forEach(this::buildComponent);
-        componentTargets.values().forEach(ComponentTargetType::lockRegistry);
+        return new ClockworkCore(depResolver);
     }
 
-    public synchronized void constructPlugins() {
-        final var coreTarget = getTargetType(ClockworkCore.class);
-        if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
-        coreContainer = new ComponentContainer<>(coreTarget.get(), this);
-        coreContainer.initComponents();
-    }
-
-    private PluginContainer buildPlugin(PluginDefinition def) {
+    private void buildPlugin(PluginDefinition def) {
         final var mainModule = moduleManager.mainModuleFor(def);
         final var plugin = new PluginContainer(def, mainModule);
         for (var targetDef : def.getTargetDefinitions()) buildComponentTarget(targetDef, plugin);
+        moduleManager.bindModule(plugin, mainModule.getName());
+        loadedPlugins.put(plugin.getId(), plugin);
         processors.apply(plugin, def.getProcessors());
-        return plugin;
     }
 
     private void buildComponent(ComponentDefinition def) {
-        final var plugin = loadedPlugins.computeIfAbsent(def.getParent().getId(), p -> buildPlugin(def.getParent()));
+        final var plugin = loadedPlugins.get(def.getParent().getId());
         final var compClass = moduleManager.loadClassForPlugin(def.getComponentClass(), plugin);
         final var existing = classToComponentMap.get(compClass);
         if (existing != null) throw PluginLoadingException.componentClassDuplicate(def, existing.getId());

@@ -7,6 +7,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.locator;
     exports dev.m00nl1ght.clockwork.processor;
     exports dev.m00nl1ght.clockwork.event;
+    exports dev.m00nl1ght.clockwork.security;
 
     requires org.apache.logging.log4j;
     requires core;
