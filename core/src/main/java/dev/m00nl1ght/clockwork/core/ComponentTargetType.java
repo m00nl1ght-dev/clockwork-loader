@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventType;
+import dev.m00nl1ght.clockwork.event.EventTypeRegistry;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.*;
@@ -16,9 +17,11 @@ public final class ComponentTargetType<T> {
     private final ArrayList<ComponentType<?, T>> compList = new ArrayList<>();
     private final List<ComponentType<?, T>> compListReadOnly = Collections.unmodifiableList(compList);
     private final Map<Class<?>, EventType<?, T>> eventTypes = new HashMap<>();
+    private final EventTypeRegistry eventTypeRegistry;
 
     public ComponentTargetType(ComponentTargetDefinition definition, PluginContainer parent, Class<T> targetClass) {
         this.parent = Preconditions.notNull(parent, "parent");
+        this.eventTypeRegistry = parent.getClockworkCore().getEventTypeRegistry();
         Preconditions.notNull(definition, "definition");
         Preconditions.verifyType(targetClass, ComponentTarget.class, "targetClass");
         this.targetClass = Preconditions.notNullAnd(targetClass, o -> definition.getTargetClass().equals(o.getCanonicalName()), "targetClass");
@@ -37,7 +40,7 @@ public final class ComponentTargetType<T> {
     public <E> EventType<E, T> getEventType(Class<E> eventClass) {
         Preconditions.notNull(eventClass, "eventClass");
         if (!Event.class.isAssignableFrom(eventClass)) throw new IllegalArgumentException("eventClass must be a sublass of Event.class");
-        return (EventType<E, T>) eventTypes.computeIfAbsent(eventClass, k -> new EventType(this, k));
+        return (EventType<E, T>) eventTypes.computeIfAbsent(eventClass, k -> eventTypeRegistry.getEventTypeFor(k, this));
     }
 
     public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {

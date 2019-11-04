@@ -21,7 +21,8 @@ public class TestPlugin {
     @EventHandler
     public void onInit(PluginInitEvent event) {
         LOGGER.info("Init event received.");
-        final var file = new File("plugin-data/test-plugin/test.txt").getAbsoluteFile();
+        final var dataDir = event.getDataDirectory(this);
+        final var file = new File(dataDir, "test.txt");
         try {file.createNewFile();} catch (Exception e) {throw new RuntimeException("oof", e);}
         try (var fileWriter = new FileWriter(file)) {
             fileWriter.write("test string from plugin");

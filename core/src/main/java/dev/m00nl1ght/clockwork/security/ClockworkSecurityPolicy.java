@@ -2,22 +2,24 @@ package dev.m00nl1ght.clockwork.security;
 
 import dev.m00nl1ght.clockwork.classloading.PluginClassloader;
 import dev.m00nl1ght.clockwork.core.PluginContainer;
+import dev.m00nl1ght.clockwork.util.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.File;
-import java.io.FilePermission;
 import java.security.*;
-import java.util.PropertyPermission;
 
 public final class ClockworkSecurityPolicy extends Policy {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final SecurityPermission GET_POLICY_PERMISSION = new SecurityPermission ("getPolicy");
+    private static final SecurityPermission GET_POLICY_PERMISSION = new SecurityPermission("getPolicy");
 
     private static ClockworkSecurityPolicy INSTALLED;
 
-    private ClockworkSecurityPolicy() {}
+    private final SecurityConfiguration config;
+
+    private ClockworkSecurityPolicy(SecurityConfiguration config) {
+        this.config = config;
+    }
 
     public PermissionCollection getTrusted(ProtectionDomain domain) {
         final var perms = new Permissions();
@@ -30,12 +32,7 @@ public final class ClockworkSecurityPolicy extends Policy {
     }
 
     public PermissionCollection getUntrusted(PluginContainer plugin) {
-        final var perms = new Permissions();
-        // for testing TODO delegate to testenv
-        final var file = new File("plugin-data/" + plugin.getId() + "/"); file.mkdirs();
-        perms.add(new FilePermission(file.getAbsolutePath() + "\\-", "read,write,delete"));
-        perms.add(new PropertyPermission("*", "read"));
-        return perms;
+        return config.getPermissionsFor(plugin);
     }
 
     @Override
@@ -62,9 +59,9 @@ public final class ClockworkSecurityPolicy extends Policy {
         return INSTALLED;
     }
 
-    public static void install() {
-        if (INSTALLED != null) throw new IllegalStateException("already installed");
-        final var policy = new ClockworkSecurityPolicy();
+    public static void install(SecurityConfiguration config) {
+        Preconditions.notNull(config, "config");
+        final var policy = new ClockworkSecurityPolicy(config);
         Policy.setPolicy(policy); INSTALLED = policy;
         System.setSecurityManager(new SecurityManager());
         LOGGER.info("Sucessfully installed security manager and policy.");

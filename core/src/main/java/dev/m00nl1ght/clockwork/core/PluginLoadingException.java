@@ -91,4 +91,8 @@ public class PluginLoadingException extends RuntimeException {
         return generic("PluginProcessor [] threw an exception while processing " + text + " []", cause, name, id);
     }
 
+    public static PluginLoadingException noEventTypeFactoryFound(Class<?> eventClass) {
+        return generic("No event type factory found for event class []", eventClass.getName());
+    }
+
 }

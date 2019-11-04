@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
+import dev.m00nl1ght.clockwork.event.EventTypeRegistry;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
@@ -25,6 +26,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
+    private final EventTypeRegistry eventTypeRegistry = new EventTypeRegistry();
     private final ComponentContainer<ClockworkCore> coreContainer;
     private final ModuleManager moduleManager;
 
@@ -33,6 +35,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         depResolver.getPluginDefinitions().forEach(this::buildPlugin);
         depResolver.getLoadingOrder().forEach(this::buildComponent);
         componentTargets.values().forEach(ComponentTargetType::lockRegistry);
+        moduleManager.loadEventTypeRegistry(eventTypeRegistry);
         final var coreTarget = getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
         coreContainer = new ComponentContainer<>(coreTarget.get(), this);
@@ -62,7 +65,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     private void buildPlugin(PluginDefinition def) {
         final var mainModule = moduleManager.mainModuleFor(def);
-        final var plugin = new PluginContainer(def, mainModule);
+        final var plugin = new PluginContainer(def, mainModule, this);
         for (var targetDef : def.getTargetDefinitions()) buildComponentTarget(targetDef, plugin);
         moduleManager.bindModule(plugin, mainModule.getName());
         loadedPlugins.put(plugin.getId(), plugin);
@@ -117,6 +120,10 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         return Optional.of((ComponentType<C, ?>) type);
+    }
+
+    protected EventTypeRegistry getEventTypeRegistry() {
+        return eventTypeRegistry;
     }
 
 }

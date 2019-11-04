@@ -13,8 +13,9 @@ public class PluginContainer {
     private final String description;
     private final List<String> authors;
     private final Module mainModule;
+    private final ClockworkCore core;
 
-    protected PluginContainer(PluginDefinition definition, Module mainModule) {
+    protected PluginContainer(PluginDefinition definition, Module mainModule, ClockworkCore core) {
         Preconditions.notNull(definition, "definition");
         this.id = definition.getId();
         this.version = definition.getVersion();
@@ -22,6 +23,7 @@ public class PluginContainer {
         this.description = definition.getDescription();
         this.authors = definition.getAuthors();
         this.mainModule = Preconditions.notNull(mainModule, "mainModule");
+        this.core = Preconditions.notNull(core, "core");
     }
 
     public String getId() {
@@ -46,6 +48,10 @@ public class PluginContainer {
 
     public Module getMainModule() {
         return mainModule;
+    }
+
+    public ClockworkCore getClockworkCore() {
+        return core;
     }
 
 }
