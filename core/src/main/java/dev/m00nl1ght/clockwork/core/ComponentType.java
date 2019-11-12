@@ -9,17 +9,17 @@ public final class ComponentType<C, T> {
     private final String componentId;
     private final Semver version;
     private final Class<C> componentClass;
-    private final PluginContainer parent;
+    private final PluginContainer plugin;
     private final ComponentTargetType<T> targetType;
     private final int internalID;
     private ComponentFactory<T, C> factory;
 
-    protected ComponentType(ComponentDefinition definition, PluginContainer parent, Class<C> componentClass, ComponentTargetType<T> targetType, int internalID) {
+    protected ComponentType(ComponentDefinition definition, PluginContainer plugin, Class<C> componentClass, ComponentTargetType<T> targetType, int internalID) {
         Preconditions.notNull(definition, "definition");
         this.componentId = definition.getId();
         this.internalID = internalID;
         this.version = definition.getVersion();
-        this.parent = Preconditions.notNullAnd(parent, o -> o.getId().equals(definition.getParent().getId()), "parent");
+        this.plugin = Preconditions.notNullAnd(plugin, o -> o.getId().equals(definition.getParent().getId()), "parent");
         this.targetType = Preconditions.notNullAnd(targetType, o -> definition.getTargetId().equals(o.getId()), "targetType");
         this.componentClass = Preconditions.notNullAnd(componentClass, o -> definition.getComponentClass().equals(o.getCanonicalName()), "componentClass");
         this.factory = buildDefaultFactory(componentClass);
@@ -33,8 +33,8 @@ public final class ComponentType<C, T> {
         return version;
     }
 
-    public PluginContainer getParent() {
-        return parent;
+    public PluginContainer getPlugin() {
+        return plugin;
     }
 
     public ComponentTargetType<T> getTargetType() {

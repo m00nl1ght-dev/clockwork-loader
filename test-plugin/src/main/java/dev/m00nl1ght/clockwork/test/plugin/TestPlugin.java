@@ -22,6 +22,7 @@ public class TestPlugin {
     public void onInit(PluginInitEvent event) {
         LOGGER.info("Init event received.");
         final var dataDir = event.getDataDirectory(this);
+        dataDir.mkdirs();
         final var file = new File(dataDir, "test.txt");
         try {file.createNewFile();} catch (Exception e) {throw new RuntimeException("oof", e);}
         try (var fileWriter = new FileWriter(file)) {

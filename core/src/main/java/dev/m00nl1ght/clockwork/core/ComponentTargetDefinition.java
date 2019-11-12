@@ -6,29 +6,35 @@ import java.util.List;
 
 public final class ComponentTargetDefinition {
 
-    private final PluginDefinition parent;
+    private final PluginDefinition plugin;
+    private final String parent;
     private final String id;
     private final String targetClass;
     private final List<String> processors;
 
-    public ComponentTargetDefinition(PluginDefinition parent, String id, String targetClass, List<String> processors) {
-        this.parent = Preconditions.notNull(parent, "parent");
-        this.id = parent.subId(Preconditions.notNull(id, "component target id"));
+    public ComponentTargetDefinition(PluginDefinition plugin, String id, String parent, String targetClass, List<String> processors) {
+        this.parent = parent;
+        this.plugin = Preconditions.notNull(plugin, "parent");
+        this.id = plugin.subId(Preconditions.notNull(id, "component target id"));
         this.targetClass = Preconditions.notNullOrBlank(targetClass, "targetClass");
         this.processors = List.copyOf(Preconditions.notNull(processors, "processors"));
-        this.parent.addTargetDefinition(this);
+        this.plugin.addTargetDefinition(this);
     }
 
-    public static ComponentTargetDefinition build(PluginDefinition parent, String id, String targetClass, String... processors) {
-        return new ComponentTargetDefinition(parent, id, targetClass, List.of(processors));
+    public static ComponentTargetDefinition build(PluginDefinition plugin, String id, String parent, String targetClass, String... processors) {
+        return new ComponentTargetDefinition(plugin, id, parent, targetClass, List.of(processors));
     }
 
-    public PluginDefinition getParent() {
-        return parent;
+    public PluginDefinition getPlugin() {
+        return plugin;
     }
 
     public String getId() {
         return id;
+    }
+
+    public String getParent() {
+        return parent;
     }
 
     public String getTargetClass() {
@@ -37,6 +43,11 @@ public final class ComponentTargetDefinition {
 
     public List<String> getProcessors() {
         return processors;
+    }
+
+    @Override
+    public String toString() {
+        return id;
     }
 
 }

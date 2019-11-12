@@ -14,10 +14,13 @@ public class TestEnvPlugin {
 
     private final EventType<TestEvent, TestComponentTarget> TEST_EVENT;
     private final TestComponentTarget TEST_TARGET_INSTANCE;
+    private final SubclassTestComponentTarget TEST2_TARGET_INSTANCE;
 
     public TestEnvPlugin(ClockworkCore core) {
         final var testTargetType = core.getTargetType(TestComponentTarget.class).orElseThrow();
         TEST_TARGET_INSTANCE = new TestComponentTarget(testTargetType);
+        final var test2TargetType = core.getTargetType(SubclassTestComponentTarget.class).orElseThrow();
+        TEST2_TARGET_INSTANCE = new SubclassTestComponentTarget(test2TargetType);
         TEST_EVENT = testTargetType.getEventType(TestEvent.class);
     }
 

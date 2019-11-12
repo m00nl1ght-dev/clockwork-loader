@@ -26,7 +26,7 @@ public final class ComponentDefinition {
         this.dependencies = List.copyOf(Preconditions.notNull(dependencies, "dependencies"));
         this.processors = List.copyOf(Preconditions.notNull(processors, "processors"));
         this.optional = optional;
-        this.parent.addComponent(this);
+        this.parent.addComponentDefinition(this);
     }
 
     public String getId() {
@@ -63,7 +63,7 @@ public final class ComponentDefinition {
 
     @Override
     public String toString() {
-        return id + ":" + version + " [" + targetId + "]";
+        return id + ":" + version;
     }
 
     public static Builder builder(PluginDefinition plugin, String componentId) {

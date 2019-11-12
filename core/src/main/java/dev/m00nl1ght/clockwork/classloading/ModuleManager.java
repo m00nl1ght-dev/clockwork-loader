@@ -7,39 +7,34 @@ import dev.m00nl1ght.clockwork.event.EventTypeFactory;
 import dev.m00nl1ght.clockwork.event.EventTypeRegistry;
 
 import java.lang.module.ModuleFinder;
-import java.net.URL;
 import java.util.*;
 
 public class ModuleManager {
 
+    private final PluginClassloader classloader;
     private final ModuleLayer.Controller layerController;
     private final Map<String, String> modules = new HashMap<>();
-    private final Map<URL, PluginContainer> codeSourceToPlugin = new HashMap<>();
     private final Module localModule = ModuleManager.class.getModule();
 
-    public ModuleManager(List<PluginDefinition> defs) {
-        defs.forEach(d -> findModules(d.getModuleFinder(), d));
-        final var comp = defs.stream().map(PluginDefinition::getModuleFinder).filter(Objects::nonNull);
-        final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
-        this.layerController = buildLayer(ModuleLayer.boot(), finder);
+    public ModuleManager(List<PluginDefinition> defs, ModuleLayer parent) {
+        try {
+            defs.forEach(d -> findModules(d.getModuleFinder(), d));
+            final var comp = defs.stream().map(PluginDefinition::getModuleFinder).filter(Objects::nonNull);
+            final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
+            final var config = parent.configuration().resolveAndBind(ModuleFinder.of(), finder, modules.keySet());
+            classloader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);
+            classloader.initRemotePackageMap(config, List.of(parent));
+            layerController = ModuleLayer.defineModules(config, List.of(parent), m -> classloader);
+        } catch (Exception e) {
+            throw PluginLoadingException.resolvingModules(e, null);
+        }
     }
 
     private void findModules(ModuleFinder finder, PluginDefinition owner) {
         try {
             if (finder != null) finder.findAll().forEach(m -> modules.put(m.descriptor().name(), owner.getId()));
         } catch (Exception e) {
-            throw PluginLoadingException.inModuleFinder(e, owner);
-        }
-    }
-
-    private ModuleLayer.Controller buildLayer(ModuleLayer parent, ModuleFinder finder) {
-        try {
-            final var config = parent.configuration().resolve(ModuleFinder.of(), finder, modules.keySet());
-            final var loader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);
-            loader.initRemotePackageMap(config, List.of(parent));
-            return ModuleLayer.defineModules(config, List.of(parent), m -> loader);
-        } catch (Exception e) {
-            throw PluginLoadingException.inModuleFinder(e, null);
+            throw PluginLoadingException.resolvingModules(e, owner);
         }
     }
 
@@ -60,20 +55,8 @@ public class ModuleManager {
         return found.get();
     }
 
-    // TODO better way?
     public void bindModule(PluginContainer plugin, String moduleName) {
-        final var module = layerController.layer().configuration().findModule(moduleName);
-        if (module.isPresent() && module.get().reference().location().isPresent()) {
-            try {
-                codeSourceToPlugin.put(module.get().reference().location().get().toURL(), plugin);
-            } catch (Exception e) {
-                // ignored
-            }
-        }
-    }
-
-    public PluginContainer getPluginFor(URL codeSource) {
-        return codeSourceToPlugin.get(codeSource);
+        classloader.bindPlugin(plugin, moduleName);
     }
 
     private void patchModule(Module module) {

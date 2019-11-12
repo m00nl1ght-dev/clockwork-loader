@@ -27,11 +27,11 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Fatal problems occured during dependency resolution");
     }
 
-    public static PluginLoadingException inModuleFinder(Exception exception, PluginDefinition blame) {
+    public static PluginLoadingException resolvingModules(Exception exception, PluginDefinition blame) {
         if (blame == null) {
             return generic("An exception was thrown while resolving modules", exception);
         } else {
-            return generic("Failed to find modules for plugin []", exception, blame.getId());
+            return generic("Failed to resolve modules for plugin []", exception, blame.getId());
         }
     }
 
@@ -55,8 +55,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Component class [] defined for component type [] is already defined for component []", def.getComponentClass(), def.getId(), existing);
     }
 
+    public static PluginLoadingException componentIdDuplicate(ComponentDefinition def, String existing) {
+        return generic("Multiple component definitions with the same id [] are present", existing);
+    }
+
     public static PluginLoadingException targetClassDuplicate(ComponentTargetDefinition def, String existing) {
         return generic("Target class [] defined for target type [] is already defined for target []", def.getTargetClass(), def.getId(), existing);
+    }
+
+    public static PluginLoadingException targetIdDuplicate(ComponentTargetDefinition def, String existing) {
+        return generic("Multiple target definitions with the same id [] are present", existing);
     }
 
     public static PluginLoadingException loaderForUnknownModule(String moduleName) {
@@ -93,6 +101,10 @@ public class PluginLoadingException extends RuntimeException {
 
     public static PluginLoadingException noEventTypeFactoryFound(Class<?> eventClass) {
         return generic("No event type factory found for event class []", eventClass.getName());
+    }
+
+    public static PluginLoadingException invalidParentForTarget(ComponentTargetType<?> targetType, ComponentTargetType<?> parent) {
+        return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), targetType.getId());
     }
 
 }

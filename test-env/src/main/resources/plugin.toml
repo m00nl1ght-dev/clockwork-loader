@@ -10,3 +10,8 @@ Test environment for CWL dev workspace
 [[target]]
 id = "test-target"
 class = "dev.m00nl1ght.clockwork.test.TestComponentTarget"
+
+[[target]]
+id = "test-target-2"
+parent = "test-target"
+class = "dev.m00nl1ght.clockwork.test.SubclassTestComponentTarget"

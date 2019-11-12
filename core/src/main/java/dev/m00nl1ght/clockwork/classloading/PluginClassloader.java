@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.classloading;
 
+import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 
 import java.io.File;
@@ -43,6 +44,9 @@ public class PluginClassloader extends SecureClassLoader {
 
     // maps a module reference to a module reader, populated lazily
     private final Map<ModuleReference, ModuleReader> moduleToReader = new ConcurrentHashMap<>();
+
+    // maps a code source to a plugin container, populated externally via bindPlugin
+    private final Map<URL, PluginContainer> codeSourceToPlugin = new HashMap<>();
 
     // ACC used when loading classes and resources
     private final AccessControlContext acc;
@@ -446,7 +450,7 @@ public class PluginClassloader extends SecureClassLoader {
 
         final var policy = ClockworkSecurityPolicy.getActivePolicy();
         if (policy != null) {
-            var plugin = manager.getPluginFor(cs.getLocation());
+            var plugin = codeSourceToPlugin.get(cs.getLocation());
             var pluginPerms = plugin == null ? policy.getUntrusted() : policy.getUntrusted(plugin);
             pluginPerms.elementsAsStream().forEach(perms::add);
         }
@@ -508,6 +512,23 @@ public class PluginClassloader extends SecureClassLoader {
             if (!opens.isQualified() && source.equals(pn)) return true;
         }
         return false;
+    }
+
+    /**
+     * Binds a module to a plugin container.
+     * This assigs the plugins permissions to the module.
+     * If the given module is not present, or its location can not be determined,
+     * then this method just has no effect, and will not throw any exception.
+     */
+    public void bindPlugin(PluginContainer plugin, String moduleName) {
+        final var module = nameToModule.get(moduleName);
+        if (module != null && module.location().isPresent()) {
+            try {
+                codeSourceToPlugin.put(module.location().get().toURL(), plugin);
+            } catch (Exception e) {
+                // ignored
+            }
+        }
     }
 
     private static class LoadedModule {

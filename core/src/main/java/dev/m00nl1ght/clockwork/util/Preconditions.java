@@ -4,6 +4,11 @@ import java.util.function.Predicate;
 
 public class Preconditions {
 
+    public static <T> T nullOr(T object, Predicate<T> test, String name) {
+        if (object != null && !test.test(object)) throw new IllegalArgumentException(name + " is invalid");
+        return object;
+    }
+
     public static <T> T notNull(T object, String name) {
         if (object == null) throw new IllegalArgumentException(name + " must not be null");
         return object;

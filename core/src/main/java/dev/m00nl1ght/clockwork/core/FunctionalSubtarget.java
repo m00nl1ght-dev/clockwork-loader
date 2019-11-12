@@ -13,7 +13,7 @@ public class FunctionalSubtarget<T, F> {
     protected FunctionalSubtarget(ComponentTargetType<T> target, Class<F> type) {
         this.target = target;
         this.type = checkType(type);
-        if (!target.isRegistryLocked()) throw new IllegalStateException("cannot create subtarget before parent is locked");
+        if (!target.isRegistryLocked()) throw new IllegalStateException("cannot create subtarget before target is locked");
         final var list = target.getRegisteredTypes().stream()
                 .filter(c -> type.isAssignableFrom(c.getComponentClass()))
                 .collect(Collectors.toList());

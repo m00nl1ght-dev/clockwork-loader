@@ -21,12 +21,12 @@ public class ComponentContainer<T> {
     }
 
     @SuppressWarnings("unchecked")
-    public <C> C getComponent(ComponentType<C, T> componentType) {
+    public <C> C getComponent(ComponentType<C, ?> componentType) {
         if (componentType.getTargetType() != this.targetType) return null;
         return (C) components[componentType.getInternalID()];
     }
 
-    protected <C> void setComponent(ComponentType<C, T> componentType, C value) {
+    protected <C> void setComponent(ComponentType<C, ?> componentType, C value) {
         if (componentType.getTargetType() != this.targetType) throw new IllegalArgumentException();
         components[componentType.getInternalID()] = value;
     }

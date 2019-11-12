@@ -12,6 +12,7 @@ public class PluginContainer {
     private final String displayName;
     private final String description;
     private final List<String> authors;
+    private final List<String> permissions;
     private final Module mainModule;
     private final ClockworkCore core;
 
@@ -22,6 +23,7 @@ public class PluginContainer {
         this.displayName = definition.getDisplayName();
         this.description = definition.getDescription();
         this.authors = definition.getAuthors();
+        this.permissions = definition.getPermissions();
         this.mainModule = Preconditions.notNull(mainModule, "mainModule");
         this.core = Preconditions.notNull(core, "core");
     }
@@ -52,6 +54,10 @@ public class PluginContainer {
 
     public ClockworkCore getClockworkCore() {
         return core;
+    }
+
+    public List<String> getPermissions() {
+        return permissions;
     }
 
 }

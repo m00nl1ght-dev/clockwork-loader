@@ -66,6 +66,8 @@ public class PluginInfoFile {
         builder.mainClass(config.get("main_class"));
         final Optional<List<UnmodifiableConfig>> deps = config.getOptional("dependency");
         deps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
+        final Optional<List<UnmodifiableConfig>> perms = config.getOptional("permission");
+        perms.ifPresent(l -> l.forEach(p -> builder.permission(buildPerm(p))));
         return builder;
     }
 
@@ -91,7 +93,8 @@ public class PluginInfoFile {
         for (var conf : targets.get()) {
             final String id = conf.get("id");
             final String targetClass = conf.get("class");
-            ComponentTargetDefinition.build(plugin, id, targetClass, EventAnnotationProcessor.NAME);
+            final String parent = conf.getOrElse("parent", () -> null);
+            ComponentTargetDefinition.build(plugin, id, parent, targetClass, EventAnnotationProcessor.NAME);
         }
     }
 
@@ -99,6 +102,12 @@ public class PluginInfoFile {
         final String id = conf.get("id");
         final Optional<String> verStr = conf.getOptional("version");
         return verStr.map(s -> DependencyDefinition.buildIvyRange(id, s)).orElseGet(() -> DependencyDefinition.buildAnyVersion(id));
+    }
+
+    private String buildPerm(UnmodifiableConfig conf) {
+        final String perm = conf.get("id");
+        final Optional<String> value = conf.getOptional("value");
+        return (value.isPresent() && !value.get().isEmpty()) ? perm + ":" + value.get() : perm;
     }
 
 }
