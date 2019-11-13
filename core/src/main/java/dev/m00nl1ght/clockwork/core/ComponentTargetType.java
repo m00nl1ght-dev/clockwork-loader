@@ -24,12 +24,12 @@ public final class ComponentTargetType<T> {
     protected ComponentTargetType(ComponentTargetDefinition definition, PluginContainer plugin, Class<T> targetClass) {
         this.id = definition.getId();
         this.plugin = Preconditions.notNull(plugin, "plugin");
-        this.parent = definition.getParent() == null ? null : findParent(plugin.getClockworkCore(), definition.getParent());
-        this.allComponents = parent == null ? Collections.unmodifiableList(ownComponents) : CollectionUtil.compoundList(parent.allComponents, ownComponents);
         this.eventTypeRegistry = plugin.getClockworkCore().getEventTypeRegistry();
         Preconditions.notNull(definition, "definition");
         Preconditions.verifyType(targetClass, ComponentTarget.class, "targetClass");
         this.targetClass = Preconditions.notNullAnd(targetClass, o -> definition.getTargetClass().equals(o.getCanonicalName()), "targetClass");
+        this.parent = definition.getParent() == null ? null : findParent(plugin.getClockworkCore(), definition.getParent());
+        this.allComponents = parent == null ? Collections.unmodifiableList(ownComponents) : CollectionUtil.compoundList(parent.allComponents, ownComponents);
     }
 
     @SuppressWarnings("unchecked")
@@ -57,7 +57,7 @@ public final class ComponentTargetType<T> {
         return (EventType<E, T>) eventTypes.computeIfAbsent(eventClass, k -> eventTypeRegistry.getEventTypeFor(k, this));
     }
 
-    public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
+    public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) { // TODO what about parent target type?
         Preconditions.notNull(type, "type");
         return new FunctionalSubtarget<>(this, type);
     }

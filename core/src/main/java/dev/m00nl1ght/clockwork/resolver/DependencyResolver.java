@@ -24,8 +24,8 @@ public class DependencyResolver {
 
     public void addDefinition(PluginDefinition def, PluginLocator loader) {
         pluginDefinitions.add(def);
-        for (var d : def.getTargetDefinitions()) this.addDefinition(d);
-        for (var d : def.getComponentDefinitions()) this.addDefinition(d);
+        def.getTargetDefinitions().forEach(this::addDefinition);
+        def.getComponentDefinitions().forEach(this::addDefinition);
         LOGGER.debug(loader.getName() + " located plugin [" + def.toString() + "]");
     }
 
@@ -72,9 +72,13 @@ public class DependencyResolver {
         }
 
         @Override
-        public boolean onMissingDep(ComponentDefinition node, DependencyDefinition dep, ComponentDefinition present, boolean skipped) {
-            addProblem(PluginLoadingProblem.depNotFound(node, dep, present, skipped));
-            return node.isOptional();
+        public void onMissingDep(ComponentDefinition node, DependencyDefinition dep, ComponentDefinition present) {
+            addProblem(PluginLoadingProblem.depNotFound(node, dep, present));
+        }
+
+        @Override
+        public void onSkippedDep(ComponentDefinition node, ComponentDefinition present) {
+            addProblem(PluginLoadingProblem.depSkipped(node, present));
         }
 
     }
@@ -93,7 +97,7 @@ public class DependencyResolver {
 
         @Override
         public boolean isDepSatisfied(ComponentTargetDefinition node, String dep, ComponentTargetDefinition present) {
-            return present != null;
+            return true;
         }
 
         @Override
@@ -107,9 +111,13 @@ public class DependencyResolver {
         }
 
         @Override
-        public boolean onMissingDep(ComponentTargetDefinition node, String required, ComponentTargetDefinition present, boolean skipped) {
+        public void onMissingDep(ComponentTargetDefinition node, String required, ComponentTargetDefinition present) {
             addProblem(PluginLoadingProblem.parentNotFound(node));
-            return false;
+        }
+
+        @Override
+        public void onSkippedDep(ComponentTargetDefinition node, ComponentTargetDefinition present) {
+            addProblem(PluginLoadingProblem.parentNotFound(node));
         }
 
     }

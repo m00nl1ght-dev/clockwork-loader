@@ -23,30 +23,37 @@ public class TopologicalSorter<T, D> {
         for (var n : nodes.values()) processNode(n, destList);
     }
 
-    private void linkNode(final Node<T> node) { // TODO check if prev deps skipped?
-        if (node.flag == Flag.LINKED) return; node.flag = Flag.LINKED;
+    private void linkNode(final Node<T> node) {
         for (var d : sorterFuncs.depsFor(node.obj)) {
             final var dnode = nodes.get(sorterFuncs.idOfDep(d));
-            if (dnode == null) {
-                if (sorterFuncs.onMissingDep(node.obj, d, null, false)) node.flag = Flag.SKIPPED;
-            } else if (dnode.flag == Flag.SKIPPED) {
-                if (sorterFuncs.onMissingDep(node.obj, d, dnode.obj, true)) node.flag = Flag.SKIPPED;
-            } else if (!sorterFuncs.isDepSatisfied(node.obj, d, dnode.obj)) {
-                if (sorterFuncs.onMissingDep(node.obj, d, dnode.obj, false)) node.flag = Flag.SKIPPED;
+            if (dnode != null && sorterFuncs.isDepSatisfied(node.obj, d, dnode.obj)) {
+                dnode.depOf.add(node);
             } else {
-                linkNode(dnode);
-                node.depOf.add(dnode);
+                node.flag = Flag.SKIPPED;
+                sorterFuncs.onMissingDep(node.obj, d, dnode == null ? null : dnode.obj);
             }
         }
     }
 
     private void processNode(final Node<T> node, final LinkedList<T> sorted) {
-        if (node.flag == Flag.RESOLVING) sorterFuncs.onCycleFound(node.obj);
-        if (node.flag != Flag.PENDING) return;
-        node.flag = Flag.RESOLVING;
-        for (var n : node.depOf) processNode(n, sorted);
-        sorted.addFirst(node.obj);
-        node.flag = Flag.RESOLVED;
+        switch (node.flag) {
+            case RESOLVING:
+                sorterFuncs.onCycleFound(node.obj);
+                break;
+            case PENDING:
+                node.flag = Flag.RESOLVING;
+                for (var n : node.depOf) processNode(n, sorted);
+                sorted.addFirst(node.obj);
+                node.flag = Flag.RESOLVED;
+                break;
+            case SKIPPED:
+                node.flag = Flag.ABSENT;
+                for (var n : node.depOf) {
+                    n.flag = Flag.SKIPPED;
+                    sorterFuncs.onSkippedDep(node.obj, n.obj);
+                    processNode(n, sorted);
+                }
+        }
     }
 
     private static class Node<T> {
@@ -57,7 +64,7 @@ public class TopologicalSorter<T, D> {
     }
 
     private enum Flag {
-        PENDING, LINKED, RESOLVING, RESOLVED, SKIPPED
+        PENDING, RESOLVING, RESOLVED, ABSENT, SKIPPED
     }
 
     public interface SorterFuncs<T, D> {
@@ -72,7 +79,9 @@ public class TopologicalSorter<T, D> {
 
         void onCycleFound(T tail);
 
-        boolean onMissingDep(T node, D dep, T present, boolean skiped);
+        void onMissingDep(T node, D dep, T present);
+
+        void onSkippedDep(T node, T present);
 
     }
 

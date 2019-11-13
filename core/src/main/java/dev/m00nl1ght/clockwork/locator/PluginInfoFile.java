@@ -94,7 +94,7 @@ public class PluginInfoFile {
             final String id = conf.get("id");
             final String targetClass = conf.get("class");
             final String parent = conf.getOrElse("parent", () -> null);
-            ComponentTargetDefinition.build(plugin, id, parent, targetClass, EventAnnotationProcessor.NAME);
+            ComponentTargetDefinition.build(plugin, id, autoId(parent, plugin.getId()), targetClass, EventAnnotationProcessor.NAME);
         }
     }
 
@@ -108,6 +108,10 @@ public class PluginInfoFile {
         final String perm = conf.get("id");
         final Optional<String> value = conf.getOptional("value");
         return (value.isPresent() && !value.get().isEmpty()) ? perm + ":" + value.get() : perm;
+    }
+
+    private static String autoId(String id, String pId) {
+        return id == null ? null : id.contains(":") ? id : pId + ":" + id;
     }
 
 }

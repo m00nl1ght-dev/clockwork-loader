@@ -18,27 +18,29 @@ public abstract class PluginLoadingProblem {
         return true;
     }
 
-    public static DependencyNotFound depNotFound(ComponentDefinition errored, DependencyDefinition required, ComponentDefinition present, boolean depSkipped) {
-        return new DependencyNotFound(errored, required, present, depSkipped);
+    public static DependencyNotFound depNotFound(ComponentDefinition errored, DependencyDefinition required, ComponentDefinition present) {
+        return new DependencyNotFound(errored, required, present);
+    }
+
+    public static DependencyNotFound depSkipped(ComponentDefinition errored, ComponentDefinition present) {
+        return new DependencyNotFound(errored, null, present);
     }
 
     public static class DependencyNotFound extends PluginLoadingProblem {
 
         private final DependencyDefinition required;
         private final ComponentDefinition present;
-        private final boolean depSkipped;
 
-        private DependencyNotFound(ComponentDefinition errored, DependencyDefinition required, ComponentDefinition present, boolean depSkipped) {
+        private DependencyNotFound(ComponentDefinition errored, DependencyDefinition required, ComponentDefinition present) {
             super(errored);
             this.required = required;
             this.present = present;
-            this.depSkipped = depSkipped;
         }
 
         @Override
         public String getMessage() {
-            if (depSkipped) {
-                return "Required dependency [" + required.getDescriptor() + "] was skipped";
+            if (required == null) {
+                return "Required dependency [" + present + "] was skipped";
             } else if (present == null) {
                 return "Missing required dependency [" + required.getDescriptor() + "]";
             } else {
