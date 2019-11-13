@@ -8,7 +8,7 @@ public class ComponentContainer<T> {
     protected final Object[] components;
     protected final T object;
 
-    public ComponentContainer(ComponentTargetType<T> targetType, T object) {
+    public <U extends T> ComponentContainer(ComponentTargetType<T> targetType, U object) {
         this.object = Preconditions.notNull(object, "object");
         this.targetType = Preconditions.notNullAnd(targetType, ComponentTargetType::isRegistryLocked, "targetType");
         this.components = new Object[targetType.getComponentCount()];

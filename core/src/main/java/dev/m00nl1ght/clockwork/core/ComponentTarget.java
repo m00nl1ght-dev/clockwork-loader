@@ -2,11 +2,11 @@ package dev.m00nl1ght.clockwork.core;
 
 import java.util.Optional;
 
-public interface ComponentTarget<T> {
+public interface ComponentTarget {
 
-    <C> C getComponent(ComponentType<C, ? extends T> componentType);
+    <C> C getComponent(ComponentType<C, ?> componentType);
 
-    default <C> Optional<C> getComponentOptional(ComponentType<C, ? extends T> componentType) {
+    default <C> Optional<C> getComponentOptional(ComponentType<C, ?> componentType) {
         return Optional.ofNullable(getComponent(componentType));
     }
 
