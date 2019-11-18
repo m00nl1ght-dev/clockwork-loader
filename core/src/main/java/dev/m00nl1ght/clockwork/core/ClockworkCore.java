@@ -1,7 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
-import dev.m00nl1ght.clockwork.event.EventTypeRegistry;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
@@ -14,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-public class ClockworkCore implements ComponentTarget<ClockworkCore> {
+public class ClockworkCore implements ComponentTarget {
 
     private static final Logger LOGGER = LogManager.getLogger();
     public static final String CORE_PLUGIN_ID = "clockwork";
@@ -26,19 +25,19 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
-    private final EventTypeRegistry eventTypeRegistry = new EventTypeRegistry();
+    private final EventDispatcherRegistry eventDispatcherRegistry = new EventDispatcherRegistry();
     private final ComponentContainer<ClockworkCore> coreContainer;
     private final ModuleManager moduleManager;
 
     private ClockworkCore(DependencyResolver depResolver) {
         moduleManager = new ModuleManager(depResolver.getPluginDefinitions(), ModuleLayer.boot());
+        moduleManager.loadEventTypeRegistry(eventDispatcherRegistry);
         depResolver.getPluginDefinitions().forEach(this::buildPlugin);
         depResolver.getTargetDefinitions().forEach(this::buildComponentTarget);
         depResolver.getComponentDefinitions().forEach(this::buildComponent);
-        componentTargets.values().forEach(ComponentTargetType::lockRegistry);
-        moduleManager.loadEventTypeRegistry(eventTypeRegistry);
+        depResolver.getTargetDefinitions().forEach(t -> componentTargets.get(t.getId()).getPrimer().fuse());
         final var coreTarget = getTargetType(ClockworkCore.class);
-        if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
+        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
         coreContainer = new ComponentContainer<>(coreTarget.get(), this);
         coreContainer.initComponents();
     }
@@ -78,7 +77,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         final var compClass = moduleManager.loadClassForPlugin(def.getComponentClass(), plugin);
         final var target = componentTargets.get(def.getTargetId());
         if (target == null) throw PluginLoadingException.componentMissingTarget(def);
-        final var component = target.register(def, plugin, compClass);
+        final var component = target.getPrimer().register(def, plugin, compClass);
         final var existingByName = loadedComponents.putIfAbsent(component.getId(), component);
         if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(def, existingByName.getId());
         final var existingByClass = classToComponentMap.putIfAbsent(compClass, component);
@@ -86,11 +85,13 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         processors.apply(component, def.getProcessors());
     }
 
+    @SuppressWarnings("unchecked")
     private void buildComponentTarget(ComponentTargetDefinition def) {
         final var plugin = loadedPlugins.get(def.getPlugin().getId());
         if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
         final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
-        final var target = new ComponentTargetType<>(def, plugin, targetClass);
+        if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
+        final var target = ComponentTargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass);
         final var existingByName = componentTargets.putIfAbsent(target.getId(), target);
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
         final var existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
@@ -99,12 +100,17 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     }
 
     @Override
-    public <C> C getComponent(ComponentType<C, ? extends ClockworkCore> componentType) {
+    public ComponentTargetType<ClockworkCore> getTargetType() {
+        return coreContainer.getTargetType();
+    }
+
+    @Override
+    public <C> C getComponent(ComponentType<C, ?> componentType) {
         return coreContainer == null ? null : coreContainer.getComponent(componentType);
     }
 
     @SuppressWarnings("unchecked")
-    public <T> Optional<ComponentTargetType<T>> getTargetType(Class<T> targetClass) {
+    public <T extends ComponentTarget> Optional<ComponentTargetType<T>> getTargetType(Class<T> targetClass) {
         final var type = classToTargetMap.get(targetClass);
         if (type == null) return Optional.empty();
         return Optional.of((ComponentTargetType<T>) type);
@@ -115,7 +121,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
     }
 
     @SuppressWarnings("unchecked")
-    public <C, T> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
+    public <C, T extends ComponentTarget> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
         final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
@@ -133,8 +139,8 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         return Optional.ofNullable(loadedComponents.get(componentId));
     }
 
-    protected EventTypeRegistry getEventTypeRegistry() {
-        return eventTypeRegistry;
+    protected EventDispatcherRegistry getEventDispatcherRegistry() {
+        return eventDispatcherRegistry;
     }
 
 }

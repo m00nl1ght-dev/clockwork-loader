@@ -8,10 +8,10 @@ Test environment for CWL dev workspace
 '''
 
 [[target]]
-id = "test-target"
-class = "dev.m00nl1ght.clockwork.test.TestComponentTarget"
+id = "test-target-a"
+class = "dev.m00nl1ght.clockwork.test.TestTarget_A"
 
 [[target]]
-id = "test-target-2"
-parent = "test-target"
-class = "dev.m00nl1ght.clockwork.test.SubclassTestComponentTarget"
+id = "test-target-b"
+parent = "test-target-a"
+class = "dev.m00nl1ght.clockwork.test.TestTarget_B"

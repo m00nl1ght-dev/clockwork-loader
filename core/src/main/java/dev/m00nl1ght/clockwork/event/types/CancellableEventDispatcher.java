@@ -3,14 +3,14 @@ package dev.m00nl1ght.clockwork.event.types;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentTargetType;
 import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.event.EventType;
-import dev.m00nl1ght.clockwork.event.EventTypeFactory;
+import dev.m00nl1ght.clockwork.core.EventDispatcher;
+import dev.m00nl1ght.clockwork.core.EventDispatcherFactory;
 
 import java.util.function.BiConsumer;
 
-public class CancellableEventType<E extends CancellableEvent, T> extends EventType<E, T> {
+public class CancellableEventDispatcher<E extends CancellableEvent, T extends ComponentTarget> extends EventDispatcher<E, T> {
 
-    public CancellableEventType(ComponentTargetType<T> target, Class<E> eventClass) {
+    public CancellableEventDispatcher(ComponentTargetType<T> target, Class<E> eventClass) {
         super(target, eventClass);
     }
 
@@ -19,11 +19,11 @@ public class CancellableEventType<E extends CancellableEvent, T> extends EventTy
         return new CancellableListener<>(componentType, consumer, false);
     }
 
-    public static class Factory implements EventTypeFactory<CancellableEvent> {
+    public static class Factory implements EventDispatcherFactory<CancellableEvent> {
 
         @Override
-        public <T, E extends CancellableEvent> EventType<E, T> build(ComponentTargetType<T> targetType, Class<E> eventClass) {
-            return new CancellableEventType<>(targetType, eventClass);
+        public <T extends ComponentTarget, E extends CancellableEvent> EventDispatcher<E, T> build(ComponentTargetType<T> targetType, Class<E> eventClass) {
+            return new CancellableEventDispatcher<>(targetType, eventClass);
         }
 
         @Override
@@ -33,7 +33,7 @@ public class CancellableEventType<E extends CancellableEvent, T> extends EventTy
 
     }
 
-    protected static class CancellableListener<C, E extends CancellableEvent, T> extends Listener<C, E, T> {
+    protected static class CancellableListener<C, E extends CancellableEvent, T extends ComponentTarget> extends Listener<C, E, T> {
 
         private final boolean receiveCancelled;
 
@@ -43,7 +43,7 @@ public class CancellableEventType<E extends CancellableEvent, T> extends EventTy
         }
 
         @Override
-        protected void accept(E event, ComponentTarget<T> object) {
+        protected void accept(E event, T object) {
             if (!event.isCancelled() || receiveCancelled) {
                 final var comp = object.getComponent(component);
                 if (comp != null) consumer.accept(comp, event);

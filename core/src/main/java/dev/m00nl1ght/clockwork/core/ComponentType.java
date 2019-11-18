@@ -4,7 +4,7 @@ import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 
-public final class ComponentType<C, T> {
+public class ComponentType<C, T extends ComponentTarget> {
 
     private final String componentId;
     private final Semver version;
@@ -14,7 +14,7 @@ public final class ComponentType<C, T> {
     private final int internalID;
     private ComponentFactory<T, C> factory;
 
-    protected ComponentType(ComponentDefinition definition, PluginContainer plugin, Class<C> componentClass, ComponentTargetType<T> targetType, int internalID) {
+    ComponentType(ComponentDefinition definition, PluginContainer plugin, Class<C> componentClass, ComponentTargetType<T> targetType, int internalID) {
         Preconditions.notNull(definition, "definition");
         this.componentId = definition.getId();
         this.internalID = internalID;

@@ -4,7 +4,7 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
-public class FunctionalSubtarget<T, F> {
+public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     private final ComponentTargetType<T> target;
     private final Class<F> type;
@@ -13,7 +13,7 @@ public class FunctionalSubtarget<T, F> {
     protected FunctionalSubtarget(ComponentTargetType<T> target, Class<F> type) {
         this.target = target;
         this.type = checkType(type);
-        if (!target.isRegistryLocked()) throw new IllegalStateException("cannot create subtarget before target is locked");
+        if (!target.isPrimed()) throw new IllegalStateException("cannot create subtarget before target is primed");
         final var list = target.getRegisteredTypes().stream()
                 .filter(c -> type.isAssignableFrom(c.getComponentClass()))
                 .collect(Collectors.toList());

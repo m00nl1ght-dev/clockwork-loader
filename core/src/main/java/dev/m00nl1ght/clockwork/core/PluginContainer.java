@@ -16,7 +16,7 @@ public class PluginContainer {
     private final Module mainModule;
     private final ClockworkCore core;
 
-    protected PluginContainer(PluginDefinition definition, Module mainModule, ClockworkCore core) {
+    PluginContainer(PluginDefinition definition, Module mainModule, ClockworkCore core) {
         Preconditions.notNull(definition, "definition");
         this.id = definition.getId();
         this.version = definition.getVersion();

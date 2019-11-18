@@ -37,7 +37,7 @@ public class TestLauncher {
         locators.add(new JarFileLocator(TEST_PLUGIN_JAR));
         final var cwc = ClockworkCore.load(locators);
         final var coreTarget = cwc.getTargetType(ClockworkCore.class);
-        if (coreTarget.isEmpty()) throw PluginLoadingException.generic("core target is missing");
+        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
         final var initEvent = coreTarget.get().getEventType(PluginInitEvent.class);
         initEvent.post(cwc, new PluginInitEvent(cwc, PLUGIN_DATA_DIR));
     }

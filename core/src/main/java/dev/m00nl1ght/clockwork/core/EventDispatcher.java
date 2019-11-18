@@ -1,24 +1,20 @@
-package dev.m00nl1ght.clockwork.event;
-
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentTargetType;
-import dev.m00nl1ght.clockwork.core.ComponentType;
+package dev.m00nl1ght.clockwork.core;
 
 import java.util.function.BiConsumer;
 
-public class EventType<E, T> {
+public class EventDispatcher<E, T extends ComponentTarget> {
 
     private Listener<?, E, T> listenerChainFirst;
     private Listener<?, E, T> listenerChainLast;
     protected final ComponentTargetType<T> target;
     protected final Class<E> eventClass;
 
-    public EventType(ComponentTargetType<T> target, Class<E> eventClass) {
+    public EventDispatcher(ComponentTargetType<T> target, Class<E> eventClass) {
         this.target = target;
         this.eventClass = eventClass;
     }
 
-    public final E post(ComponentTarget<T> object, E event) {
+    public final E post(T object, E event) {
         var c = listenerChainFirst;
         while (c != null) {
             c.accept(event, object);
@@ -27,7 +23,7 @@ public class EventType<E, T> {
         return event;
     }
 
-    public final synchronized <C> void registerListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
+    final synchronized <C> void registerListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
         final var evt = buildListener(componentType, consumer);
         if (listenerChainFirst == null) {
             listenerChainFirst = evt;
@@ -50,7 +46,7 @@ public class EventType<E, T> {
         return eventClass;
     }
 
-    protected static class Listener<C, E, T> {
+    protected static class Listener<C, E, T extends ComponentTarget> {
 
         protected final ComponentType<C, T> component;
         protected final BiConsumer<C, E> consumer;
@@ -61,7 +57,7 @@ public class EventType<E, T> {
             this.consumer = consumer;
         }
 
-        protected void accept(E event, ComponentTarget<T> object) {
+        protected void accept(E event, T object) {
             final var comp = object.getComponent(component);
             if (comp != null) consumer.accept(comp, event);
         }

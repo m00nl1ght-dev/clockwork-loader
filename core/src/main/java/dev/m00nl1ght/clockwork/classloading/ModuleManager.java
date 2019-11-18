@@ -3,8 +3,8 @@ package dev.m00nl1ght.clockwork.classloading;
 import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.event.EventTypeFactory;
-import dev.m00nl1ght.clockwork.event.EventTypeRegistry;
+import dev.m00nl1ght.clockwork.core.EventDispatcherFactory;
+import dev.m00nl1ght.clockwork.core.EventDispatcherRegistry;
 
 import java.lang.module.ModuleFinder;
 import java.util.*;
@@ -79,8 +79,8 @@ public class ModuleManager {
         }
     }
 
-    public void loadEventTypeRegistry(EventTypeRegistry registry) {
-        final var loader = ServiceLoader.load(layerController.layer(), EventTypeFactory.class);
+    public void loadEventTypeRegistry(EventDispatcherRegistry registry) {
+        final var loader = ServiceLoader.load(layerController.layer(), EventDispatcherFactory.class);
         for (var factory : loader) registry.register(factory);
     }
 

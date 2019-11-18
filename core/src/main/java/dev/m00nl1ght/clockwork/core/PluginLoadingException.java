@@ -23,6 +23,10 @@ public class PluginLoadingException extends RuntimeException {
         return new PluginLoadingException(LogUtil.format(msg, "[]", objects), cause);
     }
 
+    public static PluginLoadingException coreTargetMissing(String id) {
+        return generic("Internal target [] is missing", id);
+    }
+
     public static PluginLoadingException fatalLoadingProblems(List<PluginLoadingProblem> problems) {
         return generic("Fatal problems occured during dependency resolution");
     }
@@ -99,12 +103,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("PluginProcessor [] threw an exception while processing " + text + " []", cause, name, id);
     }
 
-    public static PluginLoadingException noEventTypeFactoryFound(Class<?> eventClass) {
+    public static PluginLoadingException noEventDispatcherFactoryFound(Class<?> eventClass) {
         return generic("No event type factory found for event class []", eventClass.getName());
     }
 
-    public static PluginLoadingException invalidParentForTarget(ComponentTargetType<?> targetType, ComponentTargetType<?> parent) {
+    public static PluginLoadingException invalidParentForTarget(ComponentTargetDefinition targetType, ComponentTargetType<?> parent) {
         return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), targetType.getId());
+    }
+
+    public static PluginLoadingException invalidTargetClass(ComponentTargetDefinition def) {
+        return generic("Target class [] defined for target type [] does not implement ComponentTarget interface", def.getTargetClass(), def.getId());
     }
 
 }
