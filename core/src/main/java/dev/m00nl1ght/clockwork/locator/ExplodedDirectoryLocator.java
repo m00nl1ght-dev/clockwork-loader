@@ -47,7 +47,7 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
 
         builder.moduleFinder(moduleFinder, modules.next().descriptor().name());
         builder.markForProcessor(EventAnnotationProcessor.NAME);
-        if (modules.hasNext()) throw PluginLoadingException.generic(getName() + " found multiple java modules in directory [" + path + "]");
+        if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
         final var plugin = builder.build();
         pluginInfo.populateComponents(plugin);
         pluginInfo.populateTargets(plugin);

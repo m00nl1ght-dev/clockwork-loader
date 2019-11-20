@@ -2,18 +2,18 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-public class ComponentContainer<T extends ComponentTarget> {
+public class ComponentContainer<T extends ComponentTarget<? super T>> {
 
-    protected final ComponentTargetType<T> targetType;
+    protected final TargetType<T> targetType;
     protected final Object[] components;
     protected final T object;
 
     @SuppressWarnings("unchecked")
-    public ComponentContainer(ComponentTargetType<T> targetType, Object object) {
-        this.targetType = Preconditions.notNullAnd(targetType, ComponentTargetType::isPrimed, "targetType");
+    public ComponentContainer(TargetType<T> targetType, T object) {
+        this.targetType = Preconditions.notNullAnd(targetType, TargetType::isInitialised, "targetType");
         Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
         this.components = new Object[targetType.getComponentCount()];
-        this.object = (T) object;
+        this.object = object;
     }
 
     public void initComponents() {
@@ -23,17 +23,17 @@ public class ComponentContainer<T extends ComponentTarget> {
     }
 
     @SuppressWarnings("unchecked")
-    public <C> C getComponent(ComponentType<C, ?> componentType) {
+    public <C> C getComponent(ComponentType<C, ? extends T> componentType) {
         if (componentType.getTargetType().getRoot() != this.targetType.getRoot()) return null;
         return (C) components[componentType.getInternalID()];
     }
 
-    protected <C> void setComponent(ComponentType<C, ?> componentType, C value) {
+    protected <C> void setComponent(ComponentType<C, ? extends T> componentType, C value) {
         if (componentType.getTargetType().getRoot() != this.targetType.getRoot()) throw new IllegalArgumentException();
         components[componentType.getInternalID()] = value;
     }
 
-    public ComponentTargetType<T> getTargetType() {
+    public TargetType<T> getTargetType() {
         return targetType;
     }
 

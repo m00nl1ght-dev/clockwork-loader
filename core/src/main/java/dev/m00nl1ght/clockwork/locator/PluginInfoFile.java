@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
-import dev.m00nl1ght.clockwork.core.ComponentTargetDefinition;
+import dev.m00nl1ght.clockwork.core.TargetDefinition;
 import dev.m00nl1ght.clockwork.core.DependencyDefinition;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.event.EventAnnotationProcessor;
@@ -94,7 +94,7 @@ public class PluginInfoFile {
             final String id = conf.get("id");
             final String targetClass = conf.get("class");
             final String parent = conf.getOrElse("parent", () -> null);
-            ComponentTargetDefinition.build(plugin, id, autoId(parent, plugin.getId()), targetClass, EventAnnotationProcessor.NAME);
+            TargetDefinition.build(plugin, id, autoId(parent, plugin.getId()), targetClass, EventAnnotationProcessor.NAME);
         }
     }
 

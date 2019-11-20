@@ -4,20 +4,19 @@ import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 
-public class ComponentType<C, T extends ComponentTarget> {
+public class ComponentType<C, T extends ComponentTarget<? super T>> {
 
     private final String componentId;
     private final Semver version;
     private final Class<C> componentClass;
     private final PluginContainer plugin;
-    private final ComponentTargetType<T> targetType;
-    private final int internalID;
+    private final TargetType<T> targetType;
+    private int internalID = -1;
     private ComponentFactory<T, C> factory;
 
-    ComponentType(ComponentDefinition definition, PluginContainer plugin, Class<C> componentClass, ComponentTargetType<T> targetType, int internalID) {
+    ComponentType(ComponentDefinition definition, PluginContainer plugin, Class<C> componentClass, TargetType<T> targetType) {
         Preconditions.notNull(definition, "definition");
         this.componentId = definition.getId();
-        this.internalID = internalID;
         this.version = definition.getVersion();
         this.plugin = Preconditions.notNullAnd(plugin, o -> o.getId().equals(definition.getParent().getId()), "parent");
         this.targetType = Preconditions.notNullAnd(targetType, o -> definition.getTargetId().equals(o.getId()), "targetType");
@@ -37,7 +36,7 @@ public class ComponentType<C, T extends ComponentTarget> {
         return plugin;
     }
 
-    public ComponentTargetType<T> getTargetType() {
+    public TargetType<T> getTargetType() {
         return targetType;
     }
 
@@ -45,8 +44,13 @@ public class ComponentType<C, T extends ComponentTarget> {
         return componentClass;
     }
 
-    protected int getInternalID() {
+    public int getInternalID() {
         return internalID;
+    }
+
+    protected void init(int internalID) {
+        if (this.internalID >= 0) throw new IllegalStateException();
+        this.internalID = internalID;
     }
 
     public void setFactory(ComponentFactory<T, C> factory) {

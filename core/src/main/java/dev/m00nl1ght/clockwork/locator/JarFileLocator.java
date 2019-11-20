@@ -51,7 +51,7 @@ public class JarFileLocator extends AbstractCachedLocator {
 
             builder.moduleFinder(moduleFinder, modules.next().descriptor().name());
             builder.markForProcessor(EventAnnotationProcessor.NAME);
-            if (modules.hasNext()) throw PluginLoadingException.generic(getName() + " found multiple java modules in file [" + path + "]");
+            if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
             final var plugin = builder.build();
             pluginInfo.populateComponents(plugin);
             pluginInfo.populateTargets(plugin);
@@ -59,7 +59,7 @@ public class JarFileLocator extends AbstractCachedLocator {
         } catch (PluginLoadingException e) {
             throw e;
         } catch (Exception e) {
-            throw PluginLoadingException.generic("Failed to read jar file " + path, e);
+            throw PluginLoadingException.generic("Failed to read jar file []", e, path);
         }
     }
 

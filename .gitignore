@@ -9,3 +9,4 @@
 /test-env/plugin-data/
 
 .attach_pid*
+/notes.txt

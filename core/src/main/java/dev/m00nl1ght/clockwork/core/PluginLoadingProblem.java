@@ -55,15 +55,15 @@ public abstract class PluginLoadingProblem {
 
     }
 
-    public static PluginLoadingProblem parentNotFound(ComponentTargetDefinition obj) {
+    public static PluginLoadingProblem parentNotFound(TargetDefinition obj) {
         return new ParentNotFound(obj.getPlugin().getMainComponent(), obj);
     }
 
     public static class ParentNotFound extends PluginLoadingProblem {
 
-        private final ComponentTargetDefinition def;
+        private final TargetDefinition def;
 
-        private ParentNotFound(ComponentDefinition errored, ComponentTargetDefinition def) {
+        private ParentNotFound(ComponentDefinition errored, TargetDefinition def) {
             super(errored);
             this.def = def;
         }

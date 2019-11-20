@@ -3,11 +3,12 @@ package dev.m00nl1ght.clockwork.classloading;
 import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.core.EventDispatcherFactory;
-import dev.m00nl1ght.clockwork.core.EventDispatcherRegistry;
 
 import java.lang.module.ModuleFinder;
-import java.util.*;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 public class ModuleManager {
 
@@ -77,11 +78,6 @@ public class ModuleManager {
         } catch (ClassNotFoundException e) {
             throw PluginLoadingException.componentClassNotFound(className, plugin);
         }
-    }
-
-    public void loadEventTypeRegistry(EventDispatcherRegistry registry) {
-        final var loader = ServiceLoader.load(layerController.layer(), EventDispatcherFactory.class);
-        for (var factory : loader) registry.register(factory);
     }
 
 }

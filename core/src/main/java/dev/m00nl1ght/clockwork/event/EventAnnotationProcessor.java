@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
+import dev.m00nl1ght.clockwork.core.EventFilter;
 import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -23,7 +24,7 @@ public class EventAnnotationProcessor implements PluginProcessor {
     private static final MethodType INVOKED_TYPE = MethodType.methodType(BiConsumer.class);
 
     @Override
-    public <C, T extends ComponentTarget> void process(ComponentType<C, T> component, Supplier<MethodHandles.Lookup> reflectiveAccess) throws Throwable {
+    public <C, T extends ComponentTarget<? super T>> void process(ComponentType<C, T> component, Supplier<MethodHandles.Lookup> reflectiveAccess) throws Throwable {
         final var compClass = component.getComponentClass();
         final var methods = compClass.getDeclaredMethods();
         for (var method : methods) {
@@ -42,9 +43,14 @@ public class EventAnnotationProcessor implements PluginProcessor {
         }
     }
 
-    private <C, T extends ComponentTarget, E> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite) throws Throwable {
+    private <C, T extends ComponentTarget<? super T>, E> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite) throws Throwable {
         final var listener = (BiConsumer<C, E>) callSite.getTarget().invokeExact();
-        componentType.getTargetType().getPrimer().registerListener(componentType, eventClass, listener);
+        final var filter = filterFor(componentType, eventClass);
+        componentType.getTargetType().getPrimer().registerListener(componentType, eventClass, listener, filter);
+    }
+
+    private <C, E, T extends ComponentTarget<? super T>> EventFilter<E, T> filterFor(ComponentType<C, T> componentType, Class<E> eventClass) {
+        return null; // TODO
     }
 
     @Override

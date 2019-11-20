@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.List;
 
-public final class ComponentTargetDefinition {
+public final class TargetDefinition {
 
     private final PluginDefinition plugin;
     private final String parent;
@@ -12,7 +12,7 @@ public final class ComponentTargetDefinition {
     private final String targetClass;
     private final List<String> processors;
 
-    public ComponentTargetDefinition(PluginDefinition plugin, String id, String parent, String targetClass, List<String> processors) {
+    public TargetDefinition(PluginDefinition plugin, String id, String parent, String targetClass, List<String> processors) {
         this.parent = parent;
         this.plugin = Preconditions.notNull(plugin, "parent");
         this.id = plugin.subId(Preconditions.notNull(id, "component target id"));
@@ -21,8 +21,8 @@ public final class ComponentTargetDefinition {
         this.plugin.addTargetDefinition(this);
     }
 
-    public static ComponentTargetDefinition build(PluginDefinition plugin, String id, String parent, String targetClass, String... processors) {
-        return new ComponentTargetDefinition(plugin, id, parent, targetClass, List.of(processors));
+    public static TargetDefinition build(PluginDefinition plugin, String id, String parent, String targetClass, String... processors) {
+        return new TargetDefinition(plugin, id, parent, targetClass, List.of(processors));
     }
 
     public PluginDefinition getPlugin() {

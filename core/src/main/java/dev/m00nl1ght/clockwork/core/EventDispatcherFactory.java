@@ -1,9 +1,20 @@
 package dev.m00nl1ght.clockwork.core;
 
-public interface EventDispatcherFactory<U> {
+public interface EventDispatcherFactory {
 
-    <T extends ComponentTarget, E extends U> EventDispatcher<E, T> build(ComponentTargetType<T> targetType, Class<E> eventClass);
+    EventDispatcherFactory DEFAULT = new Default();
 
-    Class<U> getTarget();
+    <E, T extends ComponentTarget<? super T>> EventDispatcher<E, T> build(TargetType<T> targetType, Class<E> eventClass);
+
+    class Default implements EventDispatcherFactory {
+
+        private Default() {}
+
+        @Override
+        public <E, T extends ComponentTarget<? super T>> EventDispatcher<E, T> build(TargetType<T> targetType, Class<E> eventClass) {
+            return new EventDispatcher<>(targetType, eventClass);
+        }
+
+    }
 
 }

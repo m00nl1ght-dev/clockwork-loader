@@ -17,8 +17,8 @@ public class TestComponent_A {
     }
 
     @EventHandler
-    protected void onTestEvent(TestEvent_A event) {
-        LOGGER.info("TestEvent_A received.");
+    protected void onTestEventA(TestEvent_A event) {
+        LOGGER.info("TestEvent_A received for " + target.getClass().getSimpleName() + ".");
     }
 
 }

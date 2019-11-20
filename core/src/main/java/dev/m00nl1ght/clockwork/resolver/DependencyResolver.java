@@ -15,10 +15,10 @@ public class DependencyResolver {
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final TopologicalSorter<ComponentDefinition, DependencyDefinition> compSorter = new TopologicalSorter<>(new CompSortFuncs());
-    private final TopologicalSorter<ComponentTargetDefinition, String> targetSorter = new TopologicalSorter<>(new TargetSortFuncs());
+    private final TopologicalSorter<TargetDefinition, String> targetSorter = new TopologicalSorter<>(new TargetSortFuncs());
     private final LinkedList<PluginDefinition> pluginDefinitions = new LinkedList<>();
     private final LinkedList<ComponentDefinition> componentDefinitions = new LinkedList<>();
-    private final LinkedList<ComponentTargetDefinition> targetDefinitions = new LinkedList<>();
+    private final LinkedList<TargetDefinition> targetDefinitions = new LinkedList<>();
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
@@ -34,7 +34,7 @@ public class DependencyResolver {
         if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def, def, present));
     }
 
-    public void addDefinition(ComponentTargetDefinition def) {
+    public void addDefinition(TargetDefinition def) {
         final var present = targetSorter.add(def);
         if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def.getPlugin().getMainComponent(), def, present));
     }
@@ -83,10 +83,10 @@ public class DependencyResolver {
 
     }
 
-    private class TargetSortFuncs implements TopologicalSorter.SorterFuncs<ComponentTargetDefinition, String> {
+    private class TargetSortFuncs implements TopologicalSorter.SorterFuncs<TargetDefinition, String> {
 
         @Override
-        public String idFor(ComponentTargetDefinition obj) {
+        public String idFor(TargetDefinition obj) {
             return obj.getId();
         }
 
@@ -96,27 +96,27 @@ public class DependencyResolver {
         }
 
         @Override
-        public boolean isDepSatisfied(ComponentTargetDefinition node, String dep, ComponentTargetDefinition present) {
+        public boolean isDepSatisfied(TargetDefinition node, String dep, TargetDefinition present) {
             return true;
         }
 
         @Override
-        public Iterable<String> depsFor(ComponentTargetDefinition obj) {
+        public Iterable<String> depsFor(TargetDefinition obj) {
             return obj.getParent() == null ? Collections.emptySet() : Collections.singleton(obj.getParent());
         }
 
         @Override
-        public void onCycleFound(ComponentTargetDefinition tail) {
+        public void onCycleFound(TargetDefinition tail) {
             addProblem(PluginLoadingProblem.depCycleFound(tail.getPlugin().getMainComponent(), tail));
         }
 
         @Override
-        public void onMissingDep(ComponentTargetDefinition node, String required, ComponentTargetDefinition present) {
+        public void onMissingDep(TargetDefinition node, String required, TargetDefinition present) {
             addProblem(PluginLoadingProblem.parentNotFound(node));
         }
 
         @Override
-        public void onSkippedDep(ComponentTargetDefinition node, ComponentTargetDefinition present) {
+        public void onSkippedDep(TargetDefinition node, TargetDefinition present) {
             addProblem(PluginLoadingProblem.parentNotFound(node));
         }
 
@@ -134,7 +134,7 @@ public class DependencyResolver {
         return Collections.unmodifiableList(componentDefinitions);
     }
 
-    public List<ComponentTargetDefinition> getTargetDefinitions() {
+    public List<TargetDefinition> getTargetDefinitions() {
         return Collections.unmodifiableList(targetDefinitions);
     }
 

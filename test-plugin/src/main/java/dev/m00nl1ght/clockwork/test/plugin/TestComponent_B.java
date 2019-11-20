@@ -18,14 +18,13 @@ public class TestComponent_B {
     }
 
     @EventHandler
-    protected void onTestEvent(TestEvent_A event) {
-        // TODO not called at the moment, EventDispatcher of parent target types not correctly linked yet
-        LOGGER.info("TestEvent_A received.");
+    protected void onTestEventA(TestEvent_A event) {
+        LOGGER.info("TestEvent_A received for " + target.getClass().getSimpleName() + ".");
     }
 
     @EventHandler
-    protected void onTest2Event(TestEvent_B event) {
-        LOGGER.info("TestEvent_B received.");
+    protected void onTestEventB(TestEvent_B event) {
+        LOGGER.info("TestEvent_B received for " + target.getClass().getSimpleName() + ".");
     }
 
 }

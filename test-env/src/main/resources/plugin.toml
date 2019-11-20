@@ -15,3 +15,7 @@ class = "dev.m00nl1ght.clockwork.test.TestTarget_A"
 id = "test-target-b"
 parent = "test-target-a"
 class = "dev.m00nl1ght.clockwork.test.TestTarget_B"
+
+[[target]]
+id = "test-target-c"
+class = "dev.m00nl1ght.clockwork.test.TestTarget_C"

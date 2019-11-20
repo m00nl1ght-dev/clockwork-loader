@@ -108,7 +108,7 @@ public final class ComponentDefinition {
 
         public Builder dependency(DependencyDefinition dependency) {
             final var prev = this.dependencies.putIfAbsent(dependency.getComponentId(), dependency);
-            if (prev != null) throw PluginLoadingException.generic("Duplicate dependency: [] Already present: []", dependency, prev);
+            if (prev != null) throw PluginLoadingException.dependencyDuplicate(componentId, dependency, prev);
             return this;
         }
 

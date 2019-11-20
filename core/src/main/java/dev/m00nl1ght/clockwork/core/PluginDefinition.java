@@ -17,7 +17,7 @@ public final class PluginDefinition {
     private final List<String> authors;
     private final ComponentDefinition mainComponent;
     private final List<ComponentDefinition> components = new ArrayList<>();
-    private final List<ComponentTargetDefinition> targets = new ArrayList<>();
+    private final List<TargetDefinition> targets = new ArrayList<>();
     private final ModuleFinder moduleFinder;
     private final String mainModule;
     private final List<String> processors;
@@ -74,11 +74,11 @@ public final class PluginDefinition {
         components.add(componentDefinition);
     }
 
-    public List<ComponentTargetDefinition> getTargetDefinitions() {
+    public List<TargetDefinition> getTargetDefinitions() {
         return Collections.unmodifiableList(targets);
     }
 
-    protected void addTargetDefinition(ComponentTargetDefinition targetDefinition) {
+    protected void addTargetDefinition(TargetDefinition targetDefinition) {
         Preconditions.notNullAnd(targetDefinition, o -> o.getPlugin() == this, "targetDefinition");
         targets.add(targetDefinition);
     }
@@ -187,7 +187,7 @@ public final class PluginDefinition {
 
         public Builder dependency(DependencyDefinition dependency) {
             final var prev = this.dependencies.putIfAbsent(dependency.getComponentId(), dependency);
-            if (prev != null) throw PluginLoadingException.generic("Duplicate dependency: [] Already present: []", dependency, prev);
+            if (prev != null) throw PluginLoadingException.dependencyDuplicate(id, dependency, prev);
             return this;
         }
 

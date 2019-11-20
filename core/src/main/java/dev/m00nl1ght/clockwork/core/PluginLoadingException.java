@@ -1,8 +1,10 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.util.LogUtil;
 
 import java.lang.module.ModuleDescriptor;
+import java.nio.file.Path;
 import java.util.List;
 
 public class PluginLoadingException extends RuntimeException {
@@ -63,11 +65,11 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Multiple component definitions with the same id [] are present", existing);
     }
 
-    public static PluginLoadingException targetClassDuplicate(ComponentTargetDefinition def, String existing) {
+    public static PluginLoadingException targetClassDuplicate(TargetDefinition def, String existing) {
         return generic("Target class [] defined for target type [] is already defined for target []", def.getTargetClass(), def.getId(), existing);
     }
 
-    public static PluginLoadingException targetIdDuplicate(ComponentTargetDefinition def, String existing) {
+    public static PluginLoadingException targetIdDuplicate(TargetDefinition def, String existing) {
         return generic("Multiple target definitions with the same id [] are present", existing);
     }
 
@@ -107,12 +109,24 @@ public class PluginLoadingException extends RuntimeException {
         return generic("No event type factory found for event class []", eventClass.getName());
     }
 
-    public static PluginLoadingException invalidParentForTarget(ComponentTargetDefinition targetType, ComponentTargetType<?> parent) {
+    public static PluginLoadingException invalidParentForTarget(TargetDefinition targetType, TargetType<?> parent) {
         return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), targetType.getId());
     }
 
-    public static PluginLoadingException invalidTargetClass(ComponentTargetDefinition def) {
+    public static PluginLoadingException invalidTargetClass(TargetDefinition def) {
         return generic("Target class [] defined for target type [] does not implement ComponentTarget interface", def.getTargetClass(), def.getId());
+    }
+
+    public static PluginLoadingException dependencyDuplicate(String of, DependencyDefinition dependency, DependencyDefinition existing) {
+        return generic("Duplicate dependency defined for []: [] vs. []", of, dependency, existing);
+    }
+
+    public static PluginLoadingException pluginDuplicate(PluginLocator locator, PluginDefinition def, PluginDefinition existing) {
+        return generic("[] found multiple plugins with the same id []", locator.getName(), def.getId());
+    }
+
+    public static PluginLoadingException multipleModulesFound(PluginLocator locator, Path path) {
+        return generic("[] found multiple java modules in path []", locator.getName(), path);
     }
 
 }
