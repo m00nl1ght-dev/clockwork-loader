@@ -204,8 +204,8 @@ public abstract class TargetType<T extends ComponentTarget<? super T>> {
             this.eventTypes = new HashMap<>(events.length);
 
             for (var i = 0; i < ext.length; i++) {
-                final var evt = ext[i];
-                this.events[i] = evt == null ? parent.events[i] : evt;
+                final var evt = ext[i] == null ? parent.events[i] : ext[i];
+                this.events[i] = evt;
                 this.eventTypes.put(evt.eventClass, new EventType<>(this, evt.eventClass, i));
             }
 
