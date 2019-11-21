@@ -11,7 +11,10 @@ import java.lang.invoke.CallSite;
 import java.lang.invoke.LambdaMetafactory;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
@@ -22,6 +25,7 @@ public class EventAnnotationProcessor implements PluginProcessor {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final MethodType GENERIC_TYPE = MethodType.methodType(Void.TYPE, Object.class, Object.class);
     private static final MethodType INVOKED_TYPE = MethodType.methodType(BiConsumer.class);
+    private static final Map<Class<?>, EventFilterFactory<?>> filterReg = new HashMap<>();
 
     @Override
     public <C, T extends ComponentTarget<? super T>> void process(ComponentType<C, T> component, Supplier<MethodHandles.Lookup> reflectiveAccess) throws Throwable {
@@ -56,6 +60,20 @@ public class EventAnnotationProcessor implements PluginProcessor {
     @Override
     public String getName() {
         return NAME;
+    }
+
+    public static void registerEventFilterFactory(EventFilterFactory<?> factory) {
+        final var evtI = factory.getInterface();
+        if (!evtI.isInterface()) throw new IllegalArgumentException(evtI.getName() + " is not an interface");
+        filterReg.put(evtI, factory);
+    }
+
+    public interface EventFilterFactory<I> {
+
+        <E extends I, T extends ComponentTarget<? super T>> EventFilter<E, T> get(ComponentType<?, T> componentType, Method method, Class<E> eventClass);
+
+        Class<I> getInterface();
+
     }
 
 }
