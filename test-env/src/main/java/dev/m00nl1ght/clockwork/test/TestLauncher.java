@@ -34,7 +34,7 @@ public class TestLauncher {
         ClockworkSecurityPolicy.install(config);
         final var locators = new ArrayList<PluginLocator>();
         locators.add(new BootLayerLocator());
-        locators.add(new JarFileLocator(TEST_PLUGIN_JAR));
+        locators.add(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
         final var cwc = ClockworkCore.load(locators);
         final var coreTarget = cwc.getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);

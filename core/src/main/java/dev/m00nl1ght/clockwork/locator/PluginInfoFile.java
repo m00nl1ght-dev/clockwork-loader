@@ -26,6 +26,7 @@ public class PluginInfoFile {
 
     private final Path file;
     private final UnmodifiableConfig config;
+    private final String pluginId;
 
     public static PluginInfoFile loadFromDir(Path path) {
         if (Files.isDirectory(path)) {
@@ -55,10 +56,11 @@ public class PluginInfoFile {
     private PluginInfoFile(Path file, UnmodifiableConfig config) {
         this.file = file;
         this.config = config;
+        this.pluginId = config.get("plugin_id");
     }
 
     public PluginDefinition.Builder populatePluginBuilder() {
-        final var builder = PluginDefinition.builder(config.get("plugin_id"));
+        final var builder = PluginDefinition.builder(pluginId);
         builder.displayName(config.get("display_name"));
         builder.version(new Semver(config.get("version"), Semver.SemverType.IVY));
         builder.description(config.getOrElse("description", ""));
@@ -112,6 +114,10 @@ public class PluginInfoFile {
 
     private static String autoId(String id, String pId) {
         return id == null ? null : id.contains(":") ? id : pId + ":" + id;
+    }
+
+    public String getPluginId() {
+        return pluginId;
     }
 
 }
