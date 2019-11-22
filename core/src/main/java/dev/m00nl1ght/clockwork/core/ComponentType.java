@@ -50,6 +50,7 @@ public class ComponentType<C, T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     public C get(T target) {
+        if (target.getTargetType().getRoot() != targetType.getRoot()) throw new IllegalArgumentException();
         return (C) target.getComponent(internalID);
     }
 
