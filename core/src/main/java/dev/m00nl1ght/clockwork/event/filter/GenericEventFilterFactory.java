@@ -45,6 +45,11 @@ public class GenericEventFilterFactory extends BasicEventFilterFactory<GenericEv
             return event.getType() == type;
         }
 
+        @Override
+        public String toString() {
+            return "<" + type.getTypeName() + ">";
+        }
+
     }
 
 }

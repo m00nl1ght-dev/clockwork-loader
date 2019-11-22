@@ -16,10 +16,16 @@ public class EventDispatcher<E, T extends ComponentTarget> {
 
     public E post(T object, E event) {
         Listener<?, E, ? super T> c = listenerChainFirst;
-        while (c != null) {
-            c.accept(event, object);
-            c = c.next;
+
+        try {
+            while (c != null) {
+                c.accept(event, object);
+                c = c.next;
+            }
+        } catch (Throwable t) {
+            throw ExceptionInPlugin.inEventHandler(c.component, event, object, t);
         }
+
         return event;
     }
 
@@ -54,11 +60,35 @@ public class EventDispatcher<E, T extends ComponentTarget> {
         return eventClass;
     }
 
+    @SuppressWarnings("unchecked")
+    protected synchronized EventDispatcher<E, T> rebuild(EventDispatcherFactory factory) {
+        final var rep = factory.build(target, eventClass);
+
+        var c = listenerChainFirst;
+        while (c != null) {
+            rebuild(rep, c);
+            if (c == listenerChainLast) break;
+            c = (Listener<?, E, T>) c.next;
+        }
+
+        final var parentTarget = target.getParent();
+        if (parentTarget != null) {
+            final var parent = parentTarget.eventTypes.get(eventClass);
+            if (parent != null) rep.linkToParent(parentTarget.events[parent.getInternalId()]);
+        }
+
+        return rep;
+    }
+
+    private <C> void rebuild(EventDispatcher<E, T> rep, Listener<C, E, T> old) {
+        rep.registerListener(old.component, old.consumer, old.getFilter());
+    }
+
     protected static abstract class Listener<C, E, T extends ComponentTarget> {
 
         protected final ComponentType<C, T> component;
         protected final BiConsumer<C, E> consumer;
-        private Listener<?, E, ? super T> next;
+        protected Listener<?, E, ? super T> next;
 
         protected Listener(ComponentType<C, T> component, BiConsumer<C, E> consumer) {
             this.component = component;
@@ -66,6 +96,10 @@ public class EventDispatcher<E, T extends ComponentTarget> {
         }
 
         protected abstract void accept(E event, T object);
+
+        protected EventFilter<E, T> getFilter() {
+            return null;
+        }
 
     }
 
@@ -87,7 +121,7 @@ public class EventDispatcher<E, T extends ComponentTarget> {
     @SuppressWarnings("unchecked")
     protected static class FilteredListener<C, E, T extends ComponentTarget> extends Listener<C, E, T> {
 
-        private final EventFilter<E, T> filter;
+        protected final EventFilter<E, T> filter;
 
         protected FilteredListener(ComponentType<C, T> component, BiConsumer<C, E> consumer, EventFilter<E, T> filter) {
             super(component, consumer);
@@ -100,6 +134,11 @@ public class EventDispatcher<E, T extends ComponentTarget> {
                 final var comp = object.getComponent(component.getInternalID());
                 if (comp != null) consumer.accept((C) comp, event);
             }
+        }
+
+        @Override
+        public EventFilter<E, T> getFilter() {
+            return filter;
         }
 
     }

@@ -8,6 +8,7 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
     private final TargetType<T> target;
     private final Class<F> type;
     private final int[] compIdxs;
+    private final ComponentType[] comps;
 
     protected FunctionalSubtarget(TargetType<T> target, Class<F> type) {
         this.target = target;
@@ -17,16 +18,24 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
                 .filter(c -> type.isAssignableFrom(c.getComponentClass()))
                 .collect(Collectors.toList());
         this.compIdxs = new int[list.size()];
+        this.comps = new ComponentType[list.size()];
         for (var i = 0; i < compIdxs.length; i++) {
-            compIdxs[i] = list.get(i).getInternalID();
+            final var comp = list.get(i);
+            comps[i] = comp;
+            compIdxs[i] = comp.getInternalID();
         }
     }
 
     @SuppressWarnings("unchecked")
     public void apply(T container, Consumer<F> consumer) {
-        for (var idx : compIdxs) {
-            final var comp = container.getComponent(idx);
-            if (comp != null) consumer.accept((F) comp);
+        int idx = -1;
+        try {
+            for (idx = 0; idx < comps.length; idx++) {
+                final var comp = container.getComponent(idx);
+                if (comp != null) consumer.accept((F) comp);
+            }
+        } catch (Throwable throwable) {
+            throw ExceptionInPlugin.inFunctionalSubtarget(this, comps[idx], throwable);
         }
     }
 
@@ -36,6 +45,10 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         } else {
             return type;
         }
+    }
+
+    public Class<F> getType() {
+        return type;
     }
 
 }

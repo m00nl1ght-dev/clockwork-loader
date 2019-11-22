@@ -69,6 +69,13 @@ public abstract class TargetType<T extends ComponentTarget> {
         primer = null;
     }
 
+    protected void rebuildEventDispatchers(EventDispatcherFactory factory) {
+        if (primer != null) throw new IllegalStateException();
+        for (int i = 0; i < events.length; i++) {
+            events[i] = events[i].rebuild(factory);
+        }
+    }
+
     @SuppressWarnings("unchecked")
     static <T extends ComponentTarget> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass, EventDispatcherFactory dispatcherFactory) {
         if (def.getParent() == null) {

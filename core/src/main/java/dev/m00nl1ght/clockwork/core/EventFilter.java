@@ -4,6 +4,8 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("Convert2streamapi")
 public interface EventFilter<E, T extends ComponentTarget> {
@@ -33,6 +35,11 @@ public interface EventFilter<E, T extends ComponentTarget> {
             return new AndAll<>(List.of(one, another, other));
         }
 
+        @Override
+        public String toString() {
+            return one.toString() + ", " + another.toString();
+        }
+
     }
 
     class AndAll<E, T extends ComponentTarget> implements EventFilter<E, T> {
@@ -54,6 +61,11 @@ public interface EventFilter<E, T extends ComponentTarget> {
             final var nl = new ArrayList<>(list);
             nl.add(other);
             return new AndAll<>(nl);
+        }
+
+        @Override
+        public String toString() {
+            return list.stream().map(Objects::toString).collect(Collectors.joining(", "));
         }
 
     }

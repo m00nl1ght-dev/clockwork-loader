@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.debug.DebugProfiler;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
@@ -35,11 +36,13 @@ public class TestLauncher {
         final var locators = new ArrayList<PluginLocator>();
         locators.add(new BootLayerLocator());
         locators.add(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
-        final var cwc = ClockworkCore.load(locators);
+        final var profiler = new DebugProfiler();
+        final var cwc = ClockworkCore.load(locators, profiler);
         final var coreTarget = cwc.getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
         final var initEvent = coreTarget.get().getEventType(PluginInitEvent.class);
         initEvent.post(cwc, new PluginInitEvent(cwc, PLUGIN_DATA_DIR));
+        System.out.println(profiler.print());
     }
 
 }

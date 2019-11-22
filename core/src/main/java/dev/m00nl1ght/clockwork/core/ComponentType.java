@@ -44,6 +44,11 @@ public class ComponentType<C, T extends ComponentTarget> {
         return componentClass;
     }
 
+    @Override
+    public String toString() {
+        return componentId;
+    }
+
     public int getInternalID() {
         return internalID;
     }

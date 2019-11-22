@@ -16,8 +16,14 @@ public class ComponentContainer<T extends ComponentTarget> {
     }
 
     public void initComponents() {
-        for (var r : targetType.getRegisteredTypes()) {
-            components[r.getInternalID()] = r.buildComponentFor(object);
+        ComponentType<?, ?> blame = null;
+        try {
+            for (var comp : targetType.getRegisteredTypes()) {
+                blame = comp;
+                components[comp.getInternalID()] = comp.buildComponentFor(object);
+            }
+        } catch (Throwable t) {
+            throw ExceptionInPlugin.inComponentInit(blame, t);
         }
     }
 

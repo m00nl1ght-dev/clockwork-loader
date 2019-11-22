@@ -1,9 +1,12 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
+import dev.m00nl1ght.clockwork.debug.DebugProfiler;
+import dev.m00nl1ght.clockwork.debug.ProfilingEventDispatcher;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
+import dev.m00nl1ght.clockwork.util.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -28,8 +31,10 @@ public class ClockworkCore implements ComponentTarget {
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
     private final ComponentContainer<ClockworkCore> coreContainer;
     private final ModuleManager moduleManager;
+    private EventDispatcherFactory dispatcherFactory;
 
-    private ClockworkCore(DependencyResolver depResolver) {
+    private ClockworkCore(DependencyResolver depResolver, DebugProfiler profiler) {
+        dispatcherFactory = profiler == null ? EventDispatcherFactory.DEFAULT : ProfilingEventDispatcher.factory(profiler);
         moduleManager = new ModuleManager(depResolver.getPluginDefinitions(), ModuleLayer.boot());
         depResolver.getPluginDefinitions().forEach(this::buildPlugin);
         depResolver.getTargetDefinitions().forEach(this::buildComponentTarget);
@@ -42,6 +47,10 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     public static ClockworkCore load(Collection<PluginLocator> locators) {
+        return load(locators, null);
+    }
+
+    public static ClockworkCore load(Collection<PluginLocator> locators, DebugProfiler profiler) {
         final var depResolver = new DependencyResolver();
         locators.forEach(e -> e.findAll().forEach(p -> depResolver.addDefinition(p, e)));
         depResolver.resolveAndSort();
@@ -59,7 +68,7 @@ public class ClockworkCore implements ComponentTarget {
             for (var p : skips) LOGGER.error(p.format());
         }
 
-        return new ClockworkCore(depResolver);
+        return new ClockworkCore(depResolver, profiler);
     }
 
     private void buildPlugin(PluginDefinition def) {
@@ -89,7 +98,7 @@ public class ClockworkCore implements ComponentTarget {
         if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
         final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
         if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
-        final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, EventDispatcherFactory.DEFAULT);
+        final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, dispatcherFactory);
         final TargetType<?> existingByName = componentTargets.putIfAbsent(target.getId(), target);
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
         final TargetType<?> existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
@@ -132,6 +141,23 @@ public class ClockworkCore implements ComponentTarget {
     @Override
     public TargetType<?> getTargetType() {
         return coreContainer == null ? null : coreContainer.getTargetType();
+    }
+
+    private synchronized void rebuildEventDispatchers() {
+        for (var target : this.componentTargets.values()) {
+            target.rebuildEventDispatchers(dispatcherFactory);
+        }
+    }
+
+    public void enableProfiler(DebugProfiler profiler) {
+        Preconditions.notNull(profiler, "profiler");
+        this.dispatcherFactory = ProfilingEventDispatcher.factory(profiler);
+        rebuildEventDispatchers();
+    }
+
+    public void disableProfiler() {
+        this.dispatcherFactory = EventDispatcherFactory.DEFAULT;
+        rebuildEventDispatchers();
     }
 
 }

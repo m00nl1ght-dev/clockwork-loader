@@ -9,11 +9,11 @@ import java.util.List;
 
 public class PluginLoadingException extends RuntimeException {
 
-    protected PluginLoadingException(String msg) {
+    private PluginLoadingException(String msg) {
         super(msg);
     }
 
-    protected PluginLoadingException(String msg, Throwable cause) {
+    private PluginLoadingException(String msg, Throwable cause) {
         super(msg, cause);
     }
 
