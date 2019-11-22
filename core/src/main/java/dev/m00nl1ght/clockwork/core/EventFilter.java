@@ -6,7 +6,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("Convert2streamapi")
-public interface EventFilter<E, T extends ComponentTarget<? super T>> {
+public interface EventFilter<E, T extends ComponentTarget> {
 
     boolean test(E event, T object);
 
@@ -14,7 +14,7 @@ public interface EventFilter<E, T extends ComponentTarget<? super T>> {
         return new And<>(this, other);
     }
 
-    class And<E, T extends ComponentTarget<? super T>> implements EventFilter<E, T> {
+    class And<E, T extends ComponentTarget> implements EventFilter<E, T> {
 
         private final EventFilter<E, T> one, another;
 
@@ -35,7 +35,7 @@ public interface EventFilter<E, T extends ComponentTarget<? super T>> {
 
     }
 
-    class AndAll<E, T extends ComponentTarget<? super T>> implements EventFilter<E, T> {
+    class AndAll<E, T extends ComponentTarget> implements EventFilter<E, T> {
 
         private final List<EventFilter<E, T>> list;
 

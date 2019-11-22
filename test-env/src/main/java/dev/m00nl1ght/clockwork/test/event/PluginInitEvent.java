@@ -5,7 +5,7 @@ import dev.m00nl1ght.clockwork.event.Event;
 
 import java.io.File;
 
-public class PluginInitEvent extends Event {
+public class PluginInitEvent implements Event {
 
     private final ClockworkCore cwc;
     private final File dataDir;

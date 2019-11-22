@@ -3,8 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-@SuppressWarnings("unchecked")
-public class FunctionalSubtarget<T extends ComponentTarget<? super T>, F> {
+public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     private final TargetType<T> target;
     private final Class<F> type;
@@ -13,7 +12,7 @@ public class FunctionalSubtarget<T extends ComponentTarget<? super T>, F> {
     protected FunctionalSubtarget(TargetType<T> target, Class<F> type) {
         this.target = target;
         this.type = checkType(type);
-        if (!target.isInitialised()) throw new IllegalStateException("cannot create subtarget before target is primed");
+        if (!target.isInitialised()) throw new IllegalStateException("cannot create subtarget before target is initialised");
         final var list = target.getRegisteredTypes().stream()
                 .filter(c -> type.isAssignableFrom(c.getComponentClass()))
                 .collect(Collectors.toList());
@@ -23,9 +22,10 @@ public class FunctionalSubtarget<T extends ComponentTarget<? super T>, F> {
         }
     }
 
-    public void apply(ComponentContainer<? super T> container, Consumer<F> consumer) {
+    @SuppressWarnings("unchecked")
+    public void apply(T container, Consumer<F> consumer) {
         for (var idx : compIdxs) {
-            final var comp = container.components[idx];
+            final var comp = container.getComponent(idx);
             if (comp != null) consumer.accept((F) comp);
         }
     }

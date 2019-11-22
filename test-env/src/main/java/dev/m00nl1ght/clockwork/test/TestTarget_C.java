@@ -3,9 +3,8 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.core.ComponentType;
 
-public class TestTarget_C implements ComponentTarget<TestTarget_C> {
+public class TestTarget_C implements ComponentTarget {
 
     private final ComponentContainer<TestTarget_C> container;
 
@@ -20,8 +19,8 @@ public class TestTarget_C implements ComponentTarget<TestTarget_C> {
     }
 
     @Override
-    public <C> C getComponent(ComponentType<C, ? extends TestTarget_C> componentType) {
-        return container.getComponent(componentType);
+    public Object getComponent(int internalID) {
+        return container.getComponent(internalID);
     }
 
 }

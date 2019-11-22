@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-public class EventType<E, T extends ComponentTarget<? super T>> {
+public class EventType<E, T extends ComponentTarget> {
 
     private final TargetType<T> target;
     private final Class<E> eventClass;
@@ -22,7 +22,7 @@ public class EventType<E, T extends ComponentTarget<? super T>> {
         return internalId;
     }
 
-    static class Dummy<E, T extends ComponentTarget<? super T>> extends EventType<E, T> {
+    static class Dummy<E, T extends ComponentTarget> extends EventType<E, T> {
 
         Dummy(TargetType<T> target, Class<E> eventClass) {
             super(target, eventClass, -1);

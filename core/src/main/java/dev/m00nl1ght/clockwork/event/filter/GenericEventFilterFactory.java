@@ -18,7 +18,7 @@ public class GenericEventFilterFactory extends BasicEventFilterFactory<GenericEv
     }
 
     @Override
-    protected <E extends GenericEvent, T extends ComponentTarget<? super T>> EventFilter<E, T> build(ComponentType<?, T> componentType, Class<E> eventClass, Method method) {
+    protected <E extends GenericEvent, T extends ComponentTarget> EventFilter<E, T> build(ComponentType<?, T> componentType, Class<E> eventClass, Method method) {
         final var type = method.getGenericParameterTypes()[0];
         if (type instanceof ParameterizedType) {
             var generic = ((ParameterizedType)type).getActualTypeArguments()[0];
@@ -32,7 +32,7 @@ public class GenericEventFilterFactory extends BasicEventFilterFactory<GenericEv
         }
     }
 
-    private static class Filter<E extends GenericEvent<?>, T extends ComponentTarget<? super T>> implements EventFilter<E, T> {
+    private static class Filter<E extends GenericEvent, T extends ComponentTarget> implements EventFilter<E, T> {
 
         private final Type type;
 

@@ -16,7 +16,7 @@ public abstract class BasicEventFilterFactory<I> implements EventFilterFactory {
     }
 
     @SuppressWarnings("unchecked")
-    public <E, T extends ComponentTarget<? super T>> EventFilter<E, T> get(ComponentType<?, T> componentType, Class<E> eventClass, Method method) {
+    public <E, T extends ComponentTarget> EventFilter<E, T> get(ComponentType<?, T> componentType, Class<E> eventClass, Method method) {
         if (evtInterface.isAssignableFrom(eventClass)) {
             return (EventFilter<E, T>) build(componentType, (Class<? extends I>) eventClass, method);
         } else {
@@ -24,6 +24,6 @@ public abstract class BasicEventFilterFactory<I> implements EventFilterFactory {
         }
     }
 
-    protected abstract <E extends I, T extends ComponentTarget<? super T>> EventFilter<E, T> build(ComponentType<?, T> componentType, Class<E> eventClass, Method method);
+    protected abstract <E extends I, T extends ComponentTarget> EventFilter<E, T> build(ComponentType<?, T> componentType, Class<E> eventClass, Method method);
 
 }

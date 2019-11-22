@@ -2,13 +2,12 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
-public class ComponentContainer<T extends ComponentTarget<? super T>> {
+public class ComponentContainer<T extends ComponentTarget> {
 
     protected final TargetType<T> targetType;
     protected final Object[] components;
     protected final T object;
 
-    @SuppressWarnings("unchecked")
     public ComponentContainer(TargetType<T> targetType, T object) {
         this.targetType = Preconditions.notNullAnd(targetType, TargetType::isInitialised, "targetType");
         Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
@@ -22,15 +21,8 @@ public class ComponentContainer<T extends ComponentTarget<? super T>> {
         }
     }
 
-    @SuppressWarnings("unchecked")
-    public <C> C getComponent(ComponentType<C, ? extends T> componentType) {
-        if (componentType.getTargetType().getRoot() != this.targetType.getRoot()) return null;
-        return (C) components[componentType.getInternalID()];
-    }
-
-    protected <C> void setComponent(ComponentType<C, ? extends T> componentType, C value) {
-        if (componentType.getTargetType().getRoot() != this.targetType.getRoot()) throw new IllegalArgumentException();
-        components[componentType.getInternalID()] = value;
+    public Object getComponent(int internalID) {
+        return components[internalID];
     }
 
     public TargetType<T> getTargetType() {

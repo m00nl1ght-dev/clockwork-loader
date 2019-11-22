@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 import java.util.*;
 import java.util.function.BiConsumer;
 
-public abstract class TargetType<T extends ComponentTarget<? super T>> {
+public abstract class TargetType<T extends ComponentTarget> {
 
     protected final String id;
     protected final Class<T> targetClass;
@@ -59,7 +59,7 @@ public abstract class TargetType<T extends ComponentTarget<? super T>> {
         return primer == null;
     }
 
-    public final Primer getPrimer() {
+    public final Primer<T> getPrimer() {
         return primer;
     }
 
@@ -70,23 +70,20 @@ public abstract class TargetType<T extends ComponentTarget<? super T>> {
     }
 
     @SuppressWarnings("unchecked")
-    static <T extends ComponentTarget<? super T>> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass, EventDispatcherFactory dispatcherFactory) {
+    static <T extends ComponentTarget> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass, EventDispatcherFactory dispatcherFactory) {
         if (def.getParent() == null) {
             return new Root<>(def, plugin, targetClass, dispatcherFactory);
         } else {
-            // WARNING: this line below breaks IntelliJ code analysis if a specific inspection is enabled
-            // see https://youtrack.jetbrains.com/issue/IDEA-227288
-            final TargetType<?> found = plugin.getClockworkCore().getTargetType(def.getParent()).orElseThrow();
+            final var found = plugin.getClockworkCore().getTargetType(def.getParent()).orElseThrow();
             if (found.targetClass.isAssignableFrom(targetClass)) {
-                //noinspection Convert2Diamond for whatever reason the compiler chokes on <>
-                return new ForSubclass<T>(def, (TargetType<? super T>) found, plugin, targetClass, dispatcherFactory);
+                return new ForSubclass<>(def, (TargetType<? super T>) found, plugin, targetClass, dispatcherFactory);
             } else {
                 throw PluginLoadingException.invalidParentForTarget(def, found);
             }
         }
     }
 
-    public static class Primer<T extends ComponentTarget<? super T>> {
+    public static class Primer<T extends ComponentTarget> {
 
         private final TargetType<T> pre;
         private final EventDispatcherFactory dispatcherFactory;
@@ -117,7 +114,7 @@ public abstract class TargetType<T extends ComponentTarget<? super T>> {
 
     }
 
-    private static final class Root<T extends ComponentTarget<? super T>> extends TargetType<T> {
+    private static final class Root<T extends ComponentTarget> extends TargetType<T> {
 
         protected final List<ComponentType<?, ? super T>> publicList = Collections.unmodifiableList(components);
 
@@ -163,7 +160,7 @@ public abstract class TargetType<T extends ComponentTarget<? super T>> {
     }
 
     @SuppressWarnings("unchecked")
-    private static final class ForSubclass<T extends ComponentTarget<? super T>> extends TargetType<T> {
+    private static final class ForSubclass<T extends ComponentTarget> extends TargetType<T> {
 
         private final TargetType<? super T> root;
         private final TargetType<? super T> parent;
@@ -188,9 +185,7 @@ public abstract class TargetType<T extends ComponentTarget<? super T>> {
             final var own = new ArrayList<EventDispatcher<?, T>>();
 
             for (var evt : eventList.values()) {
-                // WARNING: this line below breaks IntelliJ code analysis if a specific inspection is enabled
-                // see https://youtrack.jetbrains.com/issue/IDEA-227288
-                final EventType<?, ? super T> parent_disp = parent.eventTypes.get(evt.eventClass);
+                final var parent_disp = parent.eventTypes.get(evt.eventClass);
                 if (parent_disp == null) {
                     own.add(evt);
                 } else {

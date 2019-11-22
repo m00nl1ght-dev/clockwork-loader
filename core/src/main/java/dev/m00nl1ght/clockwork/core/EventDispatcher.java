@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import java.util.function.BiConsumer;
 
-public class EventDispatcher<E, T extends ComponentTarget<? super T>> {
+public class EventDispatcher<E, T extends ComponentTarget> {
 
     private Listener<?, E, T> listenerChainFirst;
     private Listener<?, E, T> listenerChainLast;
@@ -54,7 +54,7 @@ public class EventDispatcher<E, T extends ComponentTarget<? super T>> {
         return eventClass;
     }
 
-    protected static abstract class Listener<C, E, T extends ComponentTarget<? super T>> {
+    protected static abstract class Listener<C, E, T extends ComponentTarget> {
 
         protected final ComponentType<C, T> component;
         protected final BiConsumer<C, E> consumer;
@@ -69,7 +69,8 @@ public class EventDispatcher<E, T extends ComponentTarget<? super T>> {
 
     }
 
-    protected static class SimpleListener<C, E, T extends ComponentTarget<? super T>> extends Listener<C, E, T> {
+    @SuppressWarnings("unchecked")
+    protected static class SimpleListener<C, E, T extends ComponentTarget> extends Listener<C, E, T> {
 
         protected SimpleListener(ComponentType<C, T> component, BiConsumer<C, E> consumer) {
             super(component, consumer);
@@ -77,13 +78,14 @@ public class EventDispatcher<E, T extends ComponentTarget<? super T>> {
 
         @Override
         protected void accept(E event, T object) {
-            final var comp = object.getComponent(component);
-            if (comp != null) consumer.accept(comp, event);
+            final var comp = object.getComponent(component.getInternalID());
+            if (comp != null) consumer.accept((C) comp, event);
         }
 
     }
 
-    protected static class FilteredListener<C, E, T extends ComponentTarget<? super T>> extends Listener<C, E, T> {
+    @SuppressWarnings("unchecked")
+    protected static class FilteredListener<C, E, T extends ComponentTarget> extends Listener<C, E, T> {
 
         private final EventFilter<E, T> filter;
 
@@ -95,8 +97,8 @@ public class EventDispatcher<E, T extends ComponentTarget<? super T>> {
         @Override
         protected void accept(E event, T object) {
             if (filter.test(event, object)) {
-                final var comp = object.getComponent(component);
-                if (comp != null) consumer.accept(comp, event);
+                final var comp = object.getComponent(component.getInternalID());
+                if (comp != null) consumer.accept((C) comp, event);
             }
         }
 

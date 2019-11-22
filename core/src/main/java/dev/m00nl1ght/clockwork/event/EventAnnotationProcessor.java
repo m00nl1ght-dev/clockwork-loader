@@ -21,7 +21,6 @@ import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-@SuppressWarnings("unchecked")
 public class EventAnnotationProcessor implements PluginProcessor {
 
     public static final String NAME = "core.event.annotation";
@@ -31,7 +30,7 @@ public class EventAnnotationProcessor implements PluginProcessor {
     private static final List<EventFilterFactory> filterFactories = new LinkedList<>();
 
     @Override
-    public <C, T extends ComponentTarget<? super T>> void process(ComponentType<C, T> component, Supplier<MethodHandles.Lookup> reflectiveAccess) throws Throwable {
+    public void process(ComponentType<?, ?> component, Supplier<MethodHandles.Lookup> reflectiveAccess) throws Throwable {
         final var compClass = component.getComponentClass();
         final var methods = compClass.getDeclaredMethods();
         for (var method : methods) {
@@ -50,7 +49,8 @@ public class EventAnnotationProcessor implements PluginProcessor {
         }
     }
 
-    private <C, E, T extends ComponentTarget<? super T>> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
+    @SuppressWarnings("unchecked")
+    private <C, E, T extends ComponentTarget> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
         final var listener = (BiConsumer<C, E>) callSite.getTarget().invokeExact();
 
         EventFilter<E, T> filter = null;

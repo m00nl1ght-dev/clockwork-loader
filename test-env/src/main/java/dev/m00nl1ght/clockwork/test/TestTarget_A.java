@@ -2,12 +2,13 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
 
-public class TestTarget_A implements ComponentTarget<TestTarget_A> {
+public class TestTarget_A implements ComponentTarget {
 
-    private final ComplexComponentContainer<?, TestTarget_A> container;
+    private final ComponentContainer<? extends TestTarget_A> container;
 
-    protected TestTarget_A(TargetType<? extends TestTarget_A> targetType) {
-        this.container = new ComplexComponentContainer<>(targetType, this);
+    @SuppressWarnings("unchecked")
+    protected <T extends TestTarget_A> TestTarget_A(TargetType<T> targetType) {
+        this.container = new ComponentContainer<>(targetType, (T) this);
         this.container.initComponents();
     }
 
@@ -17,8 +18,8 @@ public class TestTarget_A implements ComponentTarget<TestTarget_A> {
     }
 
     @Override
-    public <C> C getComponent(ComponentType<C, ? extends TestTarget_A> componentType) {
-        return container.getComponent(componentType);
+    public Object getComponent(int internalID) {
+        return container.getComponent(internalID);
     }
 
 }

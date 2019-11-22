@@ -14,7 +14,7 @@ import java.util.Map;
 import java.util.Optional;
 
 @SuppressWarnings("unchecked")
-public class ClockworkCore implements ComponentTarget<ClockworkCore> {
+public class ClockworkCore implements ComponentTarget {
 
     private static final Logger LOGGER = LogManager.getLogger();
     public static final String CORE_PLUGIN_ID = "clockwork";
@@ -89,7 +89,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
         final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
         if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
-        final var target = TargetType.create(def, plugin, targetClass, EventDispatcherFactory.DEFAULT); // TODO
+        final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, EventDispatcherFactory.DEFAULT);
         final TargetType<?> existingByName = componentTargets.putIfAbsent(target.getId(), target);
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
         final TargetType<?> existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
@@ -97,17 +97,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         processors.apply(target, def.getProcessors());
     }
 
-    @Override
-    public TargetType<ClockworkCore> getTargetType() {
-        return coreContainer.getTargetType();
-    }
-
-    @Override
-    public <C> C getComponent(ComponentType<C, ? extends ClockworkCore> componentType) {
-        return coreContainer == null ? null : coreContainer.getComponent(componentType);
-    }
-
-    public <T extends ComponentTarget<? super T>> Optional<TargetType<T>> getTargetType(Class<T> targetClass) {
+    public <T extends ComponentTarget> Optional<TargetType<T>> getTargetType(Class<T> targetClass) {
         final TargetType<?> type = classToTargetMap.get(targetClass);
         if (type == null) return Optional.empty();
         return Optional.of((TargetType<T>) type);
@@ -117,7 +107,7 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
         return Optional.ofNullable(componentTargets.get(targetId));
     }
 
-    public <C, T extends ComponentTarget<? super T>> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
+    public <C, T extends ComponentTarget> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
         final ComponentType<?, ?> type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
@@ -132,6 +122,16 @@ public class ClockworkCore implements ComponentTarget<ClockworkCore> {
 
     public Optional<ComponentType<?, ?>> getComponentType(String componentId) {
         return Optional.ofNullable(loadedComponents.get(componentId));
+    }
+
+    @Override
+    public Object getComponent(int internalID) {
+        return coreContainer == null ? null : coreContainer.getComponent(internalID);
+    }
+
+    @Override
+    public TargetType<?> getTargetType() {
+        return coreContainer == null ? null : coreContainer.getTargetType();
     }
 
 }

@@ -4,7 +4,7 @@ import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 
-public class ComponentType<C, T extends ComponentTarget<? super T>> {
+public class ComponentType<C, T extends ComponentTarget> {
 
     private final String componentId;
     private final Semver version;
@@ -46,6 +46,11 @@ public class ComponentType<C, T extends ComponentTarget<? super T>> {
 
     public int getInternalID() {
         return internalID;
+    }
+
+    @SuppressWarnings("unchecked")
+    public C get(T target) {
+        return (C) target.getComponent(internalID);
     }
 
     protected void init(int internalID) {

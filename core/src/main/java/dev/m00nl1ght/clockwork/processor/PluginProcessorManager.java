@@ -39,7 +39,7 @@ public class PluginProcessorManager {
         }
     }
 
-    public <C, T extends ComponentTarget<? super T>> void apply(ComponentType<C, T> object, Collection<String> processors) {
+    public void apply(ComponentType<?, ?> object, Collection<String> processors) {
         final var privateAccess = new ReflAccessSupplier(object.getComponentClass(), reflectiveAccess);
         for (var name : processors) {
             final var prc = loadedProcessors.get(name);
@@ -52,7 +52,7 @@ public class PluginProcessorManager {
         }
     }
 
-    public <T extends ComponentTarget<? super T>> void apply(TargetType<T> object, Collection<String> processors) {
+    public void apply(TargetType<?> object, Collection<String> processors) {
         final var privateAccess = new ReflAccessSupplier(object.getTargetClass(), reflectiveAccess);
         for (var name : processors) {
             final var prc = loadedProcessors.get(name);
