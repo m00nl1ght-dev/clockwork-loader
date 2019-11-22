@@ -9,6 +9,7 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
 
@@ -35,61 +36,85 @@ public class JarFileLocator extends AbstractCachedLocator {
     protected void scan(Consumer<PluginDefinition> pluginConsumer) {
         final var list = lookupPath.listFiles();
         if (list != null) {
-            for (var file : list) scanFile(file.toPath(), pluginConsumer, false);
+            for (var file : list) scanFile(file.toPath(), pluginConsumer);
         } else {
-            scanFile(lookupPath.toPath(), pluginConsumer, false);
+            scanFile(lookupPath.toPath(), pluginConsumer);
         }
     }
 
-    private boolean scanFile(Path path, Consumer<PluginDefinition> pluginConsumer, boolean nested) {
-        if (!path.getFileName().toString().toLowerCase().endsWith(".jar")) return false;
-        try {
-            final var pluginInfo = PluginInfoFile.loadFromDir(path);
-            if (pluginInfo == null) return false;
-            if (nested && jarInJarPolicy == JarInJarPolicy.LIBS_ONLY) {
-                LOGGER.warn(getName() + " found jar in jar plugin [" + pluginInfo.getPluginId() + "] in [" + path + "], but nested plugins are not allowed, ignoring");
-                return true;
+    private PluginInfoFile scanFile(Path path, Consumer<PluginDefinition> pluginConsumer) {
+        if (path.getFileName().toString().toLowerCase().endsWith(".jar")) {
+            try {
+                final var pluginInfo = PluginInfoFile.loadFromDir(path);
+                if (pluginInfo == null) return null;
+                if (pluginConsumer != null) scanFile(path, pluginInfo, pluginConsumer);
+                return pluginInfo;
+            } catch (PluginLoadingException e) {
+                throw e;
+            } catch (Exception e) {
+                throw PluginLoadingException.generic("Failed to read jar file []", e, path);
             }
-
-            final var builder = pluginInfo.populatePluginBuilder();
-            final var moduleFinder = ModuleFinder.of(path);
-            final var modules = moduleFinder.findAll().iterator();
-            if (!modules.hasNext()) {
-                LOGGER.warn(getName() + " found plugin.toml, but no java module in file [" + path + "], ignoring");
-                return true;
-            }
-
-            final var mainMN = modules.next().descriptor().name();
-            builder.moduleFinder(moduleFinder, mainMN);
-            builder.markForProcessor(EventAnnotationProcessor.NAME);
-            if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
-            final var plugin = builder.build();
-            pluginInfo.populateComponents(plugin);
-            pluginInfo.populateTargets(plugin);
-            pluginConsumer.accept(plugin);
-            return true;
-        } catch (PluginLoadingException e) {
-            throw e;
-        } catch (Exception e) {
-            throw PluginLoadingException.generic("Failed to read jar file []", e, path);
+        } else {
+            return null;
         }
     }
 
-    private List<ModuleFinder> findJarInJar(Path path, Consumer<PluginDefinition> pluginConsumer, boolean nested) {
+    private void scanFile(Path path, PluginInfoFile pluginInfo, Consumer<PluginDefinition> pluginConsumer) {
+        final var builder = pluginInfo.populatePluginBuilder();
+        final var moduleFinder = ModuleFinder.of(path);
+        final var modules = moduleFinder.findAll().iterator();
+        if (!modules.hasNext()) {
+            LOGGER.warn(getName() + " found plugin.toml, but no java module in file [" + path + "], ignoring");
+            return;
+        }
+
+        final var mainModuleName = modules.next().descriptor().name();
+        if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
+
         final var libDir = path.resolve(LIBS_DIR).toFile();
         final var libs = libDir.listFiles();
-        if (libs != null) for (var file : libs) {
-            if (scanFile(file.toPath(), pluginConsumer, true)) continue;
-            final var libModuleFinder = ModuleFinder.of(file.toPath());
-            final var libModules = libModuleFinder.findAll().iterator();
-            if (!libModules.hasNext()) {
-                LOGGER.warn(getName() + " found plugin.toml, but no java module in [" + path + "], ignoring");
-                continue;
+        if (libs == null) {
+            builder.moduleFinder(moduleFinder, mainModuleName);
+        } else {
+            final var finders = new ArrayList<ModuleFinder>();
+            if (jarInJarPolicy == JarInJarPolicy.DENY) {
+                LOGGER.warn(getName() + " found libs dir in jar file [" + path + "], but jar-in-jar loading is disabled, ignoring");
+            } else {
+                for (var file : libs) {
+                    final var libPlugin = scanFile(file.toPath(), null);
+                    if (libPlugin == null) {
+                        final var libModuleFinder = ModuleFinder.of(file.toPath());
+                        final var libModules = libModuleFinder.findAll();
+                        if (libModules.isEmpty()) {
+                            LOGGER.warn(getName() + " found jar-in-jar library file [" + file + "], but it does not contain any modules, ignoring");
+                        } else {
+                            finders.add(libModuleFinder);
+                        }
+                    } else if (jarInJarPolicy == JarInJarPolicy.LIBS_ONLY) {
+                        LOGGER.warn(getName() + " found jar-in-jar plugin [" + libPlugin.getPluginId() + "] in [" + file + "], but nested plugin loading is disabled, ignoring");
+                    } else {
+                        scanFile(file.toPath(), libPlugin, pluginConsumer);
+                    }
+                }
             }
 
-            // TODO look for non-plugin libs (w/o plugin.toml)
+            builder.moduleFinder(compose(finders, moduleFinder), mainModuleName);
         }
-        return List.of();
+
+        builder.markForProcessor(EventAnnotationProcessor.NAME);
+        final var plugin = builder.build();
+        pluginInfo.populateComponents(plugin);
+        pluginInfo.populateTargets(plugin);
+        pluginConsumer.accept(plugin);
+    }
+
+    private ModuleFinder compose(List<ModuleFinder> list, ModuleFinder base) {
+        if (list.isEmpty()) {
+            return base;
+        } else {
+            list.add(base);
+            return ModuleFinder.compose(list.toArray(ModuleFinder[]::new));
+        }
     }
 
     @Override
@@ -98,11 +123,7 @@ public class JarFileLocator extends AbstractCachedLocator {
     }
 
     public enum JarInJarPolicy {
-        DENY(false), LIBS_ONLY(false), ALLOW(false), ALLOW_RECURSIVE(true);
-
-        private final boolean allowNested;
-        JarInJarPolicy(boolean allowNested) {this.allowNested = allowNested;}
-        public boolean isAllowed(boolean nested) {return this != DENY && (!nested || allowNested);}
+        DENY, LIBS_ONLY, ALLOW
     }
 
 }
