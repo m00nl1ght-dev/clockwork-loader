@@ -31,6 +31,8 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     public abstract TargetType<? super T> getRoot();
 
+    public abstract boolean canAcceptFrom(TargetType<?> other);
+
     @SuppressWarnings("unchecked")
     public <E> EventType<E, T> getEventType(Class<E> eventClass) {
         if (eventTypes == null) throw new IllegalStateException("event types not constructed yet");
@@ -71,7 +73,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     protected void rebuildEventDispatchers(EventDispatcherFactory factory) {
         if (primer != null) throw new IllegalStateException();
-        for (int i = 0; i < events.length; i++) {
+        for (var i = 0; i < events.length; i++) {
             events[i] = events[i].rebuild(factory);
         }
     }
@@ -164,6 +166,11 @@ public abstract class TargetType<T extends ComponentTarget> {
             return this;
         }
 
+        @Override
+        public boolean canAcceptFrom(TargetType<?> other) {
+            return other == this;
+        }
+
     }
 
     @SuppressWarnings("unchecked")
@@ -238,6 +245,11 @@ public abstract class TargetType<T extends ComponentTarget> {
         @Override
         public TargetType<? super T> getRoot() {
             return root;
+        }
+
+        @Override
+        public boolean canAcceptFrom(TargetType<?> other) {
+            return other == this || parent.canAcceptFrom(other);
         }
 
     }

@@ -83,12 +83,12 @@ public class ClockworkCore implements ComponentTarget {
         final var plugin = loadedPlugins.get(def.getParent().getId());
         if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
         final var compClass = moduleManager.loadClassForPlugin(def.getComponentClass(), plugin);
-        final TargetType<?> target = componentTargets.get(def.getTargetId());
+        final var target = componentTargets.get(def.getTargetId());
         if (target == null) throw PluginLoadingException.componentMissingTarget(def);
         final var component = target.getPrimer().register(def, plugin, compClass);
-        final ComponentType<?, ?> existingByName = loadedComponents.putIfAbsent(component.getId(), component);
+        final var existingByName = loadedComponents.putIfAbsent(component.getId(), component);
         if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(def, existingByName.getId());
-        final ComponentType<?, ?> existingByClass = classToComponentMap.putIfAbsent(compClass, component);
+        final var existingByClass = classToComponentMap.putIfAbsent(compClass, component);
         if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(def, existingByClass.getId());
         processors.apply(component, def.getProcessors());
     }
@@ -99,15 +99,15 @@ public class ClockworkCore implements ComponentTarget {
         final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
         if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
         final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, dispatcherFactory);
-        final TargetType<?> existingByName = componentTargets.putIfAbsent(target.getId(), target);
+        final var existingByName = componentTargets.putIfAbsent(target.getId(), target);
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
-        final TargetType<?> existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
+        final var existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
         if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(def, existingByClass.getId());
         processors.apply(target, def.getProcessors());
     }
 
     public <T extends ComponentTarget> Optional<TargetType<T>> getTargetType(Class<T> targetClass) {
-        final TargetType<?> type = classToTargetMap.get(targetClass);
+        final var type = classToTargetMap.get(targetClass);
         if (type == null) return Optional.empty();
         return Optional.of((TargetType<T>) type);
     }
@@ -117,14 +117,14 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     public <C, T extends ComponentTarget> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
-        final ComponentType<?, ?> type = classToComponentMap.get(componentClass);
+        final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
         return Optional.of((ComponentType<C, T>) type);
     }
 
     public <C> Optional<ComponentType<C, ?>> getComponentType(Class<C> componentClass) {
-        final ComponentType<?, ?> type = classToComponentMap.get(componentClass);
+        final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         return Optional.of((ComponentType<C, ?>) type);
     }

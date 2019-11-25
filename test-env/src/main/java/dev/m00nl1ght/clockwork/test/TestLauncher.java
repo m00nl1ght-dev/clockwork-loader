@@ -41,7 +41,7 @@ public class TestLauncher {
         final var coreTarget = cwc.getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
         final var initEvent = coreTarget.get().getEventType(PluginInitEvent.class);
-        initEvent.post(cwc, new PluginInitEvent(cwc, PLUGIN_DATA_DIR));
+        initEvent.post(cwc, new PluginInitEvent(cwc, PLUGIN_DATA_DIR, profiler));
         System.out.println(profiler.print());
     }
 

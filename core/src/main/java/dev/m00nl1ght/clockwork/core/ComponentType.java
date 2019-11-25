@@ -55,8 +55,15 @@ public class ComponentType<C, T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     public C get(T target) {
-        if (target.getTargetType().getRoot() != targetType.getRoot()) throw new IllegalArgumentException();
-        return (C) target.getComponent(internalID);
+        try {
+            return (C) target.getComponent(internalID);
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+            if (targetType.canAcceptFrom(target.getTargetType())) {
+                throw e;
+            } else {
+                throw new IllegalArgumentException("Cannot get component [" + componentId + "] registered to target [" + target + "] form another target [" + target.getTargetType() + "]");
+            }
+        }
     }
 
     protected void init(int internalID) {

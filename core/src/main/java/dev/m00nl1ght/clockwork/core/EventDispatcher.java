@@ -22,6 +22,12 @@ public class EventDispatcher<E, T extends ComponentTarget> {
                 c.accept(event, object);
                 c = c.next;
             }
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+            if (target.canAcceptFrom(object.getTargetType())) {
+                throw e;
+            } else {
+                throw new IllegalArgumentException("EventDispatcher for target [" + target + "] cannot post event to target [" + object.getTargetType() + "]");
+            }
         } catch (Throwable t) {
             throw ExceptionInPlugin.inEventHandler(c.component, event, object, t);
         }

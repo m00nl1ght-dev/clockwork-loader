@@ -27,12 +27,18 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
     }
 
     @SuppressWarnings("unchecked")
-    public void apply(T container, Consumer<F> consumer) {
-        int idx = -1;
+    public void apply(T object, Consumer<F> consumer) {
+        var idx = -1;
         try {
             for (idx = 0; idx < comps.length; idx++) {
-                final var comp = container.getComponent(idx);
+                final var comp = object.getComponent(idx);
                 if (comp != null) consumer.accept((F) comp);
+            }
+        } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+            if (target.canAcceptFrom(object.getTargetType())) {
+                throw e;
+            } else {
+                throw new IllegalArgumentException("FunctionalSubtarget of target [" + target + "] cannot be applied for target [" + object.getTargetType() + "]");
             }
         } catch (Throwable throwable) {
             throw ExceptionInPlugin.inFunctionalSubtarget(this, comps[idx], throwable);
