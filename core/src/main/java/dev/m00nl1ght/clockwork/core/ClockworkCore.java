@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.debug.DebugProfiler;
-import dev.m00nl1ght.clockwork.debug.ProfilingEventDispatcher;
+import dev.m00nl1ght.clockwork.debug.ProfilingEventListenerFactory;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
@@ -31,10 +31,10 @@ public class ClockworkCore implements ComponentTarget {
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
     private final ComponentContainer<ClockworkCore> coreContainer;
     private final ModuleManager moduleManager;
-    private EventDispatcherFactory dispatcherFactory;
+    private EventListenerFactory listenerFactory;
 
     private ClockworkCore(DependencyResolver depResolver, DebugProfiler profiler) {
-        dispatcherFactory = profiler == null ? EventDispatcherFactory.DEFAULT : ProfilingEventDispatcher.factory(profiler);
+        listenerFactory = profiler == null ? EventListenerFactory.DEFAULT : new ProfilingEventListenerFactory(profiler);
         moduleManager = new ModuleManager(depResolver.getPluginDefinitions(), ModuleLayer.boot());
         depResolver.getPluginDefinitions().forEach(this::buildPlugin);
         depResolver.getTargetDefinitions().forEach(this::buildComponentTarget);
@@ -98,7 +98,7 @@ public class ClockworkCore implements ComponentTarget {
         if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
         final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
         if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
-        final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, dispatcherFactory);
+        final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, listenerFactory);
         final var existingByName = componentTargets.putIfAbsent(target.getId(), target);
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
         final var existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
@@ -143,21 +143,21 @@ public class ClockworkCore implements ComponentTarget {
         return coreContainer == null ? null : coreContainer.getTargetType();
     }
 
-    private synchronized void rebuildEventDispatchers() {
+    private synchronized void rebuildEventListeners() {
         for (var target : this.componentTargets.values()) {
-            target.rebuildEventDispatchers(dispatcherFactory);
+            target.rebuildEventListeners(listenerFactory);
         }
     }
 
     public void enableProfiler(DebugProfiler profiler) {
         Preconditions.notNull(profiler, "profiler");
-        this.dispatcherFactory = ProfilingEventDispatcher.factory(profiler);
-        rebuildEventDispatchers();
+        this.listenerFactory = new ProfilingEventListenerFactory(profiler);
+        rebuildEventListeners();
     }
 
     public void disableProfiler() {
-        this.dispatcherFactory = EventDispatcherFactory.DEFAULT;
-        rebuildEventDispatchers();
+        this.listenerFactory = EventListenerFactory.DEFAULT;
+        rebuildEventListeners();
     }
 
 }

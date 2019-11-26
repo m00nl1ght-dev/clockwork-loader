@@ -30,4 +30,9 @@ public class DebugProfiler {
         return str.toString();
     }
 
+    public ProfilerGroup getOrCreateGroup(String name) {
+        final var existing = groups.get(name);
+        return existing == null ? new ProfilerGroup(this, name) : existing;
+    }
+
 }

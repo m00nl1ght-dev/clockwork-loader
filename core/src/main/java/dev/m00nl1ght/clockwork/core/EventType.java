@@ -2,30 +2,26 @@ package dev.m00nl1ght.clockwork.core;
 
 public class EventType<E, T extends ComponentTarget> {
 
-    private final TargetType<T> target;
-    private final Class<E> eventClass;
-    private final int internalId;
+    protected final Class<E> eventClass;
+    protected final int internalId;
 
-    EventType(TargetType<T> target, Class<E> eventClass, int internalId) {
-        this.target = target;
+    EventType(Class<E> eventClass, int internalId) {
         this.eventClass = eventClass;
         this.internalId = internalId;
     }
 
-    @SuppressWarnings("unchecked")
     public void post(T object, E event) {
-        if (object.getTargetType().getRoot() != target.getRoot()) throw new IllegalArgumentException();
-        object.getTargetType().events[internalId].post(object, event);
+        object.getTargetType().post(this, object, event);
     }
 
-    protected int getInternalId() {
-        return internalId;
+    public Class<E> getEventClass() {
+        return eventClass;
     }
 
     static class Dummy<E, T extends ComponentTarget> extends EventType<E, T> {
 
-        Dummy(TargetType<T> target, Class<E> eventClass) {
-            super(target, eventClass, -1);
+        Dummy(Class<E> eventClass) {
+            super(eventClass, -1);
         }
 
         @Override
