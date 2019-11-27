@@ -29,8 +29,8 @@ public class ClockworkCore implements ComponentTarget {
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
-    private final ComponentContainer<ClockworkCore> coreContainer;
     private final ModuleManager moduleManager;
+    private ComponentContainer<ClockworkCore> coreContainer;
     private EventListenerFactory listenerFactory;
 
     private ClockworkCore(DependencyResolver depResolver, DebugProfiler profiler) {
@@ -69,6 +69,10 @@ public class ClockworkCore implements ComponentTarget {
         }
 
         return new ClockworkCore(depResolver, profiler);
+    }
+
+    public void init() {
+
     }
 
     private void buildPlugin(PluginDefinition def) {

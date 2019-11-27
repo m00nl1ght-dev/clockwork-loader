@@ -3,6 +3,8 @@ package dev.m00nl1ght.clockwork.core;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+// TODO rework to a similiar system like events, respecting components of subclasses
+
 public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     private final TargetType<T> target;

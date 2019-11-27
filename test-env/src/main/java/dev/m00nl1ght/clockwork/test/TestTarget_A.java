@@ -1,15 +1,24 @@
 package dev.m00nl1ght.clockwork.test;
 
-import dev.m00nl1ght.clockwork.core.*;
+import dev.m00nl1ght.clockwork.core.ComponentContainer;
+import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.holder.StaticHolder;
 
 public class TestTarget_A implements ComponentTarget {
 
-    private final ComponentContainer<? extends TestTarget_A> container;
+    @StaticHolder
+    public static final TargetType<TestTarget_A> TARGET_TYPE = null;
 
-    @SuppressWarnings("unchecked")
-    protected <T extends TestTarget_A> TestTarget_A(TargetType<T> targetType) {
-        this.container = new ComponentContainer<>(targetType, (T) this);
+    protected final ComponentContainer<? extends TestTarget_A> container;
+
+    protected TestTarget_A() {
+        this.container = buildContainer();
         this.container.initComponents();
+    }
+
+    protected ComponentContainer<? extends TestTarget_A> buildContainer() {
+        return new ComponentContainer<>(TARGET_TYPE, this);
     }
 
     @Override
