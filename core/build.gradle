@@ -25,4 +25,5 @@ dependencies {
     implementation group: 'com.electronwill.night-config', name: 'core', version: '3.6.0'
     implementation group: 'com.electronwill.night-config', name: 'toml', version: '3.6.0'
     implementation group: 'com.vdurmont', name: 'semver4j', version: '3.1.0'
+    implementation group: 'it.unimi.dsi', name: 'fastutil', version: '8.3.0'
 }

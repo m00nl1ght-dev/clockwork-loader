@@ -15,4 +15,5 @@ module dev.m00nl1ght.clockwork {
     requires org.apache.logging.log4j;
     requires core;
     requires semver4j;
+    requires it.unimi.dsi.fastutil;
 }

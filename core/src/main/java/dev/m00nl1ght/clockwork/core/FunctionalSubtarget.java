@@ -1,7 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 
 // TODO rework to a similiar system like events, respecting components of subclasses
 
@@ -9,27 +8,17 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     private final TargetType<T> target;
     private final Class<F> type;
-    private final int[] compIdxs;
-    private final ComponentType[] comps;
+    private final int internalId;
 
-    protected FunctionalSubtarget(TargetType<T> target, Class<F> type) {
+    FunctionalSubtarget(Class<F> type, TargetType<T> target, int internalId) {
         this.target = target;
-        this.type = checkType(type);
-        if (!target.isInitialised()) throw new IllegalStateException("cannot create subtarget before target is initialised");
-        final var list = target.getRegisteredTypes().stream()
-                .filter(c -> type.isAssignableFrom(c.getComponentClass()))
-                .collect(Collectors.toList());
-        this.compIdxs = new int[list.size()];
-        this.comps = new ComponentType[list.size()];
-        for (var i = 0; i < compIdxs.length; i++) {
-            final var comp = list.get(i);
-            comps[i] = comp;
-            compIdxs[i] = comp.getInternalID();
-        }
+        this.type = type;
+        this.internalId = internalId;
     }
 
     @SuppressWarnings("unchecked")
     public void apply(T object, Consumer<F> consumer) {
+        /* TODO
         var idx = -1;
         try {
             for (idx = 0; idx < comps.length; idx++) {
@@ -45,14 +34,11 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         } catch (Throwable throwable) {
             throw ExceptionInPlugin.inFunctionalSubtarget(this, comps[idx], throwable);
         }
+        */
     }
 
-    private Class<F> checkType(Class<F> type) {
-        if (type.isPrimitive() || type.isArray() || type.isEnum() || type.isSynthetic()) {
-            throw new IllegalArgumentException("Invalid type for FunctionalSubtarget: " + type.getName());
-        } else {
-            return type;
-        }
+    public TargetType<T> getTarget() {
+        return target;
     }
 
     public Class<F> getType() {
