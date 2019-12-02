@@ -8,7 +8,7 @@ public abstract class ProfilerEntry extends DebugInfo {
 
     protected ProfilerEntry(ProfilerGroup group, String name) {
         this.group = group;
-        this.name = group.entryAdded(this, name);
+        this.name = group == null ? name : group.entryAdded(this, name);
     }
 
     public String getName() {
