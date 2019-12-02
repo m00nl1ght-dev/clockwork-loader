@@ -8,6 +8,7 @@ import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.util.*;
 import java.util.function.BiConsumer;
+import java.util.function.Consumer;
 
 public abstract class TargetType<T extends ComponentTarget> {
 
@@ -42,10 +43,10 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     public abstract boolean canAcceptFrom(TargetType<?> other);
 
-    public <E> EventAccess<E, T> getEventAccess(Class<E> eventClass) {
+    public <E> EventType<E, T> getEventType(Class<E> eventClass) {
         Preconditions.notNull(eventClass, "eventClass");
         if (eventIds == null) throw new IllegalStateException();
-        return new EventAccess<>(eventClass, this, getEventId(eventClass));
+        return new EventType<>(eventClass, this, getEventId(eventClass));
     }
 
     public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
@@ -72,6 +73,24 @@ public abstract class TargetType<T extends ComponentTarget> {
                 } else {
                     throw t;
                 }
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    <F, R extends ComponentTarget> void applySubtarget(int internalId, R object, Class<F> type, Consumer<F> consumer) {
+        final var compIds = subtargets[internalId];
+        for (var compId : compIds) {
+            try {
+                final var comp = object.getComponent(internalId);
+                if (comp != null) consumer.accept((F) comp);
+            } catch (ExceptionInPlugin e) {
+                throw e;
+            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+                this.checkCompatibility(object);
+                throw e;
+            } catch (Throwable t) {
+                throw ExceptionInPlugin.inFunctionalSubtarget(components.get(compId), type, t);
             }
         }
     }
@@ -290,6 +309,11 @@ public abstract class TargetType<T extends ComponentTarget> {
 
             // TODO init subtargets
 
+        }
+
+        <F, R extends ComponentTarget> void applySubtarget(int internalId, R object, Class<F> type, Consumer<F> consumer) {
+            if (internalId < parent.subtargets.length) parent.applySubtarget(internalId, object, type, consumer);
+            super.applySubtarget(internalId, object, type, consumer);
         }
 
         @Override

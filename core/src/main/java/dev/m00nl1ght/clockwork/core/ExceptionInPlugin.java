@@ -34,9 +34,8 @@ public class ExceptionInPlugin extends RuntimeException {
         return generic(component.getPlugin(), "Exception thrown while initialising component []", cause, component);
     }
 
-    public static ExceptionInPlugin inFunctionalSubtarget(FunctionalSubtarget subtarget, ComponentType component, Throwable cause) {
-        final var fsi = subtarget.getType().getSimpleName();
-        return generic(component.getPlugin(), "Exception thrown while applying subtarget [] for component []", cause, fsi, component);
+    public static ExceptionInPlugin inFunctionalSubtarget(ComponentType component, Class<?> type, Throwable cause) {
+        return generic(component.getPlugin(), "Exception thrown while applying subtarget [] for component []", cause, type.getSimpleName(), component);
     }
 
 }
