@@ -1,13 +1,14 @@
 package dev.m00nl1ght.clockwork.test.plugin;
 
 import dev.m00nl1ght.clockwork.event.EventHandler;
+import dev.m00nl1ght.clockwork.test.TestSubtarget;
 import dev.m00nl1ght.clockwork.test.TestTarget_B;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_A;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_B;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class TestComponent_B {
+public class TestComponent_B implements TestSubtarget {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
@@ -25,6 +26,11 @@ public class TestComponent_B {
     @EventHandler
     protected void onTestEventB(TestEvent_B event) {
         LOGGER.info("TestEvent_B received for " + target.getClass().getSimpleName() + ".");
+    }
+
+    @Override
+    public void tick() {
+        LOGGER.info("Ticked " + target.getClass().getSimpleName() + ".");
     }
 
 }

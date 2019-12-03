@@ -40,7 +40,7 @@ public class EventAnnotationProcessor implements PluginProcessor {
                     final var lookup = reflectiveAccess.get();
                     final var handle = lookup.unreflect(method);
                     final var callsite = LambdaMetafactory.metafactory(lookup, "accept", INVOKED_TYPE, GENERIC_TYPE, handle, handle.type());
-                    LOGGER.debug("Registering listener: " + compClass.getSimpleName() + "::" + method.getName() + " to " + params[0].getSimpleName());
+                    LOGGER.debug("Registering listener [" + compClass.getSimpleName() + "::" + method.getName() + "] to [" + params[0].getSimpleName() + "]");
                     registerListener(component, params[0], callsite, method);
                 } else {
                     LOGGER.error("Invalid event handler [" + component.getComponentClass() + ":" + method.getName() + "] in component [" + component.getId() + "]");

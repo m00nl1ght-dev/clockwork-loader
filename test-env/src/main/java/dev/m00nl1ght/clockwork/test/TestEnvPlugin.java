@@ -28,6 +28,8 @@ public class TestEnvPlugin {
         TestEvent_A.TYPE.post(TEST_TARGET_A, new TestEvent_A());
         TestEvent_A.TYPE.post(TEST_TARGET_B, new TestEvent_A());
         TestEvent_B.TYPE.post(TEST_TARGET_B, new TestEvent_B());
+        TestSubtarget.TYPE.apply(TEST_TARGET_A, TestSubtarget::tick);
+        TestSubtarget.TYPE.apply(TEST_TARGET_B, TestSubtarget::tick);
     }
 
 }

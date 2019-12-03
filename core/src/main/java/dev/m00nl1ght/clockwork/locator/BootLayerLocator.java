@@ -2,7 +2,6 @@ package dev.m00nl1ght.clockwork.locator;
 
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.event.EventAnnotationProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -29,7 +28,6 @@ public class BootLayerLocator extends AbstractCachedLocator {
             if (pluginInfo == null) return;
             final var builder = pluginInfo.populatePluginBuilder();
             builder.moduleFinder(null, moduleName);
-            builder.markForProcessor(EventAnnotationProcessor.NAME);
             final var plugin = builder.build();
             pluginInfo.populateComponents(plugin);
             pluginInfo.populateTargets(plugin);

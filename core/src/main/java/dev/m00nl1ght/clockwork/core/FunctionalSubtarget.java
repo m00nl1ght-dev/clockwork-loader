@@ -2,8 +2,6 @@ package dev.m00nl1ght.clockwork.core;
 
 import java.util.function.Consumer;
 
-// TODO rework to a similiar system like events, respecting components of subclasses
-
 public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     private final TargetType<T> target;
@@ -23,6 +21,10 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
             this.target.checkCompatibility(object.getTargetType());
             throw e;
         }
+    }
+
+    public int getInternalId() {
+        return internalId;
     }
 
     public TargetType<T> getTarget() {
