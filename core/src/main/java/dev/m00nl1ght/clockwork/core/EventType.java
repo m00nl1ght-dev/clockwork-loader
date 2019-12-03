@@ -16,7 +16,7 @@ public class EventType<E, T extends ComponentTarget> {
         try {
             object.getTargetType().post(internalId, object, event);
         } catch (Exception e) {
-            this.targetType.checkCompatibility(object);
+            this.targetType.checkCompatibility(object.getTargetType());
             throw e;
         }
     }
@@ -27,6 +27,10 @@ public class EventType<E, T extends ComponentTarget> {
 
     public Class<E> getEventClass() {
         return eventClass;
+    }
+
+    public int getInternalId() {
+        return internalId;
     }
 
 }

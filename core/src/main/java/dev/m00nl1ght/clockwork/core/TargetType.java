@@ -3,8 +3,6 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.util.CollectionUtil;
 import dev.m00nl1ght.clockwork.util.LogUtil;
 import dev.m00nl1ght.clockwork.util.Preconditions;
-import it.unimi.dsi.fastutil.objects.Object2IntMap;
-import it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap;
 
 import java.util.*;
 import java.util.function.BiConsumer;
@@ -16,8 +14,8 @@ public abstract class TargetType<T extends ComponentTarget> {
     protected final Class<T> targetClass;
     protected final PluginContainer plugin;
     protected final ArrayList<ComponentType<?, T>> components = new ArrayList<>();
-    protected Object2IntMap<Class<?>> eventIds;
-    protected Object2IntMap<Class<?>> subtargetIds;
+    protected Map<Class, EventType> eventIds;
+    protected Map<Class, FunctionalSubtarget> subtargetIds;
     protected EventListener[][] eventListeners;
     protected int[][] subtargets;
     private Primer<T> primer;
@@ -31,10 +29,6 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     public abstract List<ComponentType<?, ? super T>> getRegisteredTypes();
 
-    public abstract int getEventId(Class<?> eventClass);
-
-    public abstract int getSubtargetId(Class<?> type);
-
     public abstract int getComponentCount();
 
     public abstract TargetType<? super T> getParent();
@@ -43,16 +37,18 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     public abstract boolean canAcceptFrom(TargetType<?> other);
 
+    @SuppressWarnings("unchecked")
     public <E> EventType<E, T> getEventType(Class<E> eventClass) {
         Preconditions.notNull(eventClass, "eventClass");
         if (eventIds == null) throw new IllegalStateException();
-        return new EventType<>(eventClass, this, getEventId(eventClass));
+        return (EventType<E, T>) eventIds.get(eventClass);
     }
 
+    @SuppressWarnings("unchecked")
     public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
         Preconditions.notNull(type, "type");
         if (subtargetIds == null) throw new IllegalStateException();
-        return new FunctionalSubtarget<>(type, this, getSubtargetId(type));
+        return (FunctionalSubtarget<T, F>) subtargetIds.get(type);
     }
 
     @SuppressWarnings("unchecked")
@@ -64,7 +60,7 @@ public abstract class TargetType<T extends ComponentTarget> {
             } catch (ExceptionInPlugin e) {
                 throw e;
             } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                this.checkCompatibility(object);
+                this.checkCompatibility(object.getTargetType());
                 throw e;
             } catch (Throwable t) {
                 if (listener instanceof EventListener.Base) {
@@ -87,7 +83,7 @@ public abstract class TargetType<T extends ComponentTarget> {
             } catch (ExceptionInPlugin e) {
                 throw e;
             } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                this.checkCompatibility(object);
+                this.checkCompatibility(object.getTargetType());
                 throw e;
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inFunctionalSubtarget(components.get(compId), type, t);
@@ -95,10 +91,10 @@ public abstract class TargetType<T extends ComponentTarget> {
         }
     }
 
-    void checkCompatibility(ComponentTarget object) {
-        if (!this.canAcceptFrom(object.getTargetType())) {
+    void checkCompatibility(TargetType<?> other) {
+        if (!this.canAcceptFrom(other)) {
             final var msg = "Component target [] cannot post event to component in different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, object.getTargetType()));
+            throw new IllegalArgumentException(LogUtil.format(msg, id, other));
         }
     }
 
@@ -126,8 +122,8 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     void rebuildEventListeners(EventListenerFactory listenerFactory) {
-        for (var evt : eventIds.object2IntEntrySet()) {
-            final var listeners = eventListeners[evt.getIntValue()];
+        for (var evt : eventIds.entrySet()) {
+            final var listeners = eventListeners[evt.getValue().getInternalId()];
             for (int i = 0; i < listeners.length; i++) {
                 if (listeners[i] instanceof EventListener.Base) {
                     final var base = (EventListener.Base) listeners[i];
@@ -204,28 +200,17 @@ public abstract class TargetType<T extends ComponentTarget> {
             for (var i = 0; i < components.size(); i++) components.get(i).init(i);
 
             this.eventListeners = new EventListener[events.size()][];
-            this.eventIds = new Object2IntOpenHashMap<>(events.size());
-            this.eventIds.defaultReturnValue(-1);
+            this.eventIds = new HashMap<>(events.size());
 
             var i = 0;
             for (var entry : events.entrySet()) {
-                this.eventIds.put(entry.getKey(), i);
+                this.eventIds.put(entry.getKey(), new EventType<>(entry.getKey(), this, i));
                 this.eventListeners[i] = entry.getValue().toArray(EventListener[]::new);
                 i++;
             }
 
             // TODO init subtargets
 
-        }
-
-        @Override
-        public int getEventId(Class<?> eventClass) {
-            return eventIds.getInt(eventClass);
-        }
-
-        @Override
-        public int getSubtargetId(Class<?> type) {
-            return subtargetIds.getInt(type);
         }
 
         @Override
@@ -280,16 +265,16 @@ public abstract class TargetType<T extends ComponentTarget> {
             final var own = new ArrayList<Map.Entry<Class<?>, List<EventListener<?, T>>>>();
 
             for (var entry : events.entrySet()) {
-                final var fromParent = parent.eventIds.getInt(entry.getKey());
-                if (fromParent < 0) {
+                final var fromParent = parent.eventIds.get(entry.getKey());
+                if (fromParent == null) {
                     own.add(entry);
                 } else {
                     final var ownList = entry.getValue();
-                    final var parentArr = parent.eventListeners[fromParent];
+                    final var parentArr = parent.eventListeners[fromParent.getInternalId()];
                     final var ownArr = new EventListener[ownList.size() + 1];
                     for (int i = 0; i < ownList.size(); i++) ownArr[i] = ownList.get(i);
                     ownArr[ownArr.length - 1] = new EventListener.Compound(parentArr, parent);
-                    ext[fromParent] = ownArr;
+                    ext[fromParent.getInternalId()] = ownArr;
                 }
             }
 
@@ -298,13 +283,12 @@ public abstract class TargetType<T extends ComponentTarget> {
                 this.eventListeners[i] = ext[i] == null ? parent.eventListeners[i] : ext[i];
             }
 
-            this.eventIds = new Object2IntOpenHashMap<>(own.size());
-            this.eventIds.defaultReturnValue(-1);
+            this.eventIds = new HashMap<>(own.size());
             for (var i = 0; i < own.size(); i++) {
                 final var entry = own.get(i);
                 final var idx = ext.length + i;
                 this.eventListeners[idx] = entry.getValue().toArray(EventListener[]::new);
-                this.eventIds.put(entry.getKey(), idx);
+                this.eventIds.put(entry.getKey(), new EventType(entry.getKey(), this, idx));
             }
 
             // TODO init subtargets
@@ -320,9 +304,10 @@ public abstract class TargetType<T extends ComponentTarget> {
         void rebuildEventListeners(EventListenerFactory listenerFactory) {
             super.rebuildEventListeners(listenerFactory);
             for (var pt = this.parent; pt != null; pt = pt.getParent()) {
-                for (var evt : pt.eventIds.object2IntEntrySet()) {
-                    final var listeners = eventListeners[evt.getIntValue()];
-                    if (pt.eventListeners[evt.getIntValue()] != listeners) {
+                for (var evt : pt.eventIds.entrySet()) {
+                    final int internalId = evt.getValue().getInternalId();
+                    final var listeners = eventListeners[internalId];
+                    if (pt.eventListeners[internalId] != listeners) {
                         for (int i = 0; i < listeners.length; i++) {
                             if (listeners[i] instanceof EventListener.Base) {
                                 final var base = (EventListener.Base) listeners[i];
@@ -334,16 +319,14 @@ public abstract class TargetType<T extends ComponentTarget> {
             }
         }
 
-        @Override
-        public int getEventId(Class<?> eventClass) {
-            final var own = eventIds.getInt(eventClass);
-            return own < 0 ? parent.getEventId(eventClass) : own;
+        public <E> EventType<E, T> getEventType(Class<E> eventClass) {
+            final var own = super.getEventType(eventClass);
+            return own == null ? (EventType<E, T>) parent.eventIds.get(eventClass) : own;
         }
 
-        @Override
-        public int getSubtargetId(Class<?> type) {
-            final var own = subtargetIds.getInt(type);
-            return own < 0 ? parent.getSubtargetId(type) : own;
+        public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
+            final var own = super.getSubtarget(type);
+            return own == null ? (FunctionalSubtarget<T, F>) parent.subtargetIds.get(type) : own;
         }
 
         @Override

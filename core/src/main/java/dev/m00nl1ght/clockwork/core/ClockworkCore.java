@@ -32,6 +32,7 @@ public class ClockworkCore implements ComponentTarget {
     private final ModuleManager moduleManager;
     private ComponentContainer<ClockworkCore> coreContainer;
     private EventListenerFactory listenerFactory;
+    private State state = State.LOADING;
 
     private ClockworkCore(DependencyResolver depResolver, DebugProfiler profiler) {
         listenerFactory = profiler == null ? EventListenerFactory.DEFAULT : new ProfilingEventListenerFactory(profiler);
@@ -40,10 +41,7 @@ public class ClockworkCore implements ComponentTarget {
         depResolver.getTargetDefinitions().forEach(this::buildComponentTarget);
         depResolver.getComponentDefinitions().forEach(this::buildComponent);
         depResolver.getTargetDefinitions().forEach(t -> componentTargets.get(t.getId()).getPrimer().init());
-        final var coreTarget = getTargetType(ClockworkCore.class);
-        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
-        coreContainer = new ComponentContainer<>(coreTarget.get(), this);
-        coreContainer.initComponents();
+        this.state = State.LOADED;
     }
 
     public static ClockworkCore load(Collection<PluginLocator> locators) {
@@ -72,7 +70,11 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     public void init() {
-
+        final var coreTarget = getTargetType(ClockworkCore.class);
+        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
+        coreContainer = new ComponentContainer<>(coreTarget.get(), this);
+        coreContainer.initComponents();
+        this.state = State.READY;
     }
 
     private void buildPlugin(PluginDefinition def) {
@@ -162,6 +164,10 @@ public class ClockworkCore implements ComponentTarget {
     public void disableProfiler() {
         this.listenerFactory = EventListenerFactory.DEFAULT;
         rebuildEventListeners();
+    }
+
+    public enum State {
+        LOADING, LOADED, READY
     }
 
 }
