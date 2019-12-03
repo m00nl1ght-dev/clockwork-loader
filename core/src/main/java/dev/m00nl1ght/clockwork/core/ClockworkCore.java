@@ -30,9 +30,9 @@ public class ClockworkCore implements ComponentTarget {
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager processors = new PluginProcessorManager(MethodHandles.lookup());
     private final ModuleManager moduleManager;
+    private transient State state = State.CONSTRUCTED;
     private ComponentContainer<ClockworkCore> coreContainer;
     private EventListenerFactory listenerFactory;
-    private State state = State.LOADING;
 
     private ClockworkCore(DependencyResolver depResolver, DebugProfiler profiler) {
         listenerFactory = profiler == null ? EventListenerFactory.DEFAULT : new ProfilingEventListenerFactory(profiler);
@@ -41,7 +41,7 @@ public class ClockworkCore implements ComponentTarget {
         depResolver.getTargetDefinitions().forEach(this::buildComponentTarget);
         depResolver.getComponentDefinitions().forEach(this::buildComponent);
         depResolver.getTargetDefinitions().forEach(t -> componentTargets.get(t.getId()).getPrimer().init());
-        this.state = State.LOADED;
+        this.state = State.LOCATED;
     }
 
     public static ClockworkCore load(Collection<PluginLocator> locators) {
@@ -69,12 +69,13 @@ public class ClockworkCore implements ComponentTarget {
         return new ClockworkCore(depResolver, profiler);
     }
 
-    public void init() {
+    public synchronized void init() {
+        if (this.state != State.LOCATED) throw new IllegalStateException();
         final var coreTarget = getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
         coreContainer = new ComponentContainer<>(coreTarget.get(), this);
         coreContainer.initComponents();
-        this.state = State.READY;
+        this.state = State.INITIALISED;
     }
 
     private void buildPlugin(PluginDefinition def) {
@@ -166,8 +167,12 @@ public class ClockworkCore implements ComponentTarget {
         rebuildEventListeners();
     }
 
+    public State getState() {
+        return state;
+    }
+
     public enum State {
-        LOADING, LOADED, READY
+        CONSTRUCTED, LOCATED, INITIALISED
     }
 
 }

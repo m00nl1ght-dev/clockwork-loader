@@ -81,7 +81,7 @@ public abstract class EventListener<E, T extends ComponentTarget> {
                 } catch (ExceptionInPlugin e) {
                     throw e;
                 } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                    targetType.checkCompatibility(object);
+                    targetType.checkCompatibility(object.getTargetType());
                     throw e;
                 } catch (Throwable t) {
                     if (listener instanceof Base) {

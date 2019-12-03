@@ -24,9 +24,9 @@ public class DebugProfiler {
 
     public String print() {
         final var str = new StringBuilder();
-        str.append("###### Clockwork Loader Debug Info ######\n");
+        str.append("###### ClockworkLoader Debug Profiler ######\n");
         for (var group : groups.values()) group.print(str);
-        str.append("#########################################");
+        str.append("############################################");
         return str.toString();
     }
 

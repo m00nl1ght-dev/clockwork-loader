@@ -7,7 +7,6 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.processor;
     exports dev.m00nl1ght.clockwork.event;
     exports dev.m00nl1ght.clockwork.event.filter;
-    exports dev.m00nl1ght.clockwork.holder;
     exports dev.m00nl1ght.clockwork.debug;
     exports dev.m00nl1ght.clockwork.security;
     exports dev.m00nl1ght.clockwork.security.permissions;

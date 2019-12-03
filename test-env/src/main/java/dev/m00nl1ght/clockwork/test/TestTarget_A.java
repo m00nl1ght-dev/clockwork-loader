@@ -3,12 +3,10 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.holder.StaticHolder;
 
 public class TestTarget_A implements ComponentTarget {
 
-    @StaticHolder
-    public static final TargetType<TestTarget_A> TARGET_TYPE = null;
+    public static final TargetType<TestTarget_A> TARGET_TYPE = TestLauncher.getTargetType(TestTarget_A.class);
 
     protected final ComponentContainer<? extends TestTarget_A> container;
 

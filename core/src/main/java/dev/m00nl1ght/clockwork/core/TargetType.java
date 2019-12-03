@@ -122,6 +122,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     void rebuildEventListeners(EventListenerFactory listenerFactory) {
+        if (eventIds != null)
         for (var evt : eventIds.entrySet()) {
             final var listeners = eventListeners[evt.getValue().getInternalId()];
             for (int i = 0; i < listeners.length; i++) {

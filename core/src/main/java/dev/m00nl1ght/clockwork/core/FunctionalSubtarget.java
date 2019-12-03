@@ -20,7 +20,7 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         try {
             object.getTargetType().applySubtarget(internalId, object, type, consumer);
         } catch (Exception e) {
-            this.target.checkCompatibility(object);
+            this.target.checkCompatibility(object.getTargetType());
             throw e;
         }
     }

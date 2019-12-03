@@ -24,6 +24,8 @@ public class TestLauncher {
     private static final File TEST_PLUGIN_JAR = new File("test-plugin/build/libs/test-plugin-0.1.jar");
     private static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");
 
+    private static ClockworkCore clockworkCore;
+
     public static void main(String... args) {
         PLUGIN_DATA_DIR.mkdirs();
         final var config = new SecurityConfiguration();
@@ -36,13 +38,26 @@ public class TestLauncher {
         locators.add(new BootLayerLocator());
         locators.add(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
         final var profiler = new DebugProfiler();
-        final var core = ClockworkCore.load(locators);
-        core.enableProfiler(profiler);
-        final var coreTarget = core.getTargetType(ClockworkCore.class);
+        clockworkCore = ClockworkCore.load(locators);
+        clockworkCore.init();
+        clockworkCore.enableProfiler(profiler);
+        final var coreTarget = clockworkCore.getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
         final var initEvent = coreTarget.get().getEventType(PluginInitEvent.class);
-        initEvent.post(core, new PluginInitEvent(core, PLUGIN_DATA_DIR, profiler));
+        initEvent.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));
         System.out.println(profiler.print());
+    }
+
+    static <T extends ComponentTarget> TargetType<T> getTargetType(Class<T> targetClass) {
+        if (clockworkCore == null) throw new IllegalStateException("target class has been initialised before clockwork core is ready");
+        return clockworkCore.getTargetType(targetClass)
+                .orElseThrow(() -> new IllegalArgumentException("missing target for class: " + targetClass.getSimpleName()));
+    }
+
+    static <C, T extends ComponentTarget> ComponentType<C, T> getComponentType(Class<C> componentClass, Class<T> targetClass) {
+        if (clockworkCore == null) throw new IllegalStateException("component class has been initialised before clockwork core is ready");
+        return clockworkCore.getComponentType(componentClass, targetClass)
+                .orElseThrow(() -> new IllegalArgumentException("missing component for class: " + componentClass.getSimpleName()));
     }
 
 }
