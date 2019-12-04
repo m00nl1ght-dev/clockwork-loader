@@ -15,15 +15,16 @@ public abstract class BasicEventFilterFactory<I> implements EventFilterFactory {
         this.evtInterface = Preconditions.notNullAnd(evtInterface, Class::isInterface, "evtInterface");
     }
 
+    @Override
     @SuppressWarnings("unchecked")
-    public <E, T extends ComponentTarget> EventFilter<E, T> get(ComponentType<?, T> componentType, Class<E> eventClass, Method method) {
+    public <E, C, T extends ComponentTarget> EventFilter<E, C, T> get(ComponentType<C, T> componentType, Class<E> eventClass, Method method) {
         if (evtInterface.isAssignableFrom(eventClass)) {
-            return (EventFilter<E, T>) build(componentType, (Class<? extends I>) eventClass, method);
+            return (EventFilter<E, C, T>) build(componentType, (Class<? extends I>) eventClass, method);
         } else {
             return null;
         }
     }
 
-    protected abstract <E extends I, T extends ComponentTarget> EventFilter<E, T> build(ComponentType<?, T> componentType, Class<E> eventClass, Method method);
+    protected abstract <E extends I, C, T extends ComponentTarget> EventFilter<E, C, T> build(ComponentType<C, T> componentType, Class<E> eventClass, Method method);
 
 }

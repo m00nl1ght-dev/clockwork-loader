@@ -8,6 +8,6 @@ import java.lang.reflect.Method;
 
 public interface EventFilterFactory {
 
-    <E, T extends ComponentTarget> EventFilter<E, T> get(ComponentType<?, T> componentType, Class<E> eventClass, Method method);
+    <E, C, T extends ComponentTarget> EventFilter<E, C, T> get(ComponentType<C, T> componentType, Class<E> eventClass, Method method);
 
 }

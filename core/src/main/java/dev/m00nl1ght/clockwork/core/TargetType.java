@@ -66,19 +66,15 @@ public abstract class TargetType<T extends ComponentTarget> {
         final var listeners = eventListeners[internalId];
         for (var listener : listeners) {
             try {
-                listener.accept(object, event);
+                final var comp = object.getComponent(listener.component.getInternalID());
+                if (comp != null) listener.accept(object, comp, event);
             } catch (ExceptionInPlugin e) {
                 throw e;
             } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
                 this.checkCompatibility(object.getTargetType());
                 throw e;
             } catch (Throwable t) {
-                if (listener instanceof EventListener.Base) {
-                    final var base = (EventListener.Base) listener;
-                    throw ExceptionInPlugin.inEventHandler(base.getComponentType(), event, object, t);
-                } else {
-                    throw t;
-                }
+                throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
             }
         }
     }
@@ -136,15 +132,12 @@ public abstract class TargetType<T extends ComponentTarget> {
         for (var evt : eventTypes.entrySet()) {
             final var listeners = eventListeners[evt.getValue().getInternalId()];
             for (int i = 0; i < listeners.length; i++) {
-                if (listeners[i] instanceof EventListener.Base) {
-                    final var base = (EventListener.Base) listeners[i];
-                    listeners[i] = rebuildListener(base, evt.getKey(), listenerFactory);
-                }
+                listeners[i] = rebuildListener(listeners[i], evt.getKey(), listenerFactory);
             }
         }
     }
 
-    <C, E> EventListener<E, T> rebuildListener(EventListener.Base<C, E, T> listener, Class<E> eventClass, EventListenerFactory factory) {
+    <C, E> EventListener<E, C, T> rebuildListener(EventListener<E, C, T> listener, Class<E> eventClass, EventListenerFactory factory) {
         final var comp = listener.getComponentType();
         final var consumer = listener.getConsumer();
         final var filter = listener.getFilter();
@@ -169,7 +162,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         private final TargetType<T> pre;
         private final EventListenerFactory listenerFactory;
-        private final Map<Class<?>, List<EventListener<?, T>>> events = new HashMap<>();
+        private final Map<Class<?>, List<EventListener<?, ?, T>>> events = new HashMap<>();
         private final Map<Class<?>, List<ComponentType<?, T>>> subtargets = new HashMap<>();
 
         private Primer(TargetType<T> pre, EventListenerFactory listenerFactory) {
@@ -177,7 +170,7 @@ public abstract class TargetType<T extends ComponentTarget> {
             this.pre = pre;
         }
 
-        public synchronized <C, E> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, BiConsumer<C, E> consumer, EventFilter<E, T> filter) {
+        public synchronized <C, E> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, BiConsumer<C, E> consumer, EventFilter<E, C, T> filter) {
             if (pre.isInitialised()) throw new IllegalStateException();
             if (componentType.getTargetType() != pre) throw new IllegalArgumentException();
             final var list = events.computeIfAbsent(eventClass, c -> new ArrayList<>(5));
@@ -290,7 +283,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
             final var events = this.getPrimer().events;
             final var extE = new EventListener[parent.eventListeners.length][];
-            final var ownE = new ArrayList<Map.Entry<Class<?>, List<EventListener<?, T>>>>();
+            final var ownE = new ArrayList<Map.Entry<Class<?>, List<EventListener<?, ?, T>>>>();
 
             for (var entry : events.entrySet()) {
                 final var fromParent = parent.eventTypes.get(entry.getKey());
@@ -299,10 +292,10 @@ public abstract class TargetType<T extends ComponentTarget> {
                 } else {
                     final var ownList = entry.getValue();
                     final var parentArr = parent.eventListeners[fromParent.getInternalId()];
-                    final var ownArr = new EventListener[ownList.size() + 1];
-                    for (int i = 0; i < ownList.size(); i++) ownArr[i] = ownList.get(i);
-                    ownArr[ownArr.length - 1] = new EventListener.Compound<>(parentArr, parent);
-                    extE[fromParent.getInternalId()] = ownArr;
+                    final var arr = new EventListener[parentArr.length + ownList.size()];
+                    System.arraycopy(parentArr, 0, arr, 0, parentArr.length);
+                    for (int i = 0; i < ownList.size(); i++) arr[parentArr.length + i] = ownList.get(i);
+                    extE[fromParent.getInternalId()] = arr;
                 }
             }
 
@@ -358,13 +351,10 @@ public abstract class TargetType<T extends ComponentTarget> {
                 for (var evt : pt.eventTypes.entrySet()) {
                     final int internalId = evt.getValue().getInternalId();
                     final var listeners = eventListeners[internalId];
-                    if (pt.eventListeners[internalId] != listeners) {
-                        for (int i = 0; i < listeners.length; i++) {
-                            if (listeners[i] instanceof EventListener.Base) {
-                                final var base = (EventListener.Base) listeners[i];
-                                listeners[i] = rebuildListener(base, evt.getKey(), listenerFactory);
-                            }
-                        }
+                    final var listenersFP = pt.eventListeners[internalId];
+                    System.arraycopy(listenersFP, 0, listeners, 0, listenersFP.length);
+                    for (int i = listenersFP.length; i < listeners.length; i++) {
+                        listeners[i] = rebuildListener(listeners[i], evt.getKey(), listenerFactory);
                     }
                 }
             }

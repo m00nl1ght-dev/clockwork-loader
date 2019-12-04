@@ -50,10 +50,10 @@ public class EventAnnotationProcessor implements PluginProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    private <C, E, T extends ComponentTarget> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
+    private <E, C, T extends ComponentTarget> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
         final var listener = (BiConsumer<C, E>) callSite.getTarget().invokeExact();
 
-        EventFilter<E, T> filter = null;
+        EventFilter<E, C, T> filter = null;
         for (var factory : filterFactories) {
             final var ret = factory.get(componentType, eventClass, method);
             if (ret != null) filter = filter == null ? ret : filter.and(ret);

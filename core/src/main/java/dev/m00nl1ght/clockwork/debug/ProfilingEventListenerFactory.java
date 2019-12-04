@@ -15,7 +15,7 @@ public class ProfilingEventListenerFactory implements EventListenerFactory {
     }
 
     @Override
-    public <C, E, T extends ComponentTarget> EventListener<E, T> build(ComponentType<C, T> component, Class<E> eventClass, BiConsumer<C, E> consumer, EventFilter<E, T> filter) {
+    public <E, C, T extends ComponentTarget> EventListener<E, C, T> build(ComponentType<C, T> component, Class<E> eventClass, BiConsumer<C, E> consumer, EventFilter<E, C, T> filter) {
         final var groupName = component.getTargetType().getId() + " << " + eventClass.getSimpleName();
         final var group = profiler.getOrCreateGroup(groupName);
         if (filter == null) {
@@ -25,7 +25,7 @@ public class ProfilingEventListenerFactory implements EventListenerFactory {
         }
     }
 
-    public static class ProfilingListener<C, E, T extends ComponentTarget> extends EventListener.Base<C, E, T> {
+    public static class ProfilingListener<E, C, T extends ComponentTarget> extends EventListener<E, C, T> {
 
         private final ProfilerEntry entry;
 
@@ -36,21 +36,19 @@ public class ProfilingEventListenerFactory implements EventListenerFactory {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public void accept(T object, E event) {
+        public void accept(T object, C component, E event) {
             entry.start();
-            final var comp = object.getComponent(component.getInternalID());
-            if (comp != null) consumer.accept((C) comp, event);
+            consumer.accept(component, event);
             entry.end();
         }
 
     }
 
-    public static class FilteredProfilingListener<C, E, T extends ComponentTarget> extends EventListener.Filtered<C, E, T> {
+    public static class FilteredProfilingListener<E, C, T extends ComponentTarget> extends EventListener.Filtered<E, C, T> {
 
         private final ProfilerEntry entry;
 
-        protected FilteredProfilingListener(ProfilerGroup group, ComponentType<C, T> component, BiConsumer<C, E> consumer, EventFilter<E, T> filter) {
+        protected FilteredProfilingListener(ProfilerGroup group, ComponentType<C, T> component, BiConsumer<C, E> consumer, EventFilter<E, C, T> filter) {
             super(component, consumer, filter);
             this.entry = new SimpleCyclicProfilerEntry(group, component.getId(), PROFILER_CAPACITY);
             this.entry.addDebugInfo("consumer", consumer.toString());
@@ -58,12 +56,10 @@ public class ProfilingEventListenerFactory implements EventListenerFactory {
         }
 
         @Override
-        @SuppressWarnings("unchecked")
-        public void accept(T object, E event) {
-            if (filter.test(event, object)) {
+        public void accept(T object, C component, E event) {
+            if (filter.test(event, component, object)) {
                 entry.start();
-                final var comp = object.getComponent(component.getInternalID());
-                if (comp != null) consumer.accept((C) comp, event);
+                consumer.accept(component, event);
                 entry.end();
             }
         }

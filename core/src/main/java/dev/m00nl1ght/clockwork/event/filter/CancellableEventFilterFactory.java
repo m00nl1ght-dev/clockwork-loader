@@ -17,7 +17,7 @@ public class CancellableEventFilterFactory extends BasicEventFilterFactory<Cance
     }
 
     @Override
-    protected <E extends CancellableEvent, T extends ComponentTarget> EventFilter<E, T> build(ComponentType<?, T> componentType, Class<E> eventClass, Method method) {
+    protected <E extends CancellableEvent, C, T extends ComponentTarget> EventFilter<E, C, T> build(ComponentType<C, T> componentType, Class<E> eventClass, Method method) {
         final var ann = method.getAnnotation(EventHandler.class);
         if (ann == null || !ann.receiveCancelled) {
             return new Filter<>();
@@ -26,10 +26,10 @@ public class CancellableEventFilterFactory extends BasicEventFilterFactory<Cance
         }
     }
 
-    private static class Filter<E extends CancellableEvent, T extends ComponentTarget> implements EventFilter<E, T> {
+    private static class Filter<E extends CancellableEvent, C, T extends ComponentTarget> implements EventFilter<E, C, T> {
 
         @Override
-        public boolean test(E event, T object) {
+        public boolean test(E event, C component, T object) {
             return !event.isCancelled();
         }
 
