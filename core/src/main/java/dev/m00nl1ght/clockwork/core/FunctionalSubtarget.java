@@ -4,12 +4,12 @@ import java.util.function.Consumer;
 
 public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
-    private final TargetType<T> target;
+    private final TargetType<?> rootTarget;
     private final Class<F> type;
     private final int internalId;
 
-    FunctionalSubtarget(Class<F> type, TargetType<T> target, int internalId) {
-        this.target = target;
+    FunctionalSubtarget(Class<F> type, TargetType<?> rootTarget, int internalId) {
+        this.rootTarget = rootTarget;
         this.type = type;
         this.internalId = internalId;
     }
@@ -18,7 +18,7 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         try {
             object.getTargetType().applySubtarget(internalId, object, type, consumer);
         } catch (Exception e) {
-            this.target.checkCompatibility(object.getTargetType());
+            this.rootTarget.checkCompatibility(object.getTargetType());
             throw e;
         }
     }
@@ -27,12 +27,23 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         return internalId;
     }
 
-    public TargetType<T> getTarget() {
-        return target;
+    public TargetType<?> getRootTarget() {
+        return rootTarget;
     }
 
     public Class<F> getType() {
         return type;
+    }
+
+    static class Empty<T extends ComponentTarget, F> extends FunctionalSubtarget<T, F> {
+
+        Empty(Class<F> type, TargetType<?> rootTarget) {
+            super(type, rootTarget, -1);
+        }
+
+        @Override
+        public void apply(T object, Consumer<F> consumer) {}
+
     }
 
 }

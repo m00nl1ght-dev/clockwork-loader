@@ -38,17 +38,27 @@ public abstract class TargetType<T extends ComponentTarget> {
     public abstract boolean canAcceptFrom(TargetType<?> other);
 
     @SuppressWarnings("unchecked")
-    public <E> EventType<E, T> getEventType(Class<E> eventClass) { // TODO return empty/NOOP event type instead of null
-        Preconditions.notNull(eventClass, "eventClass");
+    <E> EventType<E, T> getEventTypeNullable(Class<E> eventClass) {
         if (eventTypes == null) throw new IllegalStateException();
         return (EventType<E, T>) eventTypes.get(eventClass);
     }
 
+    public final <E> EventType<E, T> getEventType(Class<E> eventClass) {
+        Preconditions.notNull(eventClass, "eventClass");
+        final var ret = getEventTypeNullable(eventClass);
+        return ret == null ? new EventType.Empty<>(eventClass, this.getRoot()) : ret;
+    }
+
     @SuppressWarnings("unchecked")
-    public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) { // TODO return empty/NOOP subtarget instead of null
-        Preconditions.notNull(type, "type");
+    <F> FunctionalSubtarget<T, F> getSubtargetNullable(Class<F> type) {
         if (subtargetTypes == null) throw new IllegalStateException();
         return (FunctionalSubtarget<T, F>) subtargetTypes.get(type);
+    }
+
+    public final <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
+        Preconditions.notNull(type, "type");
+        final var ret = getSubtargetNullable(type);
+        return ret == null ? new FunctionalSubtarget.Empty<>(type, this.getRoot()) : ret;
     }
 
     @SuppressWarnings("unchecked")
@@ -360,14 +370,16 @@ public abstract class TargetType<T extends ComponentTarget> {
             }
         }
 
-        public <E> EventType<E, T> getEventType(Class<E> eventClass) {
-            final var own = super.getEventType(eventClass);
-            return own == null ? (EventType<E, T>) parent.eventTypes.get(eventClass) : own;
+        @Override
+        <E> EventType<E, T> getEventTypeNullable(Class<E> eventClass) {
+            final var own = super.getEventTypeNullable(eventClass);
+            return own == null ? (EventType<E, T>) parent.getEventTypeNullable(eventClass) : own;
         }
 
-        public <F> FunctionalSubtarget<T, F> getSubtarget(Class<F> type) {
-            final var own = super.getSubtarget(type);
-            return own == null ? (FunctionalSubtarget<T, F>) parent.subtargetTypes.get(type) : own;
+        @Override
+        <F> FunctionalSubtarget<T, F> getSubtargetNullable(Class<F> type) {
+            final var own = super.getSubtargetNullable(type);
+            return own == null ? (FunctionalSubtarget<T, F>) parent.getSubtargetNullable(type) : own;
         }
 
         @Override
