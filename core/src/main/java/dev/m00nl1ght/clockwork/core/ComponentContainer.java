@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.debug.ProfilerEntry;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.function.Consumer;
@@ -19,14 +20,12 @@ public class ComponentContainer<T extends ComponentTarget> {
     }
 
     protected void initComponents() {
-        ComponentType<?, ?> blame = null;
-        try {
-            for (var comp : targetType.getRegisteredTypes()) {
-                blame = comp;
+        for (var comp : targetType.getRegisteredTypes()) {
+            try {
                 components[comp.getInternalID()] = comp.buildComponentFor(object);
+            } catch (Throwable t) {
+                throw ExceptionInPlugin.inComponentInit(comp, t);
             }
-        } catch (Throwable t) {
-            throw ExceptionInPlugin.inComponentInit(blame, t);
         }
     }
 
@@ -35,8 +34,26 @@ public class ComponentContainer<T extends ComponentTarget> {
         final var listeners = targetType.eventListeners[eventType.getInternalId()];
         for (var listener : listeners) {
             try {
-                final var comp = components[listener.component.getInternalID()];
+                final var comp = components[listener.getComponentType().getInternalID()];
                 if (comp != null) listener.accept(object, comp, event);
+            } catch (ExceptionInPlugin e) {
+                throw e;
+            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+                targetType.checkCompatibilityForEvent(eventType.getRootTarget());
+                throw e;
+            } catch (Throwable t) {
+                throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <E> void post(EventType<E, T> eventType, E event, ProfilerEntry profilerEntry) {
+        final var listeners = targetType.eventListeners[eventType.getInternalId()];
+        for (var listener : listeners) {
+            try {
+                final var comp = components[listener.getComponentType().getInternalID()];
+                if (comp != null) listener.accept(object, comp, event, profilerEntry);
             } catch (ExceptionInPlugin e) {
                 throw e;
             } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {

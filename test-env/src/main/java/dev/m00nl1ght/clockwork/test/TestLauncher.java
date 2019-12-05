@@ -40,7 +40,6 @@ public class TestLauncher {
         final var profiler = new DebugProfiler();
         clockworkCore = ClockworkCore.load(locators);
         clockworkCore.init();
-        clockworkCore.enableProfiler(profiler);
         final var coreTarget = clockworkCore.getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
         final var initEvent = coreTarget.get().getEventType(PluginInitEvent.class);

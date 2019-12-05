@@ -2,7 +2,6 @@ package dev.m00nl1ght.clockwork.event.filter;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.EventFilter;
 import dev.m00nl1ght.clockwork.event.CancellableEvent;
 import dev.m00nl1ght.clockwork.event.EventHandler;
 

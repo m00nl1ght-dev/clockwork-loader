@@ -1,11 +1,11 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.event.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.CollectionUtil;
 import dev.m00nl1ght.clockwork.util.LogUtil;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.*;
-import java.util.function.BiConsumer;
 
 public abstract class TargetType<T extends ComponentTarget> {
 
@@ -19,11 +19,11 @@ public abstract class TargetType<T extends ComponentTarget> {
     protected int[][] subtargetData;
     private Primer<T> primer;
 
-    private TargetType(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass, EventListenerFactory dispatcherFactory) {
+    private TargetType(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass) {
         this.plugin = plugin;
         this.targetClass = targetClass;
         this.id = definition.getId();
-        this.primer = new Primer<>(this, dispatcherFactory);
+        this.primer = new Primer<>(this);
     }
 
     public abstract List<ComponentType<?, ? super T>> getRegisteredTypes();
@@ -104,31 +104,13 @@ public abstract class TargetType<T extends ComponentTarget> {
     abstract void init();
 
     @SuppressWarnings("unchecked")
-    void rebuildEventListeners(EventListenerFactory listenerFactory) {
-        if (eventTypes != null)
-        for (var evt : eventTypes.entrySet()) {
-            final var listeners = eventListeners[evt.getValue().getInternalId()];
-            for (int i = 0; i < listeners.length; i++) {
-                listeners[i] = rebuildListener(listeners[i], evt.getKey(), listenerFactory);
-            }
-        }
-    }
-
-    <C, E> EventListener<E, C, T> rebuildListener(EventListener<E, C, T> listener, Class<E> eventClass, EventListenerFactory factory) {
-        final var comp = listener.getComponentType();
-        final var consumer = listener.getConsumer();
-        final var filter = listener.getFilter();
-        return factory.build(comp, eventClass, consumer, filter);
-    }
-
-    @SuppressWarnings("unchecked")
-    static <T extends ComponentTarget> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass, EventListenerFactory dispatcherFactory) {
+    static <T extends ComponentTarget> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass) {
         if (def.getParent() == null) {
-            return new Root<>(def, plugin, targetClass, dispatcherFactory);
+            return new Root<>(def, plugin, targetClass);
         } else {
             final var found = plugin.getClockworkCore().getTargetType(def.getParent()).orElseThrow();
             if (found.targetClass.isAssignableFrom(targetClass)) {
-                return new ForSubclass<>(def, (TargetType<? super T>) found, plugin, targetClass, dispatcherFactory);
+                return new ForSubclass<>(def, (TargetType<? super T>) found, plugin, targetClass);
             } else {
                 throw PluginLoadingException.invalidParentForTarget(def, found);
             }
@@ -137,43 +119,41 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     public static class Primer<T extends ComponentTarget> {
 
-        private final TargetType<T> pre;
-        private final EventListenerFactory listenerFactory;
+        private final TargetType<T> targetType;
         private final Map<Class<?>, List<EventListener<?, ?, T>>> events = new HashMap<>();
         private final Map<Class<?>, List<ComponentType<?, T>>> subtargets = new HashMap<>();
 
-        private Primer(TargetType<T> pre, EventListenerFactory listenerFactory) {
-            this.listenerFactory = listenerFactory;
-            this.pre = pre;
+        private Primer(TargetType<T> targetType) {
+            this.targetType = targetType;
         }
 
-        public synchronized <C, E> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, BiConsumer<C, E> consumer, EventFilter<E, C, T> filter) {
-            if (pre.isInitialised()) throw new IllegalStateException();
-            if (componentType.getTargetType() != pre) throw new IllegalArgumentException();
+        public synchronized <C, E> void registerListener(Class<E> eventClass, EventListener<E, C, T> listener) {
+            if (targetType.isInitialised()) throw new IllegalStateException();
+            if (listener.getComponentType().getTargetType() != targetType) throw new IllegalArgumentException();
             final var list = events.computeIfAbsent(eventClass, c -> new ArrayList<>(5));
-            list.add(listenerFactory.build(componentType, eventClass, consumer, filter));
+            list.add(listener);
         }
 
         public synchronized <C, F> void registerSubtarget(ComponentType<C, T> componentType, Class<F> type) {
-            if (pre.isInitialised()) throw new IllegalStateException();
-            if (componentType.getTargetType() != pre) throw new IllegalArgumentException();
+            if (targetType.isInitialised()) throw new IllegalStateException();
+            if (componentType.getTargetType() != targetType) throw new IllegalArgumentException();
             if (!type.isAssignableFrom(componentType.getComponentClass())) throw new IllegalArgumentException();
             final var list = subtargets.computeIfAbsent(type, c -> new ArrayList<>(5));
             list.add(componentType);
         }
 
         public synchronized <C> ComponentType<C, T> register(ComponentDefinition def, PluginContainer plugin, Class<C> compClass) {
-            if (pre.isInitialised()) throw new IllegalStateException();
-            final var componentType = new ComponentType<>(def, plugin, compClass, pre);
-            pre.components.add(componentType);
+            if (targetType.isInitialised()) throw new IllegalStateException();
+            final var componentType = new ComponentType<>(def, plugin, compClass, targetType);
+            targetType.components.add(componentType);
             return componentType;
         }
 
         synchronized void init() {
-            if (pre.primer == null) throw new IllegalStateException();
-            pre.components.trimToSize();
-            pre.init();
-            pre.primer = null;
+            if (targetType.primer == null) throw new IllegalStateException();
+            targetType.components.trimToSize();
+            targetType.init();
+            targetType.primer = null;
         }
 
     }
@@ -182,8 +162,8 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         protected final List<ComponentType<?, ? super T>> publicList = Collections.unmodifiableList(components);
 
-        private Root(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass, EventListenerFactory dispatcherFactory) {
-            super(definition, plugin, targetClass, dispatcherFactory);
+        private Root(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass) {
+            super(definition, plugin, targetClass);
         }
 
         @Override
@@ -244,8 +224,8 @@ public abstract class TargetType<T extends ComponentTarget> {
         private final TargetType<? super T> parent;
         private final List<ComponentType<?, ? super T>> compoundList;
 
-        private ForSubclass(TargetDefinition definition, TargetType<? super T> parent, PluginContainer plugin, Class<T> targetClass, EventListenerFactory dispatcherFactory) {
-            super(definition, plugin, targetClass, dispatcherFactory);
+        private ForSubclass(TargetDefinition definition, TargetType<? super T> parent, PluginContainer plugin, Class<T> targetClass) {
+            super(definition, plugin, targetClass);
             this.compoundList = CollectionUtil.compoundList(parent.getRegisteredTypes(), components);
             this.root = parent.getRoot();
             this.parent = parent;
@@ -318,22 +298,6 @@ public abstract class TargetType<T extends ComponentTarget> {
                 final var idx = extS.length + i;
                 this.subtargetData[idx] = entry.getValue().stream().mapToInt(ComponentType::getInternalID).toArray();
                 this.subtargetTypes.put(entry.getKey(), new FunctionalSubtarget<>(entry.getKey(), this, idx));
-            }
-        }
-
-        @Override
-        void rebuildEventListeners(EventListenerFactory listenerFactory) {
-            super.rebuildEventListeners(listenerFactory);
-            for (var pt = this.parent; pt != null; pt = pt.getParent()) {
-                for (var evt : pt.eventTypes.entrySet()) {
-                    final int internalId = evt.getValue().getInternalId();
-                    final var listeners = eventListeners[internalId];
-                    final var listenersFP = pt.eventListeners[internalId];
-                    System.arraycopy(listenersFP, 0, listeners, 0, listenersFP.length);
-                    for (int i = listenersFP.length; i < listeners.length; i++) {
-                        listeners[i] = rebuildListener(listeners[i], evt.getKey(), listenerFactory);
-                    }
-                }
             }
         }
 

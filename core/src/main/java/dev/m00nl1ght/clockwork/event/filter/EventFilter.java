@@ -1,5 +1,6 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.event.filter;
 
+import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.ArrayList;

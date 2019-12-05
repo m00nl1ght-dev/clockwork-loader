@@ -2,10 +2,12 @@ package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.EventFilter;
-import dev.m00nl1ght.clockwork.event.filter.EventFilterFactory;
 import dev.m00nl1ght.clockwork.event.filter.CancellableEventFilterFactory;
+import dev.m00nl1ght.clockwork.event.filter.EventFilter;
+import dev.m00nl1ght.clockwork.event.filter.EventFilterFactory;
 import dev.m00nl1ght.clockwork.event.filter.GenericEventFilterFactory;
+import dev.m00nl1ght.clockwork.event.listener.FilteredEventListener;
+import dev.m00nl1ght.clockwork.event.listener.SimpleEventListener;
 import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -50,21 +52,22 @@ public class EventAnnotationProcessor implements PluginProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    private <E, C, T extends ComponentTarget> void registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
-        final var listener = (BiConsumer<C, E>) callSite.getTarget().invokeExact();
-
+    private <E, C, T extends ComponentTarget> void
+    registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
+        final var consumer = (BiConsumer<C, E>) callSite.getTarget().invokeExact();
         EventFilter<E, C, T> filter = null;
         for (var factory : filterFactories) {
             final var ret = factory.get(componentType, eventClass, method);
             if (ret != null) filter = filter == null ? ret : filter.and(ret);
         }
 
-        componentType.getTargetType().getPrimer().registerListener(componentType, eventClass, listener, filter);
-    }
-
-    @Override
-    public String getName() {
-        return NAME;
+        final var primer = componentType.getTargetType().getPrimer();
+        if (primer == null) throw new IllegalStateException();
+        if (filter == null) {
+            primer.registerListener(eventClass, new SimpleEventListener<>(componentType, consumer));
+        } else {
+            primer.registerListener(eventClass, new FilteredEventListener<>(componentType, consumer, filter));
+        }
     }
 
     public static void registerEventFilterFactory(EventFilterFactory factory) {
@@ -74,6 +77,11 @@ public class EventAnnotationProcessor implements PluginProcessor {
     static {
         registerEventFilterFactory(CancellableEventFilterFactory.INSTANCE);
         registerEventFilterFactory(GenericEventFilterFactory.INSTANCE);
+    }
+
+    @Override
+    public String getName() {
+        return NAME;
     }
 
 }
