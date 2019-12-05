@@ -54,15 +54,13 @@ public class ComponentType<C, T extends ComponentTarget> {
     }
 
     @SuppressWarnings("unchecked")
-    public C get(T target) {
+    public C get(T object) {
+        final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
-            return (C) target.getComponent(internalID);
+            return (C) container.getComponent(internalID);
         } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-            if (targetType.canAcceptFrom(target.getTargetType())) {
-                throw e;
-            } else {
-                throw new IllegalArgumentException("Cannot get component [" + componentId + "] registered to target [" + target + "] form another target [" + target.getTargetType() + "]");
-            }
+            container.getTargetType().checkCompatibilityForComponent(targetType);
+            throw e;
         }
     }
 

@@ -14,11 +14,13 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         this.internalId = internalId;
     }
 
+    @SuppressWarnings("unchecked")
     public void apply(T object, Consumer<F> consumer) {
+        final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
-            object.getTargetType().applySubtarget(internalId, object, type, consumer);
+            container.applySubtarget(this, consumer);
         } catch (Exception e) {
-            this.rootTarget.checkCompatibility(object.getTargetType());
+            container.getTargetType().checkCompatibilityForSubtarget(rootTarget);
             throw e;
         }
     }

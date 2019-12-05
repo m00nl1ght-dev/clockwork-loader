@@ -141,13 +141,8 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     @Override
-    public Object getComponent(int internalID) {
-        return coreContainer == null ? null : coreContainer.getComponent(internalID);
-    }
-
-    @Override
-    public TargetType<?> getTargetType() {
-        return coreContainer == null ? null : coreContainer.getTargetType();
+    public ComponentContainer<ClockworkCore> getComponentContainer() {
+        return coreContainer;
     }
 
     private synchronized void rebuildEventListeners() {

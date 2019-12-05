@@ -12,11 +12,13 @@ public class EventType<E, T extends ComponentTarget> {
         this.internalId = internalId;
     }
 
+    @SuppressWarnings("unchecked")
     public void post(T object, E event) {
+        final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
-            object.getTargetType().post(internalId, object, event);
+            container.post(this, event);
         } catch (Exception e) {
-            this.rootTarget.checkCompatibility(object.getTargetType());
+            container.getTargetType().checkCompatibilityForEvent(rootTarget);
             throw e;
         }
     }

@@ -6,7 +6,6 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.*;
 import java.util.function.BiConsumer;
-import java.util.function.Consumer;
 
 public abstract class TargetType<T extends ComponentTarget> {
 
@@ -61,45 +60,23 @@ public abstract class TargetType<T extends ComponentTarget> {
         return ret == null ? new FunctionalSubtarget.Empty<>(type, this.getRoot()) : ret;
     }
 
-    @SuppressWarnings("unchecked")
-    <E, R extends ComponentTarget> void post(int internalId, R object, E event) {
-        final var listeners = eventListeners[internalId];
-        for (var listener : listeners) {
-            try {
-                final var comp = object.getComponent(listener.component.getInternalID());
-                if (comp != null) listener.accept(object, comp, event);
-            } catch (ExceptionInPlugin e) {
-                throw e;
-            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                this.checkCompatibility(object.getTargetType());
-                throw e;
-            } catch (Throwable t) {
-                throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    <F, R extends ComponentTarget> void applySubtarget(int internalId, R object, Class<F> type, Consumer<F> consumer) {
-        final var compIds = subtargetData[internalId];
-        for (var compId : compIds) {
-            try {
-                final var comp = object.getComponent(compId);
-                if (comp != null) consumer.accept((F) comp);
-            } catch (ExceptionInPlugin e) {
-                throw e;
-            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                this.checkCompatibility(object.getTargetType());
-                throw e;
-            } catch (Throwable t) {
-                throw ExceptionInPlugin.inFunctionalSubtarget(components.get(compId), type, t);
-            }
-        }
-    }
-
-    void checkCompatibility(TargetType<?> other) {
+    void checkCompatibilityForEvent(TargetType<?> other) {
         if (!this.canAcceptFrom(other)) {
             final var msg = "Component target [] cannot post event to component in different target []";
+            throw new IllegalArgumentException(LogUtil.format(msg, id, other));
+        }
+    }
+
+    void checkCompatibilityForSubtarget(TargetType<?> other) {
+        if (!this.canAcceptFrom(other)) {
+            final var msg = "Component target [] cannot apply subtarget to component in different target []";
+            throw new IllegalArgumentException(LogUtil.format(msg, id, other));
+        }
+    }
+
+    void checkCompatibilityForComponent(TargetType<?> other) {
+        if (!this.canAcceptFrom(other)) {
+            final var msg = "Component target [] cannot get component in different target []";
             throw new IllegalArgumentException(LogUtil.format(msg, id, other));
         }
     }

@@ -2,6 +2,8 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
+import java.util.function.Consumer;
+
 public class ComponentContainer<T extends ComponentTarget> {
 
     protected final TargetType<T> targetType;
@@ -13,9 +15,10 @@ public class ComponentContainer<T extends ComponentTarget> {
         Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
         this.components = new Object[targetType.getComponentCount()];
         this.object = object;
+        this.initComponents();
     }
 
-    public void initComponents() {
+    protected void initComponents() {
         ComponentType<?, ?> blame = null;
         try {
             for (var comp : targetType.getRegisteredTypes()) {
@@ -27,7 +30,43 @@ public class ComponentContainer<T extends ComponentTarget> {
         }
     }
 
-    public Object getComponent(int internalID) {
+    @SuppressWarnings("unchecked")
+    protected <E> void post(EventType<E, T> eventType, E event) {
+        final var listeners = targetType.eventListeners[eventType.getInternalId()];
+        for (var listener : listeners) {
+            try {
+                final var comp = components[listener.component.getInternalID()];
+                if (comp != null) listener.accept(object, comp, event);
+            } catch (ExceptionInPlugin e) {
+                throw e;
+            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+                targetType.checkCompatibilityForEvent(eventType.getRootTarget());
+                throw e;
+            } catch (Throwable t) {
+                throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <F> void applySubtarget(FunctionalSubtarget<T, F> subtarget, Consumer<F> consumer) {
+        final var compIds = targetType.subtargetData[subtarget.getInternalId()];
+        for (var compId : compIds) {
+            try {
+                final var comp = components[compId];
+                if (comp != null) consumer.accept((F) comp);
+            } catch (ExceptionInPlugin e) {
+                throw e;
+            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
+                targetType.checkCompatibilityForSubtarget(subtarget.getRootTarget());
+                throw e;
+            } catch (Throwable t) {
+                throw ExceptionInPlugin.inFunctionalSubtarget(targetType.components.get(compId), subtarget.getType(), t);
+            }
+        }
+    }
+
+    protected Object getComponent(int internalID) {
         return components[internalID];
     }
 

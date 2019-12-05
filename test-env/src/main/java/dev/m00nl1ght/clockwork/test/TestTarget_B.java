@@ -8,7 +8,7 @@ public class TestTarget_B extends TestTarget_A {
     public static final TargetType<TestTarget_B> TARGET_TYPE = TestLauncher.getTargetType(TestTarget_B.class);
 
     @Override
-    protected ComponentContainer<? extends TestTarget_A> buildContainer() {
+    protected ComponentContainer<?> buildContainer() {
         return new ComponentContainer<>(TARGET_TYPE, this);
     }
 

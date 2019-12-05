@@ -12,17 +12,11 @@ public class TestTarget_C implements ComponentTarget {
 
     protected TestTarget_C() {
         this.container = new ComponentContainer<>(TARGET_TYPE, this);
-        this.container.initComponents();
     }
 
     @Override
-    public TargetType<TestTarget_C> getTargetType() {
-        return container.getTargetType();
-    }
-
-    @Override
-    public Object getComponent(int internalID) {
-        return container.getComponent(internalID);
+    public ComponentContainer<?> getComponentContainer() {
+        return container;
     }
 
 }
