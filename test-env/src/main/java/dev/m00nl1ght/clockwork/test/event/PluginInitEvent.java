@@ -1,18 +1,22 @@
 package dev.m00nl1ght.clockwork.test.event;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.debug.DebugProfiler;
+import dev.m00nl1ght.clockwork.core.EventType;
+import dev.m00nl1ght.clockwork.debug.profiler.core.CoreProfiler;
 import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.test.TestLauncher;
 
 import java.io.File;
 
 public class PluginInitEvent implements Event {
 
+    public static final EventType<PluginInitEvent, ClockworkCore> TYPE = TestLauncher.getCoreTargetType().getEventType(PluginInitEvent.class);
+
     private final ClockworkCore cwc;
     private final File dataDir;
-    private final DebugProfiler profiler;
+    private final CoreProfiler profiler;
 
-    public PluginInitEvent(ClockworkCore cwc, File dataDir, DebugProfiler profiler) {
+    public PluginInitEvent(ClockworkCore cwc, File dataDir, CoreProfiler profiler) {
         this.cwc = cwc;
         this.dataDir = dataDir;
         this.profiler = profiler;
@@ -27,7 +31,7 @@ public class PluginInitEvent implements Event {
         return comp.map(componentType -> new File(dataDir, componentType.getId()).getAbsoluteFile()).orElse(null);
     }
 
-    public DebugProfiler getProfiler() {
+    public CoreProfiler getProfiler() {
         return profiler;
     }
 

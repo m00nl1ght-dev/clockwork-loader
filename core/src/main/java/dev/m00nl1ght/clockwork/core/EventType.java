@@ -1,30 +1,61 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.debug.profiler.core.EventTypeProfilerGroup;
+
+import java.util.ArrayList;
+import java.util.List;
+
 public class EventType<E, T extends ComponentTarget> {
 
     private final Class<E> eventClass;
-    private final TargetType<?> rootTarget;
+    private final TargetType<T> targetType;
     private final int internalId;
 
-    EventType(Class<E> eventClass, TargetType<?> rootTarget, int internalId) {
+    EventType(Class<E> eventClass, TargetType<T> targetType, int internalId) {
         this.eventClass = eventClass;
-        this.rootTarget = rootTarget;
+        this.targetType = targetType;
         this.internalId = internalId;
     }
 
     @SuppressWarnings("unchecked")
-    public void post(T object, E event) {
+    public E post(T object, E event) {
         final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
             container.post(this, event);
+            return event;
         } catch (Exception e) {
-            container.getTargetType().checkCompatibilityForEvent(rootTarget);
+            container.getTargetType().checkCompatibilityForEvent(targetType);
             throw e;
         }
     }
 
-    public TargetType<?> getRootTarget() {
-        return rootTarget;
+    @SuppressWarnings("unchecked")
+    public E post(T object, E event, EventTypeProfilerGroup<T> profilerGroup) {
+        final var container = (ComponentContainer<T>) object.getComponentContainer();
+        try {
+            container.post(this, event, profilerGroup);
+            return event;
+        } catch (Exception e) {
+            container.getTargetType().checkCompatibilityForEvent(targetType);
+            throw e;
+        }
+    }
+
+    @SuppressWarnings({"unchecked", "Convert2streamapi"})
+    public List<ComponentType<?, T>> getListeners(TargetType<T> targetType) {
+        try {
+            final var listeners = targetType.eventListeners[internalId];
+            final var list = new ArrayList<ComponentType<?, T>>(listeners.length);
+            for (var listener : listeners) list.add(listener.getComponentType());
+            return list;
+        } catch (Exception e) {
+            targetType.checkCompatibilityForEvent(targetType);
+            throw e;
+        }
+    }
+
+    public TargetType<T> getTargetType() {
+        return targetType;
     }
 
     public Class<E> getEventClass() {
@@ -37,12 +68,19 @@ public class EventType<E, T extends ComponentTarget> {
 
     static class Empty<E, T extends ComponentTarget> extends EventType<E, T> {
 
-        Empty(Class<E> eventClass, TargetType<?> rootTarget) {
-            super(eventClass, rootTarget, -1);
+        Empty(Class<E> eventClass, TargetType<T> targetType) {
+            super(eventClass, targetType, -1);
         }
 
         @Override
-        public void post(T object, E event) {}
+        public E post(T object, E event) {
+            return event;
+        }
+
+        @Override
+        public E post(T object, E event, EventTypeProfilerGroup<T> profilerGroup) {
+            return event;
+        }
 
     }
 

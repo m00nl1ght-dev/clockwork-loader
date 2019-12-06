@@ -1,0 +1,27 @@
+package dev.m00nl1ght.clockwork.debug;
+
+import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
+import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
+import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
+
+public class DebugUtils {
+
+    public static String printProfilerInfo(DebugProfiler profiler) {
+        final var builder = new StringBuilder();
+        builder.append("########## Debug Profiler ##########\n");
+        for (var g : profiler.getGroups()) printProfilerInfo(builder, g, 0);
+        builder.append("####################################");
+        return builder.toString();
+    }
+
+    private static void printProfilerInfo(StringBuilder builder, ProfilerGroup group, int ind) {
+        builder.append("  ".repeat(ind)).append('[').append(group.getName()).append(']').append('\n');
+        for (var e : group.getEntries()) printProfilerInfo(builder, e, ind + 1);
+        for (var g : group.getGroups()) printProfilerInfo(builder, g, ind + 1);
+    }
+
+    private static void printProfilerInfo(StringBuilder builder, ProfilerEntry entry, int ind) {
+        builder.append("  ".repeat(ind)).append(entry.toString()).append('\n');
+    }
+
+}

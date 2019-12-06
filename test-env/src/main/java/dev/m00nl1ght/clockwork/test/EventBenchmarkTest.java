@@ -1,6 +1,10 @@
 package dev.m00nl1ght.clockwork.test;
 
-import dev.m00nl1ght.clockwork.debug.*;
+import dev.m00nl1ght.clockwork.debug.DebugUtils;
+import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
+import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
+import dev.m00nl1ght.clockwork.debug.profiler.SimpleCyclicProfilerEntry;
+import dev.m00nl1ght.clockwork.debug.profiler.generic.SimpleProfilerGroup;
 
 import java.util.Random;
 
@@ -18,22 +22,25 @@ public class EventBenchmarkTest {
         final var rand = new Random();
 
         final var profiler = new DebugProfiler();
-        final var group = new ProfilerGroup(profiler, "test");
-        final var entryA = new SimpleCyclicProfilerEntry(group, "entry", 100);
-        final var entryB = NoOpProfilerEntry.INSTANCE;
-
-        final var npGroup = new ProfilerGroup(profiler, "NP");
-        final var entryNP1 = new SimpleCyclicProfilerEntry(npGroup, "NP1", 100);
-        final var entryNP2 = new SimpleCyclicProfilerEntry(npGroup, "NP2", 100);
-        final var entryNP3 = new SimpleCyclicProfilerEntry(npGroup, "NP3", 100);
-        final var epGroup = new ProfilerGroup(profiler, "EP");
-        final var entryEP1 = new SimpleCyclicProfilerEntry(epGroup, "EP1", 100);
-        final var entryEP2 = new SimpleCyclicProfilerEntry(epGroup, "EP2", 100);
-        final var entryEP3 = new SimpleCyclicProfilerEntry(epGroup, "EP3", 100);
-        final var cpGroup = new ProfilerGroup(profiler, "CP");
-        final var entryCP1 = new SimpleCyclicProfilerEntry(cpGroup, "CP1", 100);
-        final var entryCP2 = new SimpleCyclicProfilerEntry(cpGroup, "CP2", 100);
-        final var entryCP3 = new SimpleCyclicProfilerEntry(cpGroup, "CP3", 100);
+        final var group = new SimpleProfilerGroup("test");
+        final var entryA = new SimpleCyclicProfilerEntry("entry", 100);
+        group.addEntry(entryA);
+        final var npGroup = new SimpleProfilerGroup("NP");
+        final var entryNP1 = new SimpleCyclicProfilerEntry("NP1", 100);
+        final var entryNP2 = new SimpleCyclicProfilerEntry("NP2", 100);
+        final var entryNP3 = new SimpleCyclicProfilerEntry("NP3", 100);
+        npGroup.addEntries(entryNP1, entryNP2, entryNP3);
+        final var epGroup = new SimpleProfilerGroup("EP");
+        final var entryEP1 = new SimpleCyclicProfilerEntry("EP1", 100);
+        final var entryEP2 = new SimpleCyclicProfilerEntry("EP2", 100);
+        final var entryEP3 = new SimpleCyclicProfilerEntry("EP3", 100);
+        epGroup.addEntries(entryEP1, entryEP2, entryEP3);
+        final var cpGroup = new SimpleProfilerGroup("CP");
+        final var entryCP1 = new SimpleCyclicProfilerEntry("CP1", 100);
+        final var entryCP2 = new SimpleCyclicProfilerEntry("CP2", 100);
+        final var entryCP3 = new SimpleCyclicProfilerEntry("CP3", 100);
+        cpGroup.addEntries(entryCP1, entryCP2, entryCP3);
+        profiler.addGroups(group, npGroup, epGroup, cpGroup);
 
         for (int k = 0; k < 100; k++) {
             System.out.println("Test " + k);
@@ -46,11 +53,10 @@ public class EventBenchmarkTest {
             for (int i = 0; i < dataB.length / 2; i++) dataB[rand.nextInt(dataB.length)] = -1;
 
             noProfiler(entryNP1, entryNP2, entryNP3);
-            withProfiler(entryB, entryEP1, entryEP2, entryEP3);
             withProfiler(entryA, entryCP1, entryCP2, entryCP3);
         }
 
-        System.out.println(profiler.print());
+        System.out.println(DebugUtils.printProfilerInfo(profiler));
 
     }
 

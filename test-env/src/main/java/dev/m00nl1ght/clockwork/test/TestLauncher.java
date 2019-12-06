@@ -1,7 +1,8 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.debug.DebugProfiler;
+import dev.m00nl1ght.clockwork.debug.DebugUtils;
+import dev.m00nl1ght.clockwork.debug.profiler.core.CoreProfiler;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
@@ -25,6 +26,7 @@ public class TestLauncher {
     private static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");
 
     private static ClockworkCore clockworkCore;
+    private static TargetType<ClockworkCore> coreTargetType;
 
     public static void main(String... args) {
         PLUGIN_DATA_DIR.mkdirs();
@@ -37,23 +39,26 @@ public class TestLauncher {
         final var locators = new ArrayList<PluginLocator>();
         locators.add(new BootLayerLocator());
         locators.add(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
-        final var profiler = new DebugProfiler();
         clockworkCore = ClockworkCore.load(locators);
         clockworkCore.init();
-        final var coreTarget = clockworkCore.getTargetType(ClockworkCore.class);
-        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
-        final var initEvent = coreTarget.get().getEventType(PluginInitEvent.class);
-        initEvent.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));
-        System.out.println(profiler.print());
+        coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
+        final var profiler = new CoreProfiler(clockworkCore);
+        profiler.postEvent(PluginInitEvent.TYPE, clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));
+        System.out.println(DebugUtils.printProfilerInfo(profiler));
     }
 
-    static <T extends ComponentTarget> TargetType<T> getTargetType(Class<T> targetClass) {
+    public static TargetType<ClockworkCore> getCoreTargetType() {
+        if (coreTargetType == null) throw new IllegalStateException("target class has been initialised before clockwork core is ready");
+        return coreTargetType;
+    }
+
+    public static <T extends ComponentTarget> TargetType<T> getTargetType(Class<T> targetClass) {
         if (clockworkCore == null) throw new IllegalStateException("target class has been initialised before clockwork core is ready");
         return clockworkCore.getTargetType(targetClass)
                 .orElseThrow(() -> new IllegalArgumentException("missing target for class: " + targetClass.getSimpleName()));
     }
 
-    static <C, T extends ComponentTarget> ComponentType<C, T> getComponentType(Class<C> componentClass, Class<T> targetClass) {
+    public static <C, T extends ComponentTarget> ComponentType<C, T> getComponentType(Class<C> componentClass, Class<T> targetClass) {
         if (clockworkCore == null) throw new IllegalStateException("component class has been initialised before clockwork core is ready");
         return clockworkCore.getComponentType(componentClass, targetClass)
                 .orElseThrow(() -> new IllegalArgumentException("missing component for class: " + componentClass.getSimpleName()));

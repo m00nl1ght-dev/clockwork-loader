@@ -1,22 +1,16 @@
-package dev.m00nl1ght.clockwork.debug;
+package dev.m00nl1ght.clockwork.debug.profiler;
 
-public abstract class ProfilerEntry extends DebugInfo {
+public abstract class ProfilerEntry {
 
-    private final ProfilerGroup group;
     private final String name;
     private long lastSTM = -1L;
 
-    protected ProfilerEntry(ProfilerGroup group, String name) {
-        this.group = group;
-        this.name = group == null ? name : group.entryAdded(this, name);
+    protected ProfilerEntry(String name) {
+        this.name = name;
     }
 
     public String getName() {
         return name;
-    }
-
-    public ProfilerGroup getGroup() {
-        return group;
     }
 
     public void start() {
@@ -46,8 +40,9 @@ public abstract class ProfilerEntry extends DebugInfo {
 
     public abstract int getMin();
 
-    public String print() {
-        return name + " -> " + getCount() + "/" + getSize() + " avg " + getAverage() + " min " + getMin() + " max " + getMax();
+    @Override
+    public String toString() {
+        return name + "(" + getCount() + ") => AVG ~ " + getAverage() + " MIN " + getMin() + " MAX " + getMax();
     }
 
 }

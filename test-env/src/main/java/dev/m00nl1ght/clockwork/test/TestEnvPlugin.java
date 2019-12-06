@@ -25,9 +25,9 @@ public class TestEnvPlugin {
     @EventHandler
     public void onInit(PluginInitEvent event) {
         LOGGER.info("Init event received.");
-        TestEvent_A.TYPE.post(TEST_TARGET_A, new TestEvent_A());
-        TestEvent_A.TYPE.post(TEST_TARGET_B, new TestEvent_A());
-        TestEvent_B.TYPE.post(TEST_TARGET_B, new TestEvent_B());
+        event.getProfiler().postEvent(TestEvent_A.TYPE, TEST_TARGET_A, new TestEvent_A());
+        event.getProfiler().postEvent(TestEvent_A.TYPE, TEST_TARGET_B, new TestEvent_A());
+        event.getProfiler().postEvent(TestEvent_B.TYPE, TEST_TARGET_B, new TestEvent_B());
         TestSubtarget.TYPE.apply(TEST_TARGET_A, TestSubtarget::tick);
         TestSubtarget.TYPE.apply(TEST_TARGET_B, TestSubtarget::tick);
     }

@@ -1,8 +1,6 @@
 package dev.m00nl1ght.clockwork.util;
 
-import java.util.AbstractList;
-import java.util.Iterator;
-import java.util.List;
+import java.util.*;
 
 public class CollectionUtil {
 
@@ -59,6 +57,13 @@ public class CollectionUtil {
             return index < listA.size() ? listA.get(index) : listB.get(index - listA.size());
         }
 
+    }
+
+    public static <T> List<T> joinedCopy(Collection<? extends T> collectionA, Collection<? extends T> collectionB) {
+        final var joined = new ArrayList<T>(collectionA.size() + collectionB.size());
+        joined.addAll(collectionA);
+        joined.addAll(collectionB);
+        return Collections.unmodifiableList(joined);
     }
 
 }

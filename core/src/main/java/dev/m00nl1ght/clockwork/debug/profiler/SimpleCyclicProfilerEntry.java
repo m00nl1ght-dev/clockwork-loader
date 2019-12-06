@@ -1,4 +1,6 @@
-package dev.m00nl1ght.clockwork.debug;
+package dev.m00nl1ght.clockwork.debug.profiler;
+
+import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
 
 public class SimpleCyclicProfilerEntry extends ProfilerEntry {
 
@@ -8,8 +10,8 @@ public class SimpleCyclicProfilerEntry extends ProfilerEntry {
     private int max = Integer.MIN_VALUE;
     private long total = 0;
 
-    public SimpleCyclicProfilerEntry(ProfilerGroup group, String name, int capacity) {
-        super(group, name);
+    public SimpleCyclicProfilerEntry(String name, int capacity) {
+        super(name);
         this.data = new int[capacity];
     }
 

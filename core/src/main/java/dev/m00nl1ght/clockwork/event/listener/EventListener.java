@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.event.listener;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.debug.ProfilerEntry;
+import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
 
 public interface EventListener<E, C, T extends ComponentTarget> {
 
