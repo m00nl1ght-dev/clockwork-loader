@@ -8,17 +8,18 @@ import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
 
 import java.util.List;
 
-public class EventProfilerGroup<T extends ComponentTarget> extends ProfilerGroup {
+public class EventProfilerGroup<E, T extends ComponentTarget> extends ProfilerGroup {
 
     protected final TargetType<T> targetType;
     protected EventProfilerEntry[] listenerEntries;
 
-    public EventProfilerGroup(String name, TargetType<T> targetType) {
+    protected EventProfilerGroup(String name, TargetType<T> targetType) {
         super(name);
         this.targetType = targetType;
     }
 
-    protected void init(EventType<?, T> eventType) {
+    public EventProfilerGroup(String name, TargetType<T> targetType, EventType<E, T> eventType) {
+        this(name, targetType);
         final var listeners = eventType.getListeners(targetType);
         this.listenerEntries = new EventProfilerEntry[listeners.size()];
         for (int i = 0; i < listeners.size(); i++) {
@@ -32,7 +33,7 @@ public class EventProfilerGroup<T extends ComponentTarget> extends ProfilerGroup
     }
 
     @SuppressWarnings("unchecked")
-    public EventProfilerEntry<T> get(int idx) {
+    public EventProfilerEntry<E, T> get(int idx) {
         return listenerEntries[idx];
     }
 

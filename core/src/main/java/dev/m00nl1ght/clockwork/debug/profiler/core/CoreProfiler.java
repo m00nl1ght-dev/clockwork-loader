@@ -1,8 +1,6 @@
 package dev.m00nl1ght.clockwork.debug.profiler.core;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.EventType;
+import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
 
@@ -13,39 +11,41 @@ public class CoreProfiler extends DebugProfiler {
     protected final ClockworkCore core;
     protected TargetProfilerGroup[] ttGroups;
 
-    public CoreProfiler(ClockworkCore core) {
+    protected CoreProfiler(ClockworkCore core) {
         this.core = core;
-        this.addGroup(new CoreGroup());
-        this.init();
+        if (core.getState() == ClockworkCore.State.LOCATED) throw new IllegalStateException();
     }
 
-    @SuppressWarnings("unchecked")
-    protected void init() {
-        if (core.getState() == ClockworkCore.State.LOCATED) throw new IllegalStateException();
+    public CoreProfiler(ClockworkCore core, String coreGroupName) {
+        this(core);
+        this.addGroup(new CoreGroup(coreGroupName));
         final var types = core.getRegisteredTargetTypes();
         this.ttGroups = new TargetProfilerGroup[types.size()];
-        for (var type : types) {
-            final var group = new TargetProfilerGroup<>(type);
-            ttGroups[type.getInternalIdx()] = group;
-            if (type.getParent() != null) {
-                group.init(ttGroups[type.getParent().getInternalIdx()]);
-            } else {
-                group.init(null);
-            }
-        }
+        for (var type : types) ttGroups[type.getInternalIdx()] = buildGroup(type);
+    }
 
+    protected <T extends ComponentTarget> TargetProfilerGroup<T> buildGroup(TargetType<T> targetType) {
+        final var parent = targetType.getParent() == null ? null : getGroupFor(targetType.getParent());
+        return new TargetProfilerGroup<>(targetType, parent);
+    }
+
+    public <E, T extends ComponentTarget> EventProfilerGroup<E, T> getEntryFor(EventType<E, T> eventType, TargetType<T> targetType) {
+        return getGroupFor(targetType).getGroupFor(eventType);
+    }
+
+    public <F, T extends ComponentTarget> SubtargetProfilerGroup<T, F> getEntryFor(FunctionalSubtarget<T, F> subtarget, TargetType<T> targetType) {
+        return getGroupFor(targetType).getGroupFor(subtarget);
     }
 
     @SuppressWarnings("unchecked")
-    public <E, T extends ComponentTarget> E postEvent(EventType<E, T> eventType, T object, E event) {
-        final var ttpg = ttGroups[object.getComponentContainer().getTargetType().getInternalIdx()];
-        return eventType.post(object, event, (EventProfilerGroup<T>) ttpg.eventEntries[eventType.getInternalId()]);
+    public <T extends ComponentTarget> TargetProfilerGroup<T> getGroupFor(TargetType<T> targetType) {
+        return ttGroups[targetType.getInternalIdx()];
     }
 
     private class CoreGroup extends ProfilerGroup {
 
-        public CoreGroup() {
-            super("core");
+        public CoreGroup(String name) {
+            super(name);
         }
 
         @Override

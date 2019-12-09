@@ -4,17 +4,13 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.EventType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 
-public class LinkedEventProfilerGroup<T extends ComponentTarget> extends EventProfilerGroup<T> {
+public class LinkedEventProfilerGroup<E, T extends ComponentTarget> extends EventProfilerGroup<E, T> {
 
-    private final EventProfilerGroup<? super T> parent;
+    private final EventProfilerGroup<E, ? super T> parent;
 
-    public LinkedEventProfilerGroup(String name, TargetType<T> targetType, EventProfilerGroup<? super T> parent) {
+    public LinkedEventProfilerGroup(String name, TargetType<T> targetType, EventType<E, T> eventType, EventProfilerGroup<E, ? super T> parent) {
         super(name, targetType);
         this.parent = parent;
-    }
-
-    @Override
-    protected void init(EventType<?, T> eventType) {
         final var listeners = eventType.getListeners(targetType);
         this.listenerEntries = new EventProfilerEntry[listeners.size()];
         final var splitIdx = parent.listenerEntries.length;

@@ -1,7 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.debug.profiler.core.EventProfilerGroup;
-
 import java.util.ArrayList;
 import java.util.List;
 
@@ -19,37 +17,25 @@ public class EventType<E, T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     public E post(T object, E event) {
-        final var container = (ComponentContainer<T>) object.getComponentContainer();
+        final var container = (ComponentContainer<? extends T>) object.getComponentContainer();
         try {
             container.post(this, event);
             return event;
         } catch (Exception e) {
-            container.getTargetType().checkCompatibilityForEvent(targetType);
-            throw e;
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    public E post(T object, E event, EventProfilerGroup<T> profilerGroup) {
-        final var container = (ComponentContainer<T>) object.getComponentContainer();
-        try {
-            container.post(this, event, profilerGroup);
-            return event;
-        } catch (Exception e) {
-            container.getTargetType().checkCompatibilityForEvent(targetType);
+            container.getTargetType().checkCompatibility(this);
             throw e;
         }
     }
 
     @SuppressWarnings({"unchecked", "Convert2streamapi"})
-    public List<ComponentType<?, T>> getListeners(TargetType<T> targetType) {
+    public List<ComponentType<?, T>> getListeners(TargetType<T> target) {
         try {
-            final var listeners = targetType.eventListeners[internalId];
+            final var listeners = target.eventListeners[internalId];
             final var list = new ArrayList<ComponentType<?, T>>(listeners.length);
             for (var listener : listeners) list.add(listener.getComponentType());
             return list;
         } catch (Exception e) {
-            targetType.checkCompatibilityForEvent(targetType);
+            target.checkCompatibility(this);
             throw e;
         }
     }
@@ -74,11 +60,6 @@ public class EventType<E, T extends ComponentTarget> {
 
         @Override
         public E post(T object, E event) {
-            return event;
-        }
-
-        @Override
-        public E post(T object, E event, EventProfilerGroup<T> profilerGroup) {
             return event;
         }
 

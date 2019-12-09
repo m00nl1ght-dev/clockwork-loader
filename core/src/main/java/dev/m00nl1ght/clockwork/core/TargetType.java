@@ -76,24 +76,36 @@ public abstract class TargetType<T extends ComponentTarget> {
         return new FunctionalSubtarget<>(type, this, id);
     }
 
-    void checkCompatibilityForEvent(TargetType<?> other) {
-        if (!this.canAcceptFrom(other)) {
+    public Collection<FunctionalSubtarget<T, ?>> getSubtargets() {
+        final var set = new ArrayList<FunctionalSubtarget<T, ?>>();
+        TargetType<?> type = this;
+        while (type != null) {
+            for (var entry : type.subtargetIds.object2IntEntrySet()) {
+                set.add(new FunctionalSubtarget<>(entry.getKey(), this, entry.getIntValue()));
+            }
+            type = type.getParent();
+        }
+        return set;
+    }
+
+    public void checkCompatibility(EventType<?, ?> eventType) {
+        if (!this.canAcceptFrom(eventType.getTargetType())) {
             final var msg = "Component target [] cannot post event to component in different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, other));
+            throw new IllegalArgumentException(LogUtil.format(msg, id, eventType.getTargetType()));
         }
     }
 
-    void checkCompatibilityForSubtarget(TargetType<?> other) {
-        if (!this.canAcceptFrom(other)) {
+    public void checkCompatibility(FunctionalSubtarget<?, ?> subtarget) {
+        if (!this.canAcceptFrom(subtarget.getTargetType())) {
             final var msg = "Component target [] cannot apply subtarget to component in different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, other));
+            throw new IllegalArgumentException(LogUtil.format(msg, id, subtarget.getTargetType()));
         }
     }
 
-    void checkCompatibilityForComponent(TargetType<?> other) {
-        if (!this.canAcceptFrom(other)) {
+    public void checkCompatibility(ComponentType<?, ?> componentType) {
+        if (!this.canAcceptFrom(componentType.getTargetType())) {
             final var msg = "Component target [] cannot get component in different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, other));
+            throw new IllegalArgumentException(LogUtil.format(msg, id, componentType.getTargetType()));
         }
     }
 

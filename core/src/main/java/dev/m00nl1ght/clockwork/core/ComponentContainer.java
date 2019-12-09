@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.debug.profiler.core.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.function.Consumer;
@@ -30,7 +29,7 @@ public class ComponentContainer<T extends ComponentTarget> {
     }
 
     @SuppressWarnings("unchecked")
-    protected <E> void post(EventType<E, T> eventType, E event) {
+    protected <E> void post(EventType<E, ? super T> eventType, E event) {
         final var listeners = targetType.eventListeners[eventType.getInternalId()];
         for (int i = 0; i < listeners.length; i++) {
             final var listener = listeners[i];
@@ -39,36 +38,15 @@ public class ComponentContainer<T extends ComponentTarget> {
                 if (comp != null) listener.accept(object, comp, event);
             } catch (ExceptionInPlugin e) {
                 throw e;
-            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                targetType.checkCompatibilityForEvent(eventType.getTargetType());
-                throw e;
             } catch (Throwable t) {
+                targetType.checkCompatibility(eventType);
                 throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
             }
         }
     }
 
     @SuppressWarnings("unchecked")
-    protected <E> void post(EventType<E, T> eventType, E event, EventProfilerGroup<T> profilerGroup) {
-        final var listeners = targetType.eventListeners[eventType.getInternalId()];
-        for (int i = 0; i < listeners.length; i++) {
-            final var listener = listeners[i];
-            try {
-                final var comp = components[listener.getComponentType().getInternalID()];
-                if (comp != null) listener.accept(object, comp, event, profilerGroup.get(i));
-            } catch (ExceptionInPlugin e) {
-                throw e;
-            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                targetType.checkCompatibilityForEvent(eventType.getTargetType());
-                throw e;
-            } catch (Throwable t) {
-                throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
-            }
-        }
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <F> void applySubtarget(FunctionalSubtarget<T, F> subtarget, Consumer<F> consumer) {
+    protected <F> void applySubtarget(FunctionalSubtarget<? super T, F> subtarget, Consumer<F> consumer) {
         final var compIds = targetType.subtargetData[subtarget.getInternalId()];
         for (int i = 0; i < compIds.length; i++) {
             try {
@@ -76,10 +54,8 @@ public class ComponentContainer<T extends ComponentTarget> {
                 if (comp != null) consumer.accept((F) comp);
             } catch (ExceptionInPlugin e) {
                 throw e;
-            } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-                targetType.checkCompatibilityForSubtarget(subtarget.getTargetType());
-                throw e;
             } catch (Throwable t) {
+                targetType.checkCompatibility(subtarget);
                 throw ExceptionInPlugin.inFunctionalSubtarget(targetType.components.get(compIds[i]), subtarget.getType(), t);
             }
         }

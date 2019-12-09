@@ -4,11 +4,11 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.EventType;
 
-public class LinkedEventProfilerEntry<T extends ComponentTarget> extends EventProfilerEntry<T> {
+public class LinkedEventProfilerEntry<E, T extends ComponentTarget> extends EventProfilerEntry<E, T> {
 
-    private final EventProfilerEntry<? super T> parent;
+    private final EventProfilerEntry<E, ? super T> parent;
 
-    public LinkedEventProfilerEntry(EventType<?, T> eventType, ComponentType<?, T> componentType, EventProfilerEntry<? super T> parent) {
+    public LinkedEventProfilerEntry(EventType<E, T> eventType, ComponentType<?, T> componentType, EventProfilerEntry<E, ? super T> parent) {
         super(eventType, componentType);
         this.parent = parent;
     }

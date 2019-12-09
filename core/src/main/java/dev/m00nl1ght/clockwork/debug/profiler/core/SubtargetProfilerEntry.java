@@ -2,16 +2,16 @@ package dev.m00nl1ght.clockwork.debug.profiler.core;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.EventType;
+import dev.m00nl1ght.clockwork.core.FunctionalSubtarget;
 import dev.m00nl1ght.clockwork.debug.profiler.SimpleCyclicProfilerEntry;
 
-public class EventProfilerEntry<E, T extends ComponentTarget> extends SimpleCyclicProfilerEntry {
+public class SubtargetProfilerEntry<T extends ComponentTarget, F> extends SimpleCyclicProfilerEntry {
 
     public static final int CAPACITY = 100;
 
     protected final ComponentType<?, T> componentType;
 
-    public EventProfilerEntry(EventType<E, T> eventType, ComponentType<?, T> componentType) {
+    public SubtargetProfilerEntry(FunctionalSubtarget<T, F> subtarget, ComponentType<?, T> componentType) {
         super(componentType.getId(), CAPACITY);
         this.componentType = componentType;
     }

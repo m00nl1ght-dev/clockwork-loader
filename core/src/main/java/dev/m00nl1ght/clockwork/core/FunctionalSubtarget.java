@@ -1,5 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
+import java.util.ArrayList;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class FunctionalSubtarget<T extends ComponentTarget, F> {
@@ -16,11 +18,24 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     @SuppressWarnings("unchecked")
     public void apply(T object, Consumer<F> consumer) {
-        final var container = (ComponentContainer<T>) object.getComponentContainer();
+        final var container = (ComponentContainer<? extends T>) object.getComponentContainer();
         try {
             container.applySubtarget(this, consumer);
         } catch (Exception e) {
-            container.getTargetType().checkCompatibilityForSubtarget(targetType);
+            container.getTargetType().checkCompatibility(this);
+            throw e;
+        }
+    }
+
+    @SuppressWarnings("Convert2streamapi")
+    public List<ComponentType<?, T>> getComponents(TargetType<T> targetType) {
+        try {
+            final var compIds = targetType.subtargetData[internalId];
+            final var list = new ArrayList<ComponentType<?, T>>(compIds.length);
+            for (var comp : compIds) list.add(targetType.components.get(comp));
+            return list;
+        } catch (Exception e) {
+            targetType.checkCompatibility(this);
             throw e;
         }
     }
