@@ -11,7 +11,7 @@ import java.util.List;
 public class CoreProfiler extends DebugProfiler {
 
     protected final ClockworkCore core;
-    protected TargetTypeProfilerGroup[] ttGroups;
+    protected TargetProfilerGroup[] ttGroups;
 
     public CoreProfiler(ClockworkCore core) {
         this.core = core;
@@ -23,9 +23,9 @@ public class CoreProfiler extends DebugProfiler {
     protected void init() {
         if (core.getState() == ClockworkCore.State.LOCATED) throw new IllegalStateException();
         final var types = core.getRegisteredTargetTypes();
-        this.ttGroups = new TargetTypeProfilerGroup[types.size()];
+        this.ttGroups = new TargetProfilerGroup[types.size()];
         for (var type : types) {
-            final var group = new TargetTypeProfilerGroup<>(type);
+            final var group = new TargetProfilerGroup<>(type);
             ttGroups[type.getInternalIdx()] = group;
             if (type.getParent() != null) {
                 group.init(ttGroups[type.getParent().getInternalIdx()]);
@@ -39,7 +39,7 @@ public class CoreProfiler extends DebugProfiler {
     @SuppressWarnings("unchecked")
     public <E, T extends ComponentTarget> E postEvent(EventType<E, T> eventType, T object, E event) {
         final var ttpg = ttGroups[object.getComponentContainer().getTargetType().getInternalIdx()];
-        return eventType.post(object, event, (EventTypeProfilerGroup<T>) ttpg.eventEntries[eventType.getInternalId()]);
+        return eventType.post(object, event, (EventProfilerGroup<T>) ttpg.eventEntries[eventType.getInternalId()]);
     }
 
     private class CoreGroup extends ProfilerGroup {

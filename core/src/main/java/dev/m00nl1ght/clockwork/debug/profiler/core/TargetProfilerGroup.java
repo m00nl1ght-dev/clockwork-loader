@@ -7,20 +7,20 @@ import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
 
 import java.util.List;
 
-public class TargetTypeProfilerGroup<T extends ComponentTarget> extends ProfilerGroup {
+public class TargetProfilerGroup<T extends ComponentTarget> extends ProfilerGroup {
 
     protected final TargetType<T> targetType;
-    protected EventTypeProfilerGroup[] eventEntries;
+    protected EventProfilerGroup[] eventEntries;
 
-    public TargetTypeProfilerGroup(TargetType<T> targetType) {
+    public TargetProfilerGroup(TargetType<T> targetType) {
         super(targetType.getId());
         this.targetType = targetType;
     }
 
-    protected void init(TargetTypeProfilerGroup<? super T> parent) {
+    protected void init(TargetProfilerGroup<? super T> parent) {
         if (!targetType.isInitialised()) throw new IllegalStateException();
         final var events = targetType.getEventTypes();
-        this.eventEntries = new EventTypeProfilerGroup[events.size()];
+        this.eventEntries = new EventProfilerGroup[events.size()];
         for (var eventType : events) {
             final var group = buildGroup(eventType, parent);
             eventEntries[eventType.getInternalId()] = group;
@@ -28,12 +28,12 @@ public class TargetTypeProfilerGroup<T extends ComponentTarget> extends Profiler
         }
     }
 
-    private EventTypeProfilerGroup<T> buildGroup(EventType<?, T> eventType, TargetTypeProfilerGroup<? super T> parent) {
+    private EventProfilerGroup<T> buildGroup(EventType<?, T> eventType, TargetProfilerGroup<? super T> parent) {
         final var name = eventType.getEventClass().getSimpleName();
         if (parent != null && eventType.getInternalId() < parent.eventEntries.length) {
-            return new EventTypeProfilerGroup.WithParent<>(name, targetType, parent.get(eventType.getInternalId()));
+            return new LinkedEventProfilerGroup<>(name, targetType, parent.get(eventType.getInternalId()));
         } else {
-            return new EventTypeProfilerGroup<>(name, targetType);
+            return new EventProfilerGroup<>(name, targetType);
         }
     }
 
@@ -43,7 +43,7 @@ public class TargetTypeProfilerGroup<T extends ComponentTarget> extends Profiler
     }
 
     @SuppressWarnings("unchecked")
-    public EventTypeProfilerGroup<T> get(int idx) {
+    public EventProfilerGroup<T> get(int idx) {
         return eventEntries[idx];
     }
 

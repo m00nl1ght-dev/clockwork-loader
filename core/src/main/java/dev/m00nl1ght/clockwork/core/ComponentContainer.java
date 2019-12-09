@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.debug.profiler.core.EventTypeProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.core.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.function.Consumer;
@@ -49,7 +49,7 @@ public class ComponentContainer<T extends ComponentTarget> {
     }
 
     @SuppressWarnings("unchecked")
-    protected <E> void post(EventType<E, T> eventType, E event, EventTypeProfilerGroup<T> profilerGroup) {
+    protected <E> void post(EventType<E, T> eventType, E event, EventProfilerGroup<T> profilerGroup) {
         final var listeners = targetType.eventListeners[eventType.getInternalId()];
         for (int i = 0; i < listeners.length; i++) {
             final var listener = listeners[i];

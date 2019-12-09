@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.debug.profiler.core.EventTypeProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.core.EventProfilerGroup;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +30,7 @@ public class EventType<E, T extends ComponentTarget> {
     }
 
     @SuppressWarnings("unchecked")
-    public E post(T object, E event, EventTypeProfilerGroup<T> profilerGroup) {
+    public E post(T object, E event, EventProfilerGroup<T> profilerGroup) {
         final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
             container.post(this, event, profilerGroup);
@@ -78,7 +78,7 @@ public class EventType<E, T extends ComponentTarget> {
         }
 
         @Override
-        public E post(T object, E event, EventTypeProfilerGroup<T> profilerGroup) {
+        public E post(T object, E event, EventProfilerGroup<T> profilerGroup) {
             return event;
         }
 
