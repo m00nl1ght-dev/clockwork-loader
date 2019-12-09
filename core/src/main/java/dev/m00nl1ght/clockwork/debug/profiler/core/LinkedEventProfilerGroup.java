@@ -8,7 +8,7 @@ public class LinkedEventProfilerGroup<E, T extends ComponentTarget> extends Even
 
     private final EventProfilerGroup<E, ? super T> parent;
 
-    public LinkedEventProfilerGroup(String name, TargetType<T> targetType, EventType<E, T> eventType, EventProfilerGroup<E, ? super T> parent) {
+    public LinkedEventProfilerGroup(String name, TargetType<T> targetType, EventType<E, ? super T> eventType, EventProfilerGroup<E, ? super T> parent) {
         super(name, targetType);
         this.parent = parent;
         final var listeners = eventType.getListeners(targetType);
@@ -16,11 +16,11 @@ public class LinkedEventProfilerGroup<E, T extends ComponentTarget> extends Even
         final var splitIdx = parent.listenerEntries.length;
 
         for (int i = 0; i < splitIdx; i++) {
-            listenerEntries[i] = new LinkedEventProfilerEntry<>(eventType, listeners.get(i), parent.get(i));
+            listenerEntries[i] = new LinkedEventProfilerEntry<>(eventType, targetType, listeners.get(i), parent.get(i));
         }
 
         for (int i = splitIdx; i < listenerEntries.length; i++) {
-            listenerEntries[i] = new EventProfilerEntry<>(eventType, listeners.get(i));
+            listenerEntries[i] = new EventProfilerEntry<>(eventType, targetType, listeners.get(i));
         }
     }
 

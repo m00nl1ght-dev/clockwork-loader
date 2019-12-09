@@ -1,5 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.debug.profiler.core.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.core.SubtargetProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.function.Consumer;
@@ -46,12 +48,50 @@ public class ComponentContainer<T extends ComponentTarget> {
     }
 
     @SuppressWarnings("unchecked")
+    protected <E> void post(EventType<E, ? super T> eventType, E event, EventProfilerGroup<E, T> profilerGroup) {
+        final var listeners = targetType.eventListeners[eventType.getInternalId()];
+        for (int i = 0; i < listeners.length; i++) {
+            final var listener = listeners[i];
+            try {
+                final var comp = components[listener.getComponentType().getInternalID()];
+                if (comp != null) listener.accept(object, comp, event, profilerGroup.get(i));
+            } catch (ExceptionInPlugin e) {
+                throw e;
+            } catch (Throwable t) {
+                targetType.checkCompatibility(eventType);
+                throw ExceptionInPlugin.inEventHandler(listener.getComponentType(), event, object, t);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
     protected <F> void applySubtarget(FunctionalSubtarget<? super T, F> subtarget, Consumer<F> consumer) {
         final var compIds = targetType.subtargetData[subtarget.getInternalId()];
         for (int i = 0; i < compIds.length; i++) {
             try {
                 final var comp = components[compIds[i]];
                 if (comp != null) consumer.accept((F) comp);
+            } catch (ExceptionInPlugin e) {
+                throw e;
+            } catch (Throwable t) {
+                targetType.checkCompatibility(subtarget);
+                throw ExceptionInPlugin.inFunctionalSubtarget(targetType.components.get(compIds[i]), subtarget.getType(), t);
+            }
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    protected <F> void applySubtarget(FunctionalSubtarget<? super T, F> subtarget, Consumer<F> consumer, SubtargetProfilerGroup<T, F> profilerGroup) {
+        final var compIds = targetType.subtargetData[subtarget.getInternalId()];
+        for (int i = 0; i < compIds.length; i++) {
+            try {
+                final var comp = components[compIds[i]];
+                if (comp != null) {
+                    final var profilerEntry = profilerGroup.get(i);
+                    final long t = System.nanoTime();
+                    consumer.accept((F) comp);
+                    profilerEntry.put(System.nanoTime() - t);
+                }
             } catch (ExceptionInPlugin e) {
                 throw e;
             } catch (Throwable t) {

@@ -18,12 +18,12 @@ public class EventProfilerGroup<E, T extends ComponentTarget> extends ProfilerGr
         this.targetType = targetType;
     }
 
-    public EventProfilerGroup(String name, TargetType<T> targetType, EventType<E, T> eventType) {
+    public EventProfilerGroup(String name, TargetType<T> targetType, EventType<E, ? super T> eventType) {
         this(name, targetType);
         final var listeners = eventType.getListeners(targetType);
         this.listenerEntries = new EventProfilerEntry[listeners.size()];
         for (int i = 0; i < listeners.size(); i++) {
-            listenerEntries[i] = new EventProfilerEntry<>(eventType, listeners.get(i));
+            listenerEntries[i] = new EventProfilerEntry<>(eventType, targetType, listeners.get(i));
         }
     }
 

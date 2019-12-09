@@ -60,12 +60,12 @@ public class TargetProfilerGroup<T extends ComponentTarget> extends ProfilerGrou
     }
 
     @SuppressWarnings("unchecked")
-    public <E> EventProfilerGroup<E, T> getGroupFor(EventType<E, ? extends T> eventType) {
+    public <E> EventProfilerGroup<E, T> getGroupFor(EventType<E, ? super T> eventType) {
         return eventEntries[eventType.getInternalId()];
     }
 
     @SuppressWarnings("unchecked")
-    public <F> SubtargetProfilerGroup<T, F> getGroupFor(FunctionalSubtarget<? extends T, F> subtarget) {
+    public <F> SubtargetProfilerGroup<T, F> getGroupFor(FunctionalSubtarget<? super T, F> subtarget) {
         return subtargetEntries[subtarget.getInternalId()];
     }
 

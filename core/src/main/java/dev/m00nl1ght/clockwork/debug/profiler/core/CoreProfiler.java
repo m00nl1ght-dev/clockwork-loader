@@ -29,11 +29,11 @@ public class CoreProfiler extends DebugProfiler {
         return new TargetProfilerGroup<>(targetType, parent);
     }
 
-    public <E, T extends ComponentTarget> EventProfilerGroup<E, T> getEntryFor(EventType<E, T> eventType, TargetType<T> targetType) {
+    public <E, T extends ComponentTarget> EventProfilerGroup<E, T> getEntryFor(EventType<E, ? super T> eventType, TargetType<T> targetType) {
         return getGroupFor(targetType).getGroupFor(eventType);
     }
 
-    public <F, T extends ComponentTarget> SubtargetProfilerGroup<T, F> getEntryFor(FunctionalSubtarget<T, F> subtarget, TargetType<T> targetType) {
+    public <F, T extends ComponentTarget> SubtargetProfilerGroup<T, F> getEntryFor(FunctionalSubtarget<? super T, F> subtarget, TargetType<T> targetType) {
         return getGroupFor(targetType).getGroupFor(subtarget);
     }
 

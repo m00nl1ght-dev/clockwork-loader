@@ -21,9 +21,9 @@ public class SimpleEventListener<E, C, T extends ComponentTarget> implements Eve
     }
 
     public void accept(T object, C component, E event, ProfilerEntry profilerEntry) {
-        profilerEntry.start();
+        final long t = System.nanoTime();
         consumer.accept(component, event);
-        profilerEntry.end();
+        profilerEntry.put(System.nanoTime() - t);
     }
 
     public ComponentType<C, T> getComponentType() {

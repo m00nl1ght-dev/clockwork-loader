@@ -28,10 +28,10 @@ public class EventType<E, T extends ComponentTarget> {
     }
 
     @SuppressWarnings({"unchecked", "Convert2streamapi"})
-    public List<ComponentType<?, T>> getListeners(TargetType<T> target) {
+    public List<ComponentType<?, ? super T>> getListeners(TargetType<? extends T> target) {
         try {
             final var listeners = target.eventListeners[internalId];
-            final var list = new ArrayList<ComponentType<?, T>>(listeners.length);
+            final var list = new ArrayList<ComponentType<?, ? super T>>(listeners.length);
             for (var listener : listeners) list.add(listener.getComponentType());
             return list;
         } catch (Exception e) {
