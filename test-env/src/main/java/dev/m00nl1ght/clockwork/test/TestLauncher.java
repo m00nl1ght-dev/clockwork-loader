@@ -42,8 +42,8 @@ public class TestLauncher {
         clockworkCore = ClockworkCore.load(locators);
         clockworkCore.init();
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
-        final var profiler = new CoreProfiler(clockworkCore);
-        profiler.postEvent(PluginInitEvent.TYPE, clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));
+        final var profiler = new CoreProfiler(clockworkCore, "core");
+        PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));
         System.out.println(DebugUtils.printProfilerInfo(profiler));
     }
 

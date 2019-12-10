@@ -3,6 +3,8 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.ProfilingComponentContainer;
+import dev.m00nl1ght.clockwork.debug.profiler.core.CoreProfiler;
 
 public class TestTarget_C implements ComponentTarget {
 
@@ -10,8 +12,8 @@ public class TestTarget_C implements ComponentTarget {
 
     private final ComponentContainer<TestTarget_C> container;
 
-    protected TestTarget_C() {
-        this.container = new ComponentContainer<>(TARGET_TYPE, this);
+    protected TestTarget_C(CoreProfiler profiler) {
+        this.container = new ProfilingComponentContainer<>(TARGET_TYPE, this, profiler);
     }
 
     @Override

@@ -12,22 +12,23 @@ public class TestEnvPlugin {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final TestTarget_A TEST_TARGET_A;
-    private final TestTarget_B TEST_TARGET_B;
-    private final TestTarget_C TEST_TARGET_C;
+    private TestTarget_A TEST_TARGET_A;
+    private TestTarget_B TEST_TARGET_B;
+    private TestTarget_C TEST_TARGET_C;
 
     public TestEnvPlugin(ClockworkCore core) {
-        TEST_TARGET_A = new TestTarget_A();
-        TEST_TARGET_B = new TestTarget_B();
-        TEST_TARGET_C = new TestTarget_C();
+
     }
 
     @EventHandler
     public void onInit(PluginInitEvent event) {
         LOGGER.info("Init event received.");
-        event.getProfiler().postEvent(TestEvent_A.TYPE, TEST_TARGET_A, new TestEvent_A());
-        event.getProfiler().postEvent(TestEvent_A.TYPE, TEST_TARGET_B, new TestEvent_A());
-        event.getProfiler().postEvent(TestEvent_B.TYPE, TEST_TARGET_B, new TestEvent_B());
+        TEST_TARGET_A = new TestTarget_A(event.getProfiler());
+        TEST_TARGET_B = new TestTarget_B(event.getProfiler());
+        TEST_TARGET_C = new TestTarget_C(event.getProfiler());
+        TestEvent_A.TYPE.post(TEST_TARGET_A, new TestEvent_A());
+        TestEvent_A.TYPE.post(TEST_TARGET_B, new TestEvent_A());
+        TestEvent_B.TYPE.post(TEST_TARGET_B, new TestEvent_B());
         TestSubtarget.TYPE.apply(TEST_TARGET_A, TestSubtarget::tick);
         TestSubtarget.TYPE.apply(TEST_TARGET_B, TestSubtarget::tick);
     }

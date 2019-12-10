@@ -2,10 +2,13 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.debug.profiler.core.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.core.SubtargetProfilerGroup;
+import dev.m00nl1ght.clockwork.event.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
+import java.util.List;
 import java.util.function.Consumer;
 
+@SuppressWarnings("unchecked")
 public class ComponentContainer<T extends ComponentTarget> {
 
     protected final TargetType<T> targetType;
@@ -30,7 +33,6 @@ public class ComponentContainer<T extends ComponentTarget> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected <E> void post(EventType<E, ? super T> eventType, E event) {
         final var listeners = targetType.eventListeners[eventType.getInternalId()];
         for (int i = 0; i < listeners.length; i++) {
@@ -47,7 +49,6 @@ public class ComponentContainer<T extends ComponentTarget> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected <E> void post(EventType<E, ? super T> eventType, E event, EventProfilerGroup<E, T> profilerGroup) {
         final var listeners = targetType.eventListeners[eventType.getInternalId()];
         for (int i = 0; i < listeners.length; i++) {
@@ -64,7 +65,10 @@ public class ComponentContainer<T extends ComponentTarget> {
         }
     }
 
-    @SuppressWarnings("unchecked")
+    protected <E> List<EventListener<E, ?, T>> getListeners(EventType<E, ? super T> eventType) {
+        return List.of(targetType.eventListeners[eventType.getInternalId()]);
+    }
+
     protected <F> void applySubtarget(FunctionalSubtarget<? super T, F> subtarget, Consumer<F> consumer) {
         final var compIds = targetType.subtargetData[subtarget.getInternalId()];
         for (int i = 0; i < compIds.length; i++) {
@@ -80,7 +84,6 @@ public class ComponentContainer<T extends ComponentTarget> {
         }
     }
 
-    @SuppressWarnings("unchecked")
     protected <F> void applySubtarget(FunctionalSubtarget<? super T, F> subtarget, Consumer<F> consumer, SubtargetProfilerGroup<T, F> profilerGroup) {
         final var compIds = targetType.subtargetData[subtarget.getInternalId()];
         for (int i = 0; i < compIds.length; i++) {

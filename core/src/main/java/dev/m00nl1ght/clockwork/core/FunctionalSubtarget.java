@@ -32,7 +32,7 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
         try {
             final var compIds = targetType.subtargetData[internalId];
             final var list = new ArrayList<ComponentType<?, T>>(compIds.length);
-            for (var comp : compIds) list.add(targetType.components.get(comp));
+            for (var comp : compIds) list.add(targetType.components.get(comp)); // TODO use subclass-aware get instead
             return list;
         } catch (Exception e) {
             targetType.checkCompatibility(this);

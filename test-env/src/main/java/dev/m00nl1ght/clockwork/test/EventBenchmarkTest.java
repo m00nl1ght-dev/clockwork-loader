@@ -62,68 +62,68 @@ public class EventBenchmarkTest {
 
     private static void noProfiler(ProfilerEntry p1, ProfilerEntry p2, ProfilerEntry p3) {
         val = 0;
-        p1.start();
+        var t = System.nanoTime();
         for (int r = 0; r < iterations; r++) {
             for (int i = 0; i < dataA.length; i++) {
                 dataA[i].run();
             }
         }
-        p1.end();
+        p1.put(System.nanoTime() - t);
 
         val = 0;
-        p2.start();
+        t = System.nanoTime();
         for (int r = 0; r < iterations; r++) {
             for (int i = 0; i < dataB.length; i++) {
                 final var d = dataB[i];
                 if (d >= 0) val += d;
             }
         }
-        p2.end();
+        p2.put(System.nanoTime() - t);
 
         val = 0;
-        p3.start();
+        t = System.nanoTime();
         for (int r = 0; r < iterations; r++) {
             for (int i = 0; i < dataB.length; i++) {
                 val += dataB[i];
             }
         }
-        p3.end();
+        p3.put(System.nanoTime() - t);
     }
 
     private static void withProfiler(ProfilerEntry profiler, ProfilerEntry p1, ProfilerEntry p2, ProfilerEntry p3) {
         val = 0;
-        p1.start();
+        var t = System.nanoTime();
         for (int r = 0; r < iterations; r++) {
             for (int i = 0; i < dataA.length; i++) {
-                profiler.start();
+                var x = System.nanoTime();
                 dataA[i].run();
-                profiler.end();
+                profiler.put(System.nanoTime() - x);
             }
         }
-        p1.end();
+        p1.put(System.nanoTime() - t);
 
         val = 0;
-        p2.start();
+        t = System.nanoTime();
         for (int r = 0; r < iterations; r++) {
             for (int i = 0; i < dataB.length; i++) {
-                profiler.start();
+                var x = System.nanoTime();
                 final var d = dataB[i];
                 if (d >= 0) val += d;
-                profiler.end();
+                profiler.put(System.nanoTime() - x);
             }
         }
-        p2.end();
+        p2.put(System.nanoTime() - t);
 
         val = 0;
-        p3.start();
+        t = System.nanoTime();
         for (int r = 0; r < iterations; r++) {
             for (int i = 0; i < dataB.length; i++) {
-                profiler.start();
+                var x = System.nanoTime();
                 val += dataB[i];
-                profiler.end();
+                profiler.put(System.nanoTime() - x);
             }
         }
-        p3.end();
+        p3.put(System.nanoTime() - t);
     }
 
     static class DoStuff implements Runnable {

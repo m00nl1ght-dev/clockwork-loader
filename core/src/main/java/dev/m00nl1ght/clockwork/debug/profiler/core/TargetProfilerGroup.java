@@ -26,29 +26,31 @@ public class TargetProfilerGroup<T extends ComponentTarget> extends ProfilerGrou
         final var events = targetType.getEventTypes();
         this.eventEntries = new EventProfilerGroup[events.size()];
         for (var eventType : events) {
-            eventEntries[eventType.getInternalId()] = buildGroup(eventType, parent);
+            eventEntries[eventType.getInternalId()] = buildGroup(targetType, eventType, parent);
         }
 
         final var subtargets = targetType.getSubtargets();
         this.subtargetEntries = new SubtargetProfilerGroup[events.size()];
         for (var subtarget : subtargets) {
-            subtargetEntries[subtarget.getInternalId()] = buildGroup(subtarget, parent);
+            subtargetEntries[subtarget.getInternalId()] = buildGroup(targetType, subtarget, parent);
         }
     }
 
-    protected <E> EventProfilerGroup<E, T> buildGroup(EventType<E, T> eventType, TargetProfilerGroup<? super T> parent) {
+    protected static <E, U extends ComponentTarget, T extends U> EventProfilerGroup<E, T> buildGroup(TargetType<T> targetType, EventType<E, T> eventType, TargetProfilerGroup<U> parent) {
         final var name = eventType.getEventClass().getSimpleName();
         if (parent != null && eventType.getInternalId() < parent.eventEntries.length) {
-            return new LinkedEventProfilerGroup<>(name, targetType, eventType, parent.getGroupFor(eventType));
+            final var pEvt = parent.targetType.getEventType(eventType.getEventClass());
+            return new LinkedEventProfilerGroup<>(name, targetType, eventType, parent.getGroupFor(pEvt));
         } else {
             return new EventProfilerGroup<>(name, targetType, eventType);
         }
     }
 
-    protected <F> SubtargetProfilerGroup<T, F> buildGroup(FunctionalSubtarget<T, F> subtarget, TargetProfilerGroup<? super T> parent) {
+    protected static <F, U extends ComponentTarget, T extends U> SubtargetProfilerGroup<T, F> buildGroup(TargetType<T> targetType, FunctionalSubtarget<T, F> subtarget, TargetProfilerGroup<U> parent) {
         final var name = subtarget.getType().getSimpleName();
         if (parent != null && subtarget.getInternalId() < parent.eventEntries.length) {
-            return new LinkedSubtargetProfilerGroup<>(name, targetType, subtarget, parent.getGroupFor(subtarget));
+            final var pSbt = parent.targetType.getSubtarget(subtarget.getType());
+            return new LinkedSubtargetProfilerGroup<>(name, targetType, subtarget, parent.getGroupFor(pSbt));
         } else {
             return new SubtargetProfilerGroup<>(name, targetType, subtarget);
         }

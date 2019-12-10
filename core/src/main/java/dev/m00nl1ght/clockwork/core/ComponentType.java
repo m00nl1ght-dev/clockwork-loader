@@ -59,7 +59,7 @@ public class ComponentType<C, T extends ComponentTarget> {
         try {
             return (C) container.getComponent(internalID);
         } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-            container.getTargetType().checkCompatibilityForComponent(targetType);
+            container.getTargetType().checkCompatibility(this);
             throw e;
         }
     }
