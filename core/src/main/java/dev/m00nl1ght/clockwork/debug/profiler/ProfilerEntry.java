@@ -33,7 +33,7 @@ public abstract class ProfilerEntry {
 
     @Override
     public String toString() {
-        return name + "(" + getCount() + ") => AVG ~ " + getAverage() + " MIN " + getMin() + " MAX " + getMax();
+        return name + " (" + getCount() + ") => AVG ~ " + getAverage() + " MIN " + getMin() + " MAX " + getMax();
     }
 
 }

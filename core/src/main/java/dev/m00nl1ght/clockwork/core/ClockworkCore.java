@@ -93,12 +93,15 @@ public class ClockworkCore implements ComponentTarget {
         return new ClockworkCore(depResolver);
     }
 
-    public synchronized void init() {
-        if (this.state != State.LOCATED) throw new IllegalStateException();
+    public void init() {
         final var coreTarget = getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
-        coreContainer = new ComponentContainer<>(coreTarget.get(), this);
-        coreContainer.initComponents();
+        this.init(new ComponentContainer<>(coreTarget.get(), this));
+    }
+
+    public synchronized void init(ComponentContainer<ClockworkCore> coreContainer) {
+        if (this.state != State.LOCATED) throw new IllegalStateException();
+        this.coreContainer = coreContainer;
         this.state = State.INITIALISED;
     }
 

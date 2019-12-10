@@ -28,11 +28,11 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
     }
 
     @SuppressWarnings("Convert2streamapi")
-    public List<ComponentType<?, T>> getComponents(TargetType<T> targetType) {
+    public List<ComponentType<?, ? super T>> getComponents() {
         try {
             final var compIds = targetType.subtargetData[internalId];
-            final var list = new ArrayList<ComponentType<?, T>>(compIds.length);
-            for (var comp : compIds) list.add(targetType.components.get(comp)); // TODO use subclass-aware get instead
+            final var list = new ArrayList<ComponentType<?, ? super T>>(compIds.length);
+            for (var comp : compIds) list.add(targetType.getComponentTypes().get(comp));
             return list;
         } catch (Exception e) {
             targetType.checkCompatibility(this);

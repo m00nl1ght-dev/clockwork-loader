@@ -13,7 +13,7 @@ public class CoreProfiler extends DebugProfiler {
 
     protected CoreProfiler(ClockworkCore core) {
         this.core = core;
-        if (core.getState() == ClockworkCore.State.LOCATED) throw new IllegalStateException();
+        if (core.getState() == ClockworkCore.State.CONSTRUCTED) throw new IllegalStateException();
     }
 
     public CoreProfiler(ClockworkCore core, String coreGroupName) {

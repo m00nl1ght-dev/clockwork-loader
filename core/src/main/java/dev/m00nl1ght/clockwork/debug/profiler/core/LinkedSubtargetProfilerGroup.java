@@ -11,16 +11,16 @@ public class LinkedSubtargetProfilerGroup<T extends ComponentTarget, F> extends 
     public LinkedSubtargetProfilerGroup(String name, TargetType<T> targetType, FunctionalSubtarget<T, F> subtarget, SubtargetProfilerGroup<? super T, F> parent) {
         super(name, targetType);
         this.parent = parent;
-        final var listeners = subtarget.getComponents(targetType);
-        this.compEntries = new SubtargetProfilerEntry[listeners.size()];
+        final var components = subtarget.getComponents();
+        this.compEntries = new SubtargetProfilerEntry[components.size()];
         final var splitIdx = parent.compEntries.length;
 
         for (int i = 0; i < splitIdx; i++) {
-            compEntries[i] = new LinkedSubtargetProfilerEntry<>(subtarget, listeners.get(i), parent.get(i));
+            compEntries[i] = new LinkedSubtargetProfilerEntry<>(subtarget, components.get(i), parent.get(i));
         }
 
         for (int i = splitIdx; i < compEntries.length; i++) {
-            compEntries[i] = new SubtargetProfilerEntry<>(subtarget, listeners.get(i));
+            compEntries[i] = new SubtargetProfilerEntry<>(subtarget, components.get(i));
         }
     }
 

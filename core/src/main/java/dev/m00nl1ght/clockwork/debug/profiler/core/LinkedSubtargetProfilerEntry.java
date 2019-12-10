@@ -8,7 +8,7 @@ public class LinkedSubtargetProfilerEntry<T extends ComponentTarget, F> extends 
 
     private final SubtargetProfilerEntry<? super T, F> parent;
 
-    public LinkedSubtargetProfilerEntry(FunctionalSubtarget<T, F> subtarget, ComponentType<?, T> componentType, SubtargetProfilerEntry<? super T, F> parent) {
+    public LinkedSubtargetProfilerEntry(FunctionalSubtarget<T, F> subtarget, ComponentType<?, ? super T> componentType, SubtargetProfilerEntry<? super T, F> parent) {
         super(subtarget, componentType);
         this.parent = parent;
     }

@@ -20,7 +20,7 @@ public class SubtargetProfilerGroup<T extends ComponentTarget, F> extends Profil
 
     public SubtargetProfilerGroup(String name, TargetType<T> targetType, FunctionalSubtarget<T, F> subtarget) {
         this(name, targetType);
-        final var components = subtarget.getComponents(targetType);
+        final var components = subtarget.getComponents();
         this.compEntries = new SubtargetProfilerEntry[components.size()];
         for (int i = 0; i < components.size(); i++) {
             compEntries[i] = new SubtargetProfilerEntry<>(subtarget, components.get(i));

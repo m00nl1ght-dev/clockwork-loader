@@ -9,9 +9,9 @@ public class SubtargetProfilerEntry<T extends ComponentTarget, F> extends Simple
 
     public static final int CAPACITY = 100;
 
-    protected final ComponentType<?, T> componentType;
+    protected final ComponentType<?, ? super T> componentType;
 
-    public SubtargetProfilerEntry(FunctionalSubtarget<T, F> subtarget, ComponentType<?, T> componentType) {
+    public SubtargetProfilerEntry(FunctionalSubtarget<T, F> subtarget, ComponentType<?, ? super T> componentType) {
         super(componentType.getId(), CAPACITY);
         this.componentType = componentType;
     }
