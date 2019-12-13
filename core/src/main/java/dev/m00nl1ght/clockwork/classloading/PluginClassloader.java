@@ -516,8 +516,10 @@ public class PluginClassloader extends SecureClassLoader {
 
     /**
      * Binds a module to a plugin container.
-     * This assigs the plugins permissions to the module.
-     * If the given module is not present, or its location can not be determined,
+     * This assigs the plugins permissions to the classes of the module.
+     * This method should only be called before any classes of the module are loaded.
+     * Every module can only be bound to one plugin.
+     * If no module with the given name is present, or its location can not be determined,
      * then this method just has no effect, and will not throw any exception.
      */
     public void bindPlugin(PluginContainer plugin, String moduleName) {
