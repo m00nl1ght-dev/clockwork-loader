@@ -1,11 +1,11 @@
 
 plugins {
-    id 'java'
     id 'application'
+    id 'java'
+    id 'maven-publish'
     id 'org.javamodularity.moduleplugin' version '1.6.0'
 }
 
-version rootProject.version
 mainClassName = "$moduleName/dev.m00nl1ght.clockwork.test.TestLauncher"
 
 sourceCompatibility = 12
@@ -16,10 +16,6 @@ sourceSets {
         output.resourcesDir = file('build/bin')
         java.outputDir = file('build/bin')
     }
-}
-
-repositories {
-    mavenCentral()
 }
 
 dependencies {
