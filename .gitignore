@@ -5,6 +5,7 @@
 /test-plugin/build/
 /.idea/
 /out/
+/build/
 
 /test-env/plugin-data/
 
