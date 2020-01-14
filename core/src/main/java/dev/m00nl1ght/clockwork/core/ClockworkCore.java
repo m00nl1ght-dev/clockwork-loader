@@ -89,8 +89,8 @@ public class ClockworkCore implements ComponentTarget {
 
         final var skips = depResolver.getSkippedProblems();
         if (!skips.isEmpty()) {
-            LOGGER.error("The following optional components have been skipped, because their dependencies are not present:");
-            for (var p : skips) LOGGER.error(p.format());
+            LOGGER.info("The following optional components have been skipped, because their dependencies are not present:");
+            for (var p : skips) LOGGER.info(p.format());
         }
 
         return new ClockworkCore(depResolver);
