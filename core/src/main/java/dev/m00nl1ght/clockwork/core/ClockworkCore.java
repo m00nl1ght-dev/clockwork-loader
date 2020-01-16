@@ -75,6 +75,13 @@ public class ClockworkCore implements ComponentTarget {
         this.state = State.LOCATED;
     }
 
+    /**
+     * Finds available plugins using the given {@link PluginLocator}s and resolves all dependencies.
+     *
+     * @param locators the collection of {@link PluginLocator}s that will be used to find plugins
+     * @return a new {@link ClockworkCore} that can be used to load the plugins that have been located
+     * @throws PluginLoadingException if there were any fatal dependency resolution problems
+     */
     public static ClockworkCore load(Collection<PluginLocator> locators) {
         final var depResolver = new DependencyResolver();
         locators.forEach(e -> e.findAll().forEach(p -> depResolver.addDefinition(p, e)));
@@ -96,26 +103,54 @@ public class ClockworkCore implements ComponentTarget {
         return new ClockworkCore(depResolver);
     }
 
+    /**
+     * Initialises this ClockworkCore with a default core container.
+     * The default core container is created for target id {@code clockwork:core}
+     *
+     * @see ClockworkCore#init(ComponentContainer)
+     * @throws PluginLoadingException if no definition for the default target is present
+     */
     public void init() {
         final var coreTarget = getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
         this.init(new ComponentContainer<>(coreTarget.get(), this));
     }
 
+    /**
+     * Initialises this ClockworkCore with the given core container.
+     * The core container is a special {@link ComponentContainer} that is attached to the ClockworkCore itself.
+     * It will store all plugin components which exist in a static context
+     * and are not attached to individual objects within the application.
+     * For example, this includes the main component of each plugin.
+     *
+     * @param coreContainer the core container for this ClockworkCore
+     */
     public synchronized void init(ComponentContainer<ClockworkCore> coreContainer) {
         if (this.state != State.LOCATED) throw new IllegalStateException();
         this.coreContainer = coreContainer;
         this.state = State.INITIALISED;
     }
 
+    /**
+     * Returns an unmodifiable collection of all registered {@link TargetType}s.
+     */
     public Collection<TargetType<?>> getRegisteredTargetTypes() {
         return Collections.unmodifiableCollection(loadedTargets.values());
     }
 
+    /**
+     * Returns an unmodifiable collection of all registered {@link ComponentType}s.
+     */
     public Collection<ComponentType<?, ?>> getRegisteredComponentTypes() {
         return Collections.unmodifiableCollection(loadedComponents.values());
     }
 
+    /**
+     * Returns the {@link TargetType} for the given target class, wrapped in an {@link Optional}.
+     * If no such target is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param targetClass the class corresponding to the desired TargetType
+     */
     @SuppressWarnings("unchecked")
     public <T extends ComponentTarget> Optional<TargetType<T>> getTargetType(Class<T> targetClass) {
         final var type = classToTargetMap.get(targetClass);
@@ -123,10 +158,23 @@ public class ClockworkCore implements ComponentTarget {
         return Optional.of((TargetType<T>) type);
     }
 
+    /**
+     * Returns the {@link TargetType} with the given id, wrapped in an {@link Optional}.
+     * If no such target is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param targetId the id of the desired TargetType
+     */
     public Optional<TargetType<?>> getTargetType(String targetId) {
         return Optional.ofNullable(loadedTargets.get(targetId));
     }
 
+    /**
+     * Returns the {@link ComponentType} for the given component and target classes, wrapped in an {@link Optional}.
+     * If no such component is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param componentClass the class corresponding to the desired ComponentType
+     * @param targetClass the class corresponding to the target of the desired ComponentType
+     */
     @SuppressWarnings("unchecked")
     public <C, T extends ComponentTarget> Optional<ComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
         final var type = classToComponentMap.get(componentClass);
@@ -135,6 +183,12 @@ public class ClockworkCore implements ComponentTarget {
         return Optional.of((ComponentType<C, T>) type);
     }
 
+    /**
+     * Returns the {@link ComponentType} for the given component class, wrapped in an {@link Optional}.
+     * If no such component is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param componentClass the class corresponding to the desired ComponentType
+     */
     @SuppressWarnings("unchecked")
     public <C> Optional<ComponentType<C, ?>> getComponentType(Class<C> componentClass) {
         final var type = classToComponentMap.get(componentClass);
@@ -142,15 +196,32 @@ public class ClockworkCore implements ComponentTarget {
         return Optional.of((ComponentType<C, ?>) type);
     }
 
+    /**
+     * Returns the {@link ComponentType} with the given id, wrapped in an {@link Optional}.
+     * If no such component is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param componentId the id of the desired ComponentType
+     */
     public Optional<ComponentType<?, ?>> getComponentType(String componentId) {
         return Optional.ofNullable(loadedComponents.get(componentId));
     }
 
+    /**
+     * Returns the main {@link ComponentContainer} attached to this ClockworkCore.
+     * It contains all plugin components which exist in a static context
+     * and are not attached to individual objects within the application.
+     * For example, this includes the main component of each plugin.
+     *
+     * @see ClockworkCore#init()
+     */
     @Override
     public ComponentContainer<ClockworkCore> getComponentContainer() {
         return coreContainer;
     }
 
+    /**
+     * Returns the internal state of this ClockworkCore.
+     */
     public State getState() {
         return state;
     }

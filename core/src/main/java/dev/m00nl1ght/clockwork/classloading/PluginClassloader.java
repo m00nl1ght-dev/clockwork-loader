@@ -469,7 +469,7 @@ public class PluginClassloader extends SecureClassLoader {
     }
 
     /**
-     * Returns the package name for the given class name
+     * Returns the package name for the given class name.
      */
     private String packageName(String cn) {
         var pos = cn.lastIndexOf('.');
@@ -516,13 +516,13 @@ public class PluginClassloader extends SecureClassLoader {
 
     /**
      * Binds a module to a plugin container.
-     * This assigs the plugins permissions to the classes of the module.
+     * This assigs the permissions of the plugin to the classes of the module.
      * This method should only be called before any classes of the module are loaded.
      * Every module can only be bound to one plugin.
      * If no module with the given name is present, or its location can not be determined,
      * then this method just has no effect, and will not throw any exception.
      */
-    public void bindPlugin(PluginContainer plugin, String moduleName) {
+    protected void bindPlugin(PluginContainer plugin, String moduleName) {
         final var module = nameToModule.get(moduleName);
         if (module != null && module.location().isPresent()) {
             try {

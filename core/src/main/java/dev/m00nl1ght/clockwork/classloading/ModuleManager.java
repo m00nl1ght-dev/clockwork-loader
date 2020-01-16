@@ -1,8 +1,10 @@
 package dev.m00nl1ght.clockwork.classloading;
 
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginContainer;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 
 import java.lang.module.ModuleFinder;
 import java.util.HashMap;
@@ -11,8 +13,8 @@ import java.util.Map;
 import java.util.Objects;
 
 /**
- * A helper class that manages the internal ModuleLayer from which plugin code is loaded.
- * A ModuleManager is only used internally within the ClockworkCore and should never be exposed to plugin code.
+ * A helper class that manages the internal {@link ModuleLayer} from which plugin code is loaded.
+ * A ModuleManager is only used internally within the {@link ClockworkCore} and should not be exposed to plugin code.
  */
 public class ModuleManager {
 
@@ -26,7 +28,7 @@ public class ModuleManager {
      * This constructor is called during plugin loading, after all definitions have been located,
      * but before any components or classes are loaded.
      *
-     * @param defs   the list of plugin definitions this ModuleManager will find modules for
+     * @param defs   the list of {@link PluginDefinition}s this ModuleManager will find modules for
      * @param parent the module layer that will be used as a parent for the plugin module layer (usually the boot layer)
      */
     public ModuleManager(List<PluginDefinition> defs, ModuleLayer parent) {
@@ -55,9 +57,9 @@ public class ModuleManager {
     }
 
     /**
-     * Finds the main module for a specific PluginDefinition.
-     * The ModuleLayer of the returned module can either be the internal plugin module layer of this ModuleManager, or the boot layer.
-     * If the module was loaded from the boot layer, it will also be registered to the respective plugin id.
+     * Finds the main module for a specific {@link PluginDefinition}.
+     * The {@link ModuleLayer} of the returned module can either be the internal plugin module layer of this ModuleManager, or one of its parent layers.
+     * If the module was loaded from a parent layer, it will also be registered to the respective plugin id.
      * If needed, this method will also patch the returned module to allow reflective access to its classes.
      */
     public Module mainModuleFor(PluginDefinition def) {
@@ -79,7 +81,7 @@ public class ModuleManager {
 
     /**
      * Registers a module to a loaded plugin.
-     * This assigs the plugins permissions to the classes of the module.
+     * This assigs the permissions of the plugin to the classes of the module.
      * This method should only be called before any classes of the module are loaded.
      * Every module can only be bound to one plugin.
      * If no module with the given name is present, or its location can not be determined,
@@ -91,7 +93,7 @@ public class ModuleManager {
 
     /**
      * Patches the module to allow reflective access to its classes.
-     * This is needed for PluginProcessors that use annotation processing and method handles to work.
+     * This is needed for {@link PluginProcessor}s that use annotation processing and method handles to work.
      */
     private void patchModule(Module module) {
         for (var pn : module.getPackages()) {
@@ -106,7 +108,7 @@ public class ModuleManager {
      * @param className the qualified name of the class to be loaded
      * @param plugin    the plugin the class should be loaded for
      * @throws PluginLoadingException if the class is in a module other than
-     *                                the main module of the plugin or the class was not found
+     *                                the main module of the plugin, or the class was not found
      */
     public Class<?> loadClassForPlugin(String className, PluginContainer plugin) {
         try {
