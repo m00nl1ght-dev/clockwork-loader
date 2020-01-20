@@ -10,9 +10,18 @@ import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandles;
 import java.util.*;
 
+/**
+ * The most important class of the plugin loading framework.
+ * It manages the loading process and represents all component
+ * and target types of the loaded plugins.
+ *
+ * From application code, call {@link ClockworkCore#load} with a set of
+ * {@link PluginLocator}s to get an instance of ClockworkCore.
+ */
 public class ClockworkCore implements ComponentTarget {
 
     private static final Logger LOGGER = LogManager.getLogger();
+
     public static final String CORE_PLUGIN_ID = "clockwork";
     public static final String CORE_TARGET_ID = CORE_PLUGIN_ID + ":core";
 
@@ -23,10 +32,10 @@ public class ClockworkCore implements ComponentTarget {
     private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager pluginProcessors = new PluginProcessorManager(MethodHandles.lookup());
     private final ModuleManager moduleManager;
+
     private volatile State state = State.CONSTRUCTED;
     private ComponentContainer<ClockworkCore> coreContainer;
 
-    @SuppressWarnings("unchecked")
     private ClockworkCore(DependencyResolver depResolver) {
         moduleManager = new ModuleManager(depResolver.getPluginDefinitions(), ModuleLayer.boot());
 
@@ -47,7 +56,8 @@ public class ClockworkCore implements ComponentTarget {
             if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
             final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
             if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
-            final var target = TargetType.create(def, plugin, (Class<? extends ComponentTarget>) targetClass, i);
+            @SuppressWarnings("unchecked") final var targetCasted = (Class<? extends ComponentTarget>) targetClass;
+            final var target = TargetType.create(def, plugin, targetCasted, i);
             final var existingByName = loadedTargets.putIfAbsent(target.getId(), target);
             if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
             final var existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
@@ -227,7 +237,24 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     public enum State {
-        CONSTRUCTED, LOCATED, INITIALISED
+
+        /**
+         * Plugins are being located and dependency resolution is not completed yet.
+         */
+        CONSTRUCTED,
+
+        /**
+         * All plugins have been located and dependencies have been resolved.
+         * Component and target types are now available, and the core components
+         * can be initialised by calling {@link ClockworkCore#init()}.
+         */
+        LOCATED,
+
+        /**
+         * Plugin loading is complete and all core components have been initialised.
+         */
+        INITIALISED
+
     }
 
 }
