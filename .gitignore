@@ -8,6 +8,7 @@
 /.idea/
 /out/
 /build/
+/repo/
 
 /test-env/plugin-data/
 
