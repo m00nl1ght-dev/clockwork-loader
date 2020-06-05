@@ -1,12 +1,15 @@
 
 plugins {
-    id 'java'
+    id 'java-library'
     id 'maven-publish'
-    id 'org.javamodularity.moduleplugin' version '1.6.0'
 }
 
 sourceCompatibility = 12
 targetCompatibility = 12
+
+java {
+    modularity.getInferModulePath() set true
+}
 
 sourceSets {
     main {

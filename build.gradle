@@ -1,18 +1,27 @@
 
 plugins {
     id 'maven-publish'
+    id 'extra-java-module-info'
 }
 
 evaluationDependsOnChildren()
-version '0.1'
+version '0.2'
 
 subprojects {
+
+    apply plugin: "extra-java-module-info"
 
     version rootProject.version
     group 'dev.m00nl1ght.clockwork'
 
     repositories {
         mavenCentral()
+    }
+
+    extraJavaModuleInfo {
+        automaticModule("toml-3.6.0.jar", "nightconfig.toml")
+        automaticModule("core-3.6.0.jar", "nightconfig.core")
+        automaticModule("semver4j-3.1.0.jar", "semver4j")
     }
 
 }

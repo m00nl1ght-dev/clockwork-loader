@@ -20,7 +20,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.util;
 
     requires org.apache.logging.log4j;
-    requires core;
+    requires nightconfig.core;
     requires semver4j;
     requires it.unimi.dsi.fastutil;
 }
