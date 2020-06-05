@@ -1,7 +1,6 @@
 
 plugins {
     id 'java-library'
-    id 'maven-publish'
 }
 
 sourceCompatibility = 12
@@ -19,7 +18,8 @@ sourceSets {
 }
 
 dependencies {
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
-    implementation project(':core')
-    implementation project(':test-env')
+    api project(':core')
+    api project(':test-env')
+
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 }

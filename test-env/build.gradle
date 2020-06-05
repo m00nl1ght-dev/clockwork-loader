@@ -2,7 +2,6 @@
 plugins {
     id 'application'
     id 'java-library'
-    id 'maven-publish'
 }
 
 mainClassName = "dev.m00nl1ght.clockwork.test.TestLauncher"
@@ -22,8 +21,9 @@ sourceSets {
 }
 
 dependencies {
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: '2.12.1'
-    implementation project(':core')
+    api project(':core')
+
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 }
 
 application {
