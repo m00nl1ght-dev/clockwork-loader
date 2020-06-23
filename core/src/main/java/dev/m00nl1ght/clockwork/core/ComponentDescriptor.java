@@ -37,8 +37,8 @@ public final class ComponentDescriptor {
             final var plugin = matcher.group(1);
             final var component = matcher.group(2);
             final var range = matcher.group(3);
-            final var id = component.isEmpty() ? plugin : plugin + ":" + component;
-            return range.isEmpty() ? buildAnyVersion(id) : buildIvyRange(id, range);
+            final var id = component == null ? plugin : plugin + ":" + component;
+            return range == null ? buildAnyVersion(id) : buildIvyRange(id, range);
         } else {
             throw new IllegalArgumentException("invalid descriptor: " + descriptor);
         }
