@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.locator;
 
+import dev.m00nl1ght.clockwork.core.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 
@@ -17,9 +18,14 @@ public abstract class AbstractCachedLocator implements PluginLocator {
     }
 
     @Override
-    public Optional<PluginDefinition> find(String plugin_id) {
+    public Collection<PluginDefinition> find(ComponentDescriptor target) {
         scanIfNeeded();
-        return Optional.ofNullable(cache.get(plugin_id));
+        final var ret = cache.get(target.getPlugin());
+        if (ret != null && target.acceptsVersion(ret.getVersion())) {
+            return Collections.singleton(ret);
+        } else {
+            return Collections.emptySet();
+        }
     }
 
     private void scanIfNeeded() {

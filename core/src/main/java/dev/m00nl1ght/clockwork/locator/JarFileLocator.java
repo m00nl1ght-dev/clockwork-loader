@@ -100,6 +100,7 @@ public class JarFileLocator extends AbstractCachedLocator {
             builder.moduleFinder(compose(finders, moduleFinder), mainModuleName);
         }
 
+        builder.locator(this);
         final var plugin = builder.build();
         pluginInfo.populateComponents(plugin);
         pluginInfo.populateTargets(plugin);

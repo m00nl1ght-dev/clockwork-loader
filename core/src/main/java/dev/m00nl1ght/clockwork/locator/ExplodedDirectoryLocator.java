@@ -44,6 +44,7 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
             return true;
         }
 
+        builder.locator(this);
         builder.moduleFinder(moduleFinder, modules.next().descriptor().name());
         if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
         final var plugin = builder.build();

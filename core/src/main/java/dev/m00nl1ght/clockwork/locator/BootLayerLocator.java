@@ -28,6 +28,7 @@ public class BootLayerLocator extends AbstractCachedLocator {
             if (pluginInfo == null) return;
             final var builder = pluginInfo.populatePluginBuilder();
             builder.moduleFinder(null, moduleName);
+            builder.locator(this);
             final var plugin = builder.build();
             pluginInfo.populateComponents(plugin);
             pluginInfo.populateTargets(plugin);

@@ -1,7 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
 import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import org.apache.logging.log4j.LogManager;
@@ -15,8 +14,8 @@ import java.util.*;
  * It manages the loading process and represents all component
  * and target types of the loaded plugins.
  *
- * From application code, call {@link ClockworkCore#load} with a set of
- * {@link PluginLocator}s to get an instance of ClockworkCore.
+ * From application code, call {@link ClockworkCore#load}
+ * to get an instance of ClockworkCore.
  */
 public class ClockworkCore implements ComponentTarget {
 
@@ -86,15 +85,14 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     /**
-     * Finds available plugins using the given {@link PluginLocator}s and resolves all dependencies.
+     * Finds plugins based on the given {@link ClockworkConfig} and resolves all dependencies.
      *
-     * @param locators the collection of {@link PluginLocator}s that will be used to find plugins
+     * @param config the {@link ClockworkConfig} defining how plugins will be located
      * @return a new {@link ClockworkCore} that can be used to load the plugins that have been located
      * @throws PluginLoadingException if there were any fatal dependency resolution problems
      */
-    public static ClockworkCore load(Collection<PluginLocator> locators) {
-        final var depResolver = new DependencyResolver();
-        locators.forEach(e -> e.findAll().forEach(p -> depResolver.addDefinition(p, e)));
+    public static ClockworkCore load(ClockworkConfig config) {
+        final var depResolver = new DependencyResolver(config);
         depResolver.resolveAndSort();
 
         final var fatalProblems = depResolver.getFatalProblems();

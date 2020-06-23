@@ -1,24 +1,73 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.locator.PluginLocator;
+
 public abstract class PluginLoadingProblem {
 
-    protected final ComponentDefinition errored;
+    protected final String cause;
 
     protected PluginLoadingProblem(ComponentDefinition errored) {
-        this.errored = errored;
+        this.cause = errored.getId();
+    }
+
+    protected PluginLoadingProblem(ComponentDescriptor errored) {
+        this.cause = errored.getTarget();
     }
 
     public abstract String getMessage();
 
     public String format() {
-        return "[" + errored.getId() + "] - " + getMessage();
+        return "[" + cause + "] - " + getMessage();
     }
 
     public boolean isFatal() {
         return true;
     }
 
-    public static DependencyNotFound depNotFound(ComponentDefinition errored, DependencyDefinition required, ComponentDefinition present) {
+    public static PluginNotFound pluginNotFound(ComponentDescriptor target) {
+        return new PluginNotFound(target);
+    }
+
+    public static class PluginNotFound extends PluginLoadingProblem {
+
+        private final ComponentDescriptor target;
+
+        private PluginNotFound(ComponentDescriptor target) {
+            super(target);
+            this.target = target;
+        }
+
+        @Override
+        public String getMessage() {
+            return "Could not locate plugin [" + target.toString() + "]";
+        }
+
+    }
+
+    public static LocatorMismatch locatorMismatch(ComponentDefinition errored, PluginLocator locator) {
+        return new LocatorMismatch(errored, locator);
+    }
+
+    public static class LocatorMismatch extends PluginLoadingProblem {
+
+        private final ComponentDefinition errored;
+        private final PluginLocator locator;
+
+        private LocatorMismatch(ComponentDefinition errored, PluginLocator locator) {
+            super(errored);
+            this.errored = errored;
+            this.locator = locator;
+        }
+
+        @Override
+        public String getMessage() {
+            final String locA = locator.getName(), locB = errored.getParent().getLocator().getName();
+            return "Locator [" + locA + "] returned this definition, but it was actually located by [" + locB + "]";
+        }
+
+    }
+
+    public static DependencyNotFound depNotFound(ComponentDefinition errored, ComponentDescriptor required, ComponentDefinition present) {
         return new DependencyNotFound(errored, required, present);
     }
 
@@ -28,11 +77,13 @@ public abstract class PluginLoadingProblem {
 
     public static class DependencyNotFound extends PluginLoadingProblem {
 
-        private final DependencyDefinition required;
+        private final ComponentDefinition errored;
+        private final ComponentDescriptor required;
         private final ComponentDefinition present;
 
-        private DependencyNotFound(ComponentDefinition errored, DependencyDefinition required, ComponentDefinition present) {
+        private DependencyNotFound(ComponentDefinition errored, ComponentDescriptor required, ComponentDefinition present) {
             super(errored);
+            this.errored = errored;
             this.required = required;
             this.present = present;
         }
@@ -42,9 +93,9 @@ public abstract class PluginLoadingProblem {
             if (required == null) {
                 return "Required dependency [" + present + "] was skipped";
             } else if (present == null) {
-                return "Missing required dependency [" + required.getDescriptor() + "]";
+                return "Missing required dependency [" + required.toString() + "]";
             } else {
-                return "Found incorrect version [" + present.getVersion() + "] of dependency [" + required.getDescriptor() + "]";
+                return "Found incorrect version [" + present.getVersion() + "] of dependency [" + required.toString() + "]";
             }
         }
 
@@ -110,7 +161,7 @@ public abstract class PluginLoadingProblem {
 
     public static class DepCycleFound<T> extends PluginLoadingProblem {
 
-        private T tail;
+        private final T tail;
 
         protected DepCycleFound(ComponentDefinition def, T tail) {
             super(def);

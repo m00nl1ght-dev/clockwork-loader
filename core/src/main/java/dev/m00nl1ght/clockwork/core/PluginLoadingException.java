@@ -117,7 +117,7 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Target class [] defined for target type [] does not implement ComponentTarget interface", def.getTargetClass(), def.getId());
     }
 
-    public static PluginLoadingException dependencyDuplicate(String of, DependencyDefinition dependency, DependencyDefinition existing) {
+    public static PluginLoadingException dependencyDuplicate(String of, ComponentDescriptor dependency, ComponentDescriptor existing) {
         return generic("Duplicate dependency defined for []: [] vs. []", of, dependency, existing);
     }
 

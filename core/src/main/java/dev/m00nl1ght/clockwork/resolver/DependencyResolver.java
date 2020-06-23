@@ -1,20 +1,18 @@
 package dev.m00nl1ght.clockwork.resolver;
 
 import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
+import java.util.*;
 
 public class DependencyResolver {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final TopologicalSorter<ComponentDefinition, DependencyDefinition> compSorter = new TopologicalSorter<>(new CompSortFuncs());
+    private final ClockworkConfig config;
+
+    private final TopologicalSorter<ComponentDefinition, ComponentDescriptor> compSorter = new TopologicalSorter<>(new CompSortFuncs());
     private final TopologicalSorter<TargetDefinition, String> targetSorter = new TopologicalSorter<>(new TargetSortFuncs());
     private final LinkedList<PluginDefinition> pluginDefinitions = new LinkedList<>();
     private final LinkedList<ComponentDefinition> componentDefinitions = new LinkedList<>();
@@ -22,29 +20,54 @@ public class DependencyResolver {
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
-    public void addDefinition(PluginDefinition def, PluginLocator loader) {
+    public DependencyResolver(ClockworkConfig config) {
+        this.config = config;
+    }
+
+    private void addDefinition(PluginDefinition def) {
         pluginDefinitions.add(def);
         def.getTargetDefinitions().forEach(this::addDefinition);
         def.getComponentDefinitions().forEach(this::addDefinition);
-        LOGGER.debug(loader.getName() + " located plugin [" + def.toString() + "]");
     }
 
-    public void addDefinition(ComponentDefinition def) {
+    private void addDefinition(ComponentDefinition def) {
         final var present = compSorter.add(def);
         if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def, def, present));
     }
 
-    public void addDefinition(TargetDefinition def) {
+    private void addDefinition(TargetDefinition def) {
         final var present = targetSorter.add(def);
         if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def.getPlugin().getMainComponent(), def, present));
     }
 
     public void resolveAndSort() {
+        final Comparator<PluginDefinition> sorter = Comparator.comparing(PluginDefinition::getVersion).reversed();
+
+        for (final var descriptor : config.getComponentDescriptors()) {
+            final var found = new ArrayList<PluginDefinition>();
+            for (var locator : config.getPluginLocators()) {
+                for (var def : locator.find(descriptor)) {
+                    found.add(def);
+                    if (def.getLocator() != locator)
+                        addProblem(PluginLoadingProblem.locatorMismatch(def.getMainComponent(), locator));
+                }
+            }
+
+            if (found.isEmpty()) {
+                addProblem(PluginLoadingProblem.pluginNotFound(descriptor));
+            } else {
+                found.sort(sorter);
+                final var def = found.get(0);
+                addDefinition(def);
+                LOGGER.debug("Located plugin [" + def.toString() + "] using locator [" + def.getLocator().getName() + "].");
+            }
+        }
+
         compSorter.sort(componentDefinitions);
         targetSorter.sort(targetDefinitions);
     }
 
-    private class CompSortFuncs implements TopologicalSorter.SorterFuncs<ComponentDefinition, DependencyDefinition> {
+    private class CompSortFuncs implements TopologicalSorter.SorterFuncs<ComponentDefinition, ComponentDescriptor> {
 
         @Override
         public String idFor(ComponentDefinition obj) {
@@ -52,17 +75,17 @@ public class DependencyResolver {
         }
 
         @Override
-        public String idOfDep(DependencyDefinition obj) {
-            return obj.getComponentId();
+        public String idOfDep(ComponentDescriptor obj) {
+            return obj.getTarget();
         }
 
         @Override
-        public boolean isDepSatisfied(ComponentDefinition node, DependencyDefinition dep, ComponentDefinition present) {
+        public boolean isDepSatisfied(ComponentDefinition node, ComponentDescriptor dep, ComponentDefinition present) {
             return dep.acceptsVersion(present.getVersion());
         }
 
         @Override
-        public Iterable<DependencyDefinition> depsFor(ComponentDefinition obj) {
+        public Iterable<ComponentDescriptor> depsFor(ComponentDefinition obj) {
             return obj.getDependencies();
         }
 
@@ -72,7 +95,7 @@ public class DependencyResolver {
         }
 
         @Override
-        public void onMissingDep(ComponentDefinition node, DependencyDefinition dep, ComponentDefinition present) {
+        public void onMissingDep(ComponentDefinition node, ComponentDescriptor dep, ComponentDefinition present) {
             addProblem(PluginLoadingProblem.depNotFound(node, dep, present));
         }
 

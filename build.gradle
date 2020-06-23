@@ -6,7 +6,7 @@ plugins {
 
 allprojects {
 
-    version '0.2'
+    version '0.3'
     group 'dev.m00nl1ght.clockwork'
 
     ext {

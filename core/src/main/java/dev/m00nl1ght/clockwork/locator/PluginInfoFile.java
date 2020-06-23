@@ -4,7 +4,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.CommentedFileConfig;
 import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
-import dev.m00nl1ght.clockwork.core.DependencyDefinition;
+import dev.m00nl1ght.clockwork.core.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.TargetDefinition;
 import dev.m00nl1ght.clockwork.event.EventAnnotationProcessor;
@@ -104,10 +104,10 @@ public class PluginInfoFile {
         }
     }
 
-    private DependencyDefinition buildDep(UnmodifiableConfig conf) {
+    private ComponentDescriptor buildDep(UnmodifiableConfig conf) {
         final String id = conf.get("id");
         final Optional<String> verStr = conf.getOptional("version");
-        return verStr.map(s -> DependencyDefinition.buildIvyRange(id, s)).orElseGet(() -> DependencyDefinition.buildAnyVersion(id));
+        return verStr.map(s -> ComponentDescriptor.buildIvyRange(id, s)).orElseGet(() -> ComponentDescriptor.buildAnyVersion(id));
     }
 
     private String buildPerm(UnmodifiableConfig conf) {

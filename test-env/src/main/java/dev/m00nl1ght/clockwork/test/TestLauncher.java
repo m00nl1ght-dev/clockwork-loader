@@ -6,7 +6,6 @@ import dev.m00nl1ght.clockwork.debug.ProfilingComponentContainer;
 import dev.m00nl1ght.clockwork.debug.profiler.core.CoreProfiler;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
 import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
@@ -17,7 +16,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.util.ArrayList;
 
 public class TestLauncher {
 
@@ -31,17 +29,23 @@ public class TestLauncher {
 
     public static void main(String... args) {
         PLUGIN_DATA_DIR.mkdirs();
-        final var config = new SecurityConfiguration();
-        config.addPermission(new PropertyPermissionEntry(PropertyPermissionEntry.ACTIONS_READ));
-        config.addPermission(new FilePermissionEntry(new File(PLUGIN_DATA_DIR, "$plugin-id$"), FilePermissionEntry.ACTIONS_RWD));
-        config.addPermission(new FilePermissionEntry("file", new File("."), FilePermissionEntry.ACTIONS_RWD));
-        config.addPermission(new NetworkPermissionEntry("network", NetworkPermissionEntry.ACTIONS_CONNECT_ACCEPT));
-        ClockworkSecurityPolicy.install(config);
-        final var locators = new ArrayList<PluginLocator>();
-        locators.add(new BootLayerLocator());
-        locators.add(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
-        clockworkCore = ClockworkCore.load(locators);
+
+        final var securityConfig = new SecurityConfiguration();
+        securityConfig.addPermission(new PropertyPermissionEntry(PropertyPermissionEntry.ACTIONS_READ));
+        securityConfig.addPermission(new FilePermissionEntry(new File(PLUGIN_DATA_DIR, "$plugin-id$"), FilePermissionEntry.ACTIONS_RWD));
+        securityConfig.addPermission(new FilePermissionEntry("file", new File("."), FilePermissionEntry.ACTIONS_RWD));
+        securityConfig.addPermission(new NetworkPermissionEntry("network", NetworkPermissionEntry.ACTIONS_CONNECT_ACCEPT));
+        ClockworkSecurityPolicy.install(securityConfig);
+
+        final var configBuilder = ClockworkConfig.builder();
+        configBuilder.addPluginLocator(new BootLayerLocator());
+        configBuilder.addPluginLocator(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
+        configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("clockwork"));
+        configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("test-env"));
+
+        clockworkCore = ClockworkCore.load(configBuilder.build());
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
+
         final var profiler = new CoreProfiler(clockworkCore, "core");
         clockworkCore.init(new ProfilingComponentContainer<>(coreTargetType, clockworkCore, profiler));
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));

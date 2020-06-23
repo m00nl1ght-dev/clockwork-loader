@@ -12,12 +12,12 @@ public final class ComponentDefinition {
     private final Semver version;
     private final String componentClass;
     private final String targetId;
-    private final List<DependencyDefinition> dependencies;
+    private final List<ComponentDescriptor> dependencies;
     private final List<String> processors;
 
     private final boolean optional;
 
-    protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<DependencyDefinition> dependencies, boolean optional, List<String> processors) {
+    protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<ComponentDescriptor> dependencies, boolean optional, List<String> processors) {
         this.parent = Preconditions.notNull(parent, "parent");
         this.id = parent.subId(Preconditions.notNull(id, "component id"));
         this.version = Preconditions.notNull(version, "version");
@@ -45,7 +45,7 @@ public final class ComponentDefinition {
         return targetId;
     }
 
-    public List<DependencyDefinition> getDependencies() {
+    public List<ComponentDescriptor> getDependencies() {
         return dependencies;
     }
 
@@ -81,7 +81,7 @@ public final class ComponentDefinition {
         protected final String componentId;
         protected String componentClass;
         protected String targetId;
-        protected final Map<String, DependencyDefinition> dependencies = new HashMap<>();
+        protected final Map<String, ComponentDescriptor> dependencies = new HashMap<>();
         protected final List<String> processors = new ArrayList<>(3);
         protected boolean optional = false;
 
@@ -91,8 +91,8 @@ public final class ComponentDefinition {
         }
 
         public ComponentDefinition build() {
-            dependencies.computeIfAbsent(plugin.getId(), DependencyDefinition::buildAnyVersion);
-            if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDefinition::buildAnyVersion);
+            dependencies.computeIfAbsent(plugin.getId(), ComponentDescriptor::buildAnyVersion);
+            if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), ComponentDescriptor::buildAnyVersion);
             return new ComponentDefinition(plugin, componentId, plugin.getVersion(), componentClass, targetId, dependencies.values(), optional, processors);
         }
 
@@ -106,8 +106,8 @@ public final class ComponentDefinition {
             return this;
         }
 
-        public Builder dependency(DependencyDefinition dependency) {
-            final var prev = this.dependencies.putIfAbsent(dependency.getComponentId(), dependency);
+        public Builder dependency(ComponentDescriptor dependency) {
+            final var prev = this.dependencies.putIfAbsent(dependency.getTarget(), dependency);
             if (prev != null) throw PluginLoadingException.dependencyDuplicate(componentId, dependency, prev);
             return this;
         }
