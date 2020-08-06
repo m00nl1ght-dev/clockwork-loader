@@ -1,7 +1,8 @@
 package dev.m00nl1ght.clockwork.locator;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.file.CommentedFileConfig;
+import com.electronwill.nightconfig.core.file.FileNotFoundAction;
+import com.electronwill.nightconfig.toml.TomlFormat;
 import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.ComponentDescriptor;
@@ -25,16 +26,15 @@ public class PluginInfoFile {
     private static final Logger LOGGER = LogManager.getLogger();
     private static final String INFO_FILE = "plugin.toml";
 
-    private final Path file;
     private final UnmodifiableConfig config;
     private final String pluginId;
 
     public static PluginInfoFile loadFromDir(Path path) {
         if (Files.isDirectory(path)) {
-            return loadFromFile(path.resolve(INFO_FILE));
+            return load(path.resolve(INFO_FILE));
         } else if (Files.isRegularFile(path)) {
             try (final var fs = FileSystems.newFileSystem(path, PluginInfoFile.class.getClassLoader())) {
-                return loadFromFile(fs.getPath(INFO_FILE));
+                return load(fs.getPath(INFO_FILE));
             } catch (IOException | FileSystemNotFoundException e) {
                 LOGGER.debug("Failed to open as filesystem: " + path, e);
                 return null;
@@ -44,18 +44,13 @@ public class PluginInfoFile {
         }
     }
 
-    public static PluginInfoFile loadFromFile(Path path) {
-        if (Files.exists(path)) {
-            final var conf = CommentedFileConfig.builder(path).build();
-            conf.load(); conf.close();
-            return new PluginInfoFile(path, conf.unmodifiable());
-        } else {
-            return null;
-        }
+    public static PluginInfoFile load(Path path) {
+        final var parser = TomlFormat.instance().createParser();
+        final var conf = parser.parse(path, FileNotFoundAction.THROW_ERROR);
+        return new PluginInfoFile(conf.unmodifiable());
     }
 
-    private PluginInfoFile(Path file, UnmodifiableConfig config) {
-        this.file = file;
+    private PluginInfoFile(UnmodifiableConfig config) {
         this.config = config;
         this.pluginId = config.get("plugin_id");
     }
