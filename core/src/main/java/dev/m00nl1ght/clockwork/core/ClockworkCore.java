@@ -167,6 +167,18 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     /**
+     * Returns the {@link TargetType} for the given target class, wrapped in an {@link Optional}.
+     * If no such target is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param targetClass the class corresponding to the desired TargetType
+     */
+    protected Optional<TargetType<?>> getTargetTypeUncasted(Class<?> targetClass) {
+        final var type = classToTargetMap.get(targetClass);
+        if (type == null) return Optional.empty();
+        return Optional.of(type);
+    }
+
+    /**
      * Returns the {@link TargetType} with the given id, wrapped in an {@link Optional}.
      * If no such target is registered to this ClockworkCore, this method will return an empty optional.
      *
@@ -202,6 +214,18 @@ public class ClockworkCore implements ComponentTarget {
         final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         return Optional.of((ComponentType<C, ?>) type);
+    }
+
+    /**
+     * Returns the {@link ComponentType} for the given component class, wrapped in an {@link Optional}.
+     * If no such component is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param componentClass the class corresponding to the desired ComponentType
+     */
+    protected Optional<ComponentType<?, ?>> getComponentTypeUncasted(Class<?> componentClass) {
+        final var type = classToComponentMap.get(componentClass);
+        if (type == null) return Optional.empty();
+        return Optional.of(type);
     }
 
     /**

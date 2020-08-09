@@ -113,6 +113,10 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), targetType.getId());
     }
 
+    public static PluginLoadingException illegalTargetSubclass(TargetDefinition targetType, Class<?> targetClass, TargetType<?> sub) {
+        return generic("[] is a subclass of class [], but target [] is not a parent of target []", sub.getTargetClass().getSimpleName(), targetClass.getSimpleName(), targetType.getId(), sub.getId());
+    }
+
     public static PluginLoadingException invalidTargetClass(TargetDefinition def) {
         return generic("Target class [] defined for target type [] does not implement ComponentTarget interface", def.getTargetClass(), def.getId());
     }

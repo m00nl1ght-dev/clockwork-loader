@@ -138,13 +138,26 @@ public abstract class TargetType<T extends ComponentTarget> {
     @SuppressWarnings("unchecked")
     static <T extends ComponentTarget> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass, int idx) {
         if (def.getParent() == null) {
+            checkSuperclasses(def, targetClass, Object.class, plugin.getClockworkCore());
             return new Root<>(def, plugin, targetClass, idx);
         } else {
             final var found = plugin.getClockworkCore().getTargetType(def.getParent()).orElseThrow();
             if (found.targetClass.isAssignableFrom(targetClass)) {
+                checkSuperclasses(def, targetClass, found.targetClass, plugin.getClockworkCore());
                 return new ForSubclass<>(def, (TargetType<? super T>) found, plugin, targetClass, idx);
             } else {
                 throw PluginLoadingException.invalidParentForTarget(def, found);
+            }
+        }
+    }
+
+    private static void checkSuperclasses(TargetDefinition def, Class<?> targetClass, Class<?> expected, ClockworkCore core) {
+        var current = targetClass;
+        while ((current = current.getSuperclass()) != null) {
+            if (current == expected) return;
+            final var found = core.getTargetTypeUncasted(current);
+            if (found.isPresent()) {
+                throw PluginLoadingException.illegalTargetSubclass(def, targetClass, found.get());
             }
         }
     }

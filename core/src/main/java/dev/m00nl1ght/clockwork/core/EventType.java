@@ -18,6 +18,9 @@ public class EventType<E, T extends ComponentTarget> {
     @SuppressWarnings("unchecked")
     public E post(T object, E event) {
         final var container = (ComponentContainer<? extends T>) object.getComponentContainer();
+        if (targetType.getPlugin().getClockworkCore() != container.getTargetType().getPlugin().getClockworkCore()) {
+            throw new IllegalArgumentException("Cannot post event to a component of a different ClockworkCore");
+        }
         try {
             container.post(this, event);
             return event;
@@ -29,6 +32,9 @@ public class EventType<E, T extends ComponentTarget> {
 
     @SuppressWarnings({"unchecked", "Convert2streamapi"})
     public List<ComponentType<?, ? super T>> getListeners(TargetType<? extends T> target) {
+        if (targetType.getPlugin().getClockworkCore() != target.getPlugin().getClockworkCore()) {
+            throw new IllegalArgumentException("Cannot post event to a component of a different ClockworkCore");
+        }
         try {
             final var listeners = target.eventListeners[internalId];
             final var list = new ArrayList<ComponentType<?, ? super T>>(listeners.length);
