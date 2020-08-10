@@ -21,7 +21,7 @@ public class TestLauncher {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final File TEST_PLUGIN_JAR = new File("test-plugin/build/libs/test-plugin-0.1.jar");
+    private static final File TEST_PLUGIN_JAR = new File("test-plugin/build/libs/");
     private static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");
 
     private static ClockworkCore clockworkCore;
@@ -42,6 +42,7 @@ public class TestLauncher {
         configBuilder.addPluginLocator(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
         configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("test-env"));
+        configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("test-plugin"));
 
         clockworkCore = ClockworkCore.load(configBuilder.build());
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();

@@ -45,6 +45,7 @@ public class PluginInfoFile {
     }
 
     public static PluginInfoFile load(Path path) {
+        if (!Files.exists(path)) return null;
         final var parser = TomlFormat.instance().createParser();
         final var conf = parser.parse(path, FileNotFoundAction.THROW_ERROR);
         return new PluginInfoFile(conf.unmodifiable());
