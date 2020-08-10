@@ -43,7 +43,7 @@ public class PluginProcessorManager {
         final var privateAccess = new ReflAccessSupplier(object.getComponentClass(), reflectiveAccess);
         for (var name : processors) {
             final var prc = loadedProcessors.get(name);
-            if (prc == null) throw PluginLoadingException.missingProcessor("plugin", object.getId(), name);
+            if (prc == null) throw PluginLoadingException.missingProcessor("component", object.getId(), name);
             try {
                 prc.process(object, privateAccess);
             } catch (Throwable t) {
@@ -56,7 +56,7 @@ public class PluginProcessorManager {
         final var privateAccess = new ReflAccessSupplier(object.getTargetClass(), reflectiveAccess);
         for (var name : processors) {
             final var prc = loadedProcessors.get(name);
-            if (prc == null) throw PluginLoadingException.missingProcessor("plugin", object.getId(), name);
+            if (prc == null) throw PluginLoadingException.missingProcessor("target", object.getId(), name);
             try {
                 prc.process(object, privateAccess);
             } catch (Throwable t) {

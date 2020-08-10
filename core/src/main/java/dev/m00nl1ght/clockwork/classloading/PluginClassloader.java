@@ -448,6 +448,7 @@ public class PluginClassloader extends SecureClassLoader {
             // ignored
         }
 
+        // add the permissions from the clockwork policy, if any is active
         final var policy = ClockworkSecurityPolicy.getActivePolicy();
         if (policy != null) {
             var plugin = codeSourceToPlugin.get(cs.getLocation());

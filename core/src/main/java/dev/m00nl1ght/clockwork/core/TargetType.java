@@ -90,7 +90,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     public void checkCompatibility(EventType<?, ?> eventType) {
         if (!this.canAcceptFrom(eventType.getTargetType())) {
-            final var msg = "Component target [] cannot post event to component in different target []";
+            final var msg = "Component target [] cannot use event type of component in different target []";
             throw new IllegalArgumentException(LogUtil.format(msg, id, eventType.getTargetType()));
         }
     }

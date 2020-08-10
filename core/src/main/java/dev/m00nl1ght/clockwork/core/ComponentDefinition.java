@@ -19,7 +19,7 @@ public final class ComponentDefinition {
 
     protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<ComponentDescriptor> dependencies, boolean optional, List<String> processors) {
         this.parent = Preconditions.notNull(parent, "parent");
-        this.id = parent.subId(Preconditions.notNull(id, "component id"));
+        this.id = parent.subId(Preconditions.notNull(id, "id"));
         this.version = Preconditions.notNull(version, "version");
         this.componentClass = Preconditions.notNullOrBlank(componentClass, "componentClass");
         this.targetId = Preconditions.notNullOrBlank(targetId, "targetId");

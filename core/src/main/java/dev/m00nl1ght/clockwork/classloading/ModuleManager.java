@@ -58,7 +58,8 @@ public class ModuleManager {
 
     /**
      * Finds the main module for a specific {@link PluginDefinition}.
-     * The {@link ModuleLayer} of the returned module can either be the internal plugin module layer of this ModuleManager, or one of its parent layers.
+     * The {@link ModuleLayer} of the returned module can either be the
+     * internal plugin module layer of this ModuleManager, or one of its parent layers.
      * If the module was loaded from a parent layer, it will also be registered to the respective plugin id.
      * If needed, this method will also patch the returned module to allow reflective access to its classes.
      */

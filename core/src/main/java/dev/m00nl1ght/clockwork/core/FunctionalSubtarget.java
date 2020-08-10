@@ -7,11 +7,13 @@ import java.util.function.Consumer;
 public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     private final TargetType<T> targetType;
+    private final TargetType<? super T> rootTarget;
     private final Class<F> type;
     private final int internalId;
 
     FunctionalSubtarget(Class<F> type, TargetType<T> targetType, int internalId) {
         this.targetType = targetType;
+        this.rootTarget = targetType.getRoot();
         this.type = type;
         this.internalId = internalId;
     }
@@ -19,6 +21,7 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
     @SuppressWarnings("unchecked")
     public void apply(T object, Consumer<F> consumer) {
         final var container = (ComponentContainer<? extends T>) object.getComponentContainer();
+        if (container.getTargetType().getRoot() != rootTarget) container.getTargetType().checkCompatibility(this);
         try {
             container.applySubtarget(this, consumer);
         } catch (Exception e) {
@@ -29,7 +32,7 @@ public class FunctionalSubtarget<T extends ComponentTarget, F> {
 
     @SuppressWarnings("Convert2streamapi")
     public List<ComponentType<?, ? super T>> getComponents() {
-        try {
+        try { // TODO needs to be sub target sensitive like the event one?
             final var compIds = targetType.subtargetData[internalId];
             final var list = new ArrayList<ComponentType<?, ? super T>>(compIds.length);
             for (var comp : compIds) list.add(targetType.getComponentTypes().get(comp));

@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public class FilePermissionEntry implements PluginPermissionEntry {
 
-    public static final Set<Action> ACTIONS_READ = Collections.unmodifiableSet(EnumSet.of(Action.READ));
+    public static final Set<Action> ACTIONS_R = Collections.unmodifiableSet(EnumSet.of(Action.READ));
     public static final Set<Action> ACTIONS_RWD = Collections.unmodifiableSet(EnumSet.of(Action.READ, Action.WRITE, Action.DELETE));
     public static final Set<Action> ACTIONS_RWDE = Collections.unmodifiableSet(EnumSet.of(Action.READ, Action.WRITE, Action.DELETE, Action.EXECUTE));
     public static final Set<Action> ACTIONS_ALL = Collections.unmodifiableSet(EnumSet.of(Action.READ, Action.WRITE, Action.DELETE, Action.EXECUTE, Action.READLINK));

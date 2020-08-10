@@ -10,8 +10,8 @@ import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 /**
- * The most important class of the plugin loading framework.
- * It manages the loading process and represents all component
+ * The entry point of the plugin loading framework.
+ * This class manages the loading process and represents all component
  * and target types of the loaded plugins.
  *
  * From application code, call {@link ClockworkCore#load}

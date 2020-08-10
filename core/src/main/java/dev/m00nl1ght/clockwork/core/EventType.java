@@ -7,20 +7,20 @@ public class EventType<E, T extends ComponentTarget> {
 
     private final Class<E> eventClass;
     private final TargetType<T> targetType;
+    private final TargetType<? super T> rootTarget;
     private final int internalId;
 
     EventType(Class<E> eventClass, TargetType<T> targetType, int internalId) {
         this.eventClass = eventClass;
         this.targetType = targetType;
+        this.rootTarget = targetType.getRoot();
         this.internalId = internalId;
     }
 
     @SuppressWarnings("unchecked")
     public E post(T object, E event) {
         final var container = (ComponentContainer<? extends T>) object.getComponentContainer();
-        if (targetType.getPlugin().getClockworkCore() != container.getTargetType().getPlugin().getClockworkCore()) {
-            throw new IllegalArgumentException("Cannot post event to a component of a different ClockworkCore");
-        }
+        if (container.getTargetType().getRoot() != rootTarget) container.getTargetType().checkCompatibility(this);
         try {
             container.post(this, event);
             return event;
@@ -32,9 +32,7 @@ public class EventType<E, T extends ComponentTarget> {
 
     @SuppressWarnings({"unchecked", "Convert2streamapi"})
     public List<ComponentType<?, ? super T>> getListeners(TargetType<? extends T> target) {
-        if (targetType.getPlugin().getClockworkCore() != target.getPlugin().getClockworkCore()) {
-            throw new IllegalArgumentException("Cannot post event to a component of a different ClockworkCore");
-        }
+        if (target.getRoot() != rootTarget) target.checkCompatibility(this);
         try {
             final var listeners = target.eventListeners[internalId];
             final var list = new ArrayList<ComponentType<?, ? super T>>(listeners.length);
