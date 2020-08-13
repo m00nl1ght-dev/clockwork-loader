@@ -1,16 +1,17 @@
-package dev.m00nl1ght.clockwork.test;
+package dev.m00nl1ght.clockwork.benchmarks;
 
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 
-public class TestTarget_C implements ComponentTarget {
+public class TestTarget implements ComponentTarget {
 
-    public static final TargetType<TestTarget_C> TARGET_TYPE = TestLauncher.getTargetType(TestTarget_C.class);
+    public static final TargetType<TestTarget> TARGET_TYPE =
+            ClockworkBenchmarks.getClockworkCore().getTargetType(TestTarget.class).orElseThrow();
 
-    private final ComponentContainer<TestTarget_C> container;
+    private final ComponentContainer<TestTarget> container;
 
-    protected TestTarget_C() {
+    public TestTarget() {
         this.container = new ComponentContainer<>(TARGET_TYPE, this);
     }
 

@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.event.EventHandler;
+import dev.m00nl1ght.clockwork.events.annotation.EventHandler;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_A;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_B;
@@ -23,14 +23,14 @@ public class TestEnvPlugin {
     @EventHandler
     public void onInit(PluginInitEvent event) {
         LOGGER.info("Init event received.");
-        TEST_TARGET_A = new TestTarget_A(event.getProfiler());
-        TEST_TARGET_B = new TestTarget_B(event.getProfiler());
-        TEST_TARGET_C = new TestTarget_C(event.getProfiler());
+        TEST_TARGET_A = new TestTarget_A();
+        TEST_TARGET_B = new TestTarget_B();
+        TEST_TARGET_C = new TestTarget_C();
         TestEvent_A.TYPE.post(TEST_TARGET_A, new TestEvent_A());
         TestEvent_A.TYPE.post(TEST_TARGET_B, new TestEvent_A());
         TestEvent_B.TYPE.post(TEST_TARGET_B, new TestEvent_B());
-        TestSubtarget.TYPE.apply(TEST_TARGET_A, TestSubtarget::tick);
-        TestSubtarget.TYPE.apply(TEST_TARGET_B, TestSubtarget::tick);
+        TestInterface.TYPE.apply(TEST_TARGET_A, TestInterface::tick);
+        TestInterface.TYPE.apply(TEST_TARGET_B, TestInterface::tick);
     }
 
 }

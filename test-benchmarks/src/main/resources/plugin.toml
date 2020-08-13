@@ -1,0 +1,62 @@
+plugin_id = "clockwork-benchmarks"
+display_name = "Clockwork Loader Benchmarks"
+version = "0.5"
+authors = ["m00nl1ght"]
+main_class = "dev.m00nl1ght.clockwork.benchmarks.ClockworkBenchmarks"
+description = '''
+Contains some benchmarks for Clockwork Loader
+'''
+
+[[target]]
+id = "test-target"
+class = "dev.m00nl1ght.clockwork.benchmarks.TestTarget"
+
+[[component]]
+id = "component-0"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component0"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-1"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component1"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-2"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component2"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-3"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component3"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-4"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component4"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-5"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component5"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-6"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component6"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-7"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component7"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-8"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component8"
+target = "clockwork-benchmarks:test-target"
+
+[[component]]
+id = "component-9"
+class = "dev.m00nl1ght.clockwork.benchmarks.component.Component9"
+target = "clockwork-benchmarks:test-target"

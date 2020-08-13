@@ -1,14 +1,14 @@
 package dev.m00nl1ght.clockwork.test.plugin;
 
-import dev.m00nl1ght.clockwork.event.EventHandler;
-import dev.m00nl1ght.clockwork.test.TestSubtarget;
+import dev.m00nl1ght.clockwork.events.annotation.EventHandler;
+import dev.m00nl1ght.clockwork.test.TestInterface;
 import dev.m00nl1ght.clockwork.test.TestTarget_B;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_A;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_B;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-public class TestComponent_B implements TestSubtarget {
+public class TestComponent_B implements TestInterface {
 
     private static final Logger LOGGER = LogManager.getLogger();
 

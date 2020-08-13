@@ -1,9 +1,6 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.debug.DebugUtils;
-import dev.m00nl1ght.clockwork.debug.ProfilingComponentContainer;
-import dev.m00nl1ght.clockwork.debug.profiler.core.CoreProfiler;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
@@ -47,10 +44,8 @@ public class TestLauncher {
         clockworkCore = ClockworkCore.load(configBuilder.build());
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
 
-        final var profiler = new CoreProfiler(clockworkCore, "core");
-        clockworkCore.init(new ProfilingComponentContainer<>(coreTargetType, clockworkCore, profiler));
-        PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR, profiler));
-        System.out.println(DebugUtils.printProfilerInfo(profiler));
+        clockworkCore.init(new ComponentContainer<>(coreTargetType, clockworkCore));
+        PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
     }
 
     public static TargetType<ClockworkCore> getCoreTargetType() {

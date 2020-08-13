@@ -8,8 +8,8 @@ import dev.m00nl1ght.clockwork.core.ComponentDefinition;
 import dev.m00nl1ght.clockwork.core.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.core.PluginDefinition;
 import dev.m00nl1ght.clockwork.core.TargetDefinition;
-import dev.m00nl1ght.clockwork.event.EventAnnotationProcessor;
-import dev.m00nl1ght.clockwork.subtarget.SubtargetAnnotationProcessor;
+import dev.m00nl1ght.clockwork.events.annotation.EventListenerAnnotationProcessor;
+import dev.m00nl1ght.clockwork.interfaces.ComponentInterfaceAnnotationProcessor;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -63,8 +63,8 @@ public class PluginInfoFile {
         builder.description(config.getOrElse("description", ""));
         builder.authors(config.getOrElse("authors", List.of()));
         builder.mainClass(config.get("main_class"));
-        builder.markForProcessor(EventAnnotationProcessor.NAME);
-        builder.markForProcessor(SubtargetAnnotationProcessor.NAME);
+        builder.markForProcessor(EventListenerAnnotationProcessor.NAME);
+        builder.markForProcessor(ComponentInterfaceAnnotationProcessor.NAME);
         final Optional<List<UnmodifiableConfig>> deps = config.getOptional("dependency");
         deps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
         final Optional<List<UnmodifiableConfig>> perms = config.getOptional("permission");
@@ -79,8 +79,8 @@ public class PluginInfoFile {
             final var builder = ComponentDefinition.builder(plugin, conf.get("id"));
             builder.component(conf.get("class"));
             builder.target(conf.get("target"));
-            builder.markForProcessor(EventAnnotationProcessor.NAME);
-            builder.markForProcessor(SubtargetAnnotationProcessor.NAME);
+            builder.markForProcessor(EventListenerAnnotationProcessor.NAME);
+            builder.markForProcessor(ComponentInterfaceAnnotationProcessor.NAME);
             final Optional<List<UnmodifiableConfig>> deps = conf.getOptional("dependency");
             deps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
             final Optional<Boolean> optional = conf.getOptional("optional");
@@ -96,7 +96,7 @@ public class PluginInfoFile {
             final String id = conf.get("id");
             final String targetClass = conf.get("class");
             final String parent = conf.getOrElse("parent", () -> null);
-            TargetDefinition.build(plugin, id, autoId(parent, plugin.getId()), targetClass, EventAnnotationProcessor.NAME, SubtargetAnnotationProcessor.NAME);
+            TargetDefinition.build(plugin, id, autoId(parent, plugin.getId()), targetClass, EventListenerAnnotationProcessor.NAME, ComponentInterfaceAnnotationProcessor.NAME);
         }
     }
 

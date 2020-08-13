@@ -1,16 +1,17 @@
+import dev.m00nl1ght.clockwork.events.annotation.EventListenerAnnotationProcessor;
+import dev.m00nl1ght.clockwork.interfaces.ComponentInterfaceAnnotationProcessor;
+
 module dev.m00nl1ght.clockwork {
     uses dev.m00nl1ght.clockwork.processor.PluginProcessor;
     provides dev.m00nl1ght.clockwork.processor.PluginProcessor with
-            dev.m00nl1ght.clockwork.event.EventAnnotationProcessor,
-            dev.m00nl1ght.clockwork.subtarget.SubtargetAnnotationProcessor;
+            EventListenerAnnotationProcessor,
+            ComponentInterfaceAnnotationProcessor;
 
     exports dev.m00nl1ght.clockwork.core;
     exports dev.m00nl1ght.clockwork.locator;
     exports dev.m00nl1ght.clockwork.processor;
-    exports dev.m00nl1ght.clockwork.event;
-    exports dev.m00nl1ght.clockwork.event.filter;
-    exports dev.m00nl1ght.clockwork.event.listener;
-    exports dev.m00nl1ght.clockwork.subtarget;
+    exports dev.m00nl1ght.clockwork.events;
+    exports dev.m00nl1ght.clockwork.interfaces;
     exports dev.m00nl1ght.clockwork.debug;
     exports dev.m00nl1ght.clockwork.debug.profiler;
     exports dev.m00nl1ght.clockwork.debug.profiler.core;
