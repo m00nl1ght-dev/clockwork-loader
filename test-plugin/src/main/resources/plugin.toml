@@ -2,7 +2,7 @@ plugin_id = "test-plugin"
 display_name = "Test Plugin"
 version = "0.5"
 authors = ["m00nl1ght"]
-main_class = "dev.m00nl1ght.clockwork.test.plugin.TestPlugin"
+main_class = "TestPlugin"
 description = '''
 Test Plugin for Dev environment
 '''
@@ -10,12 +10,15 @@ Test Plugin for Dev environment
 [[dependency]]
 id = "test-env"
 
+[[dependency]]
+id = "cwl-eventhandler-annotation"
+
 [[component]]
 id = "test-component-a"
-class = "dev.m00nl1ght.clockwork.test.plugin.TestComponent_A"
+class = "TestComponent_A"
 target = "test-env:test-target-a"
 
 [[component]]
 id = "test-component-b"
-class = "dev.m00nl1ght.clockwork.test.plugin.TestComponent_B"
+class = "TestComponent_B"
 target = "test-env:test-target-b"

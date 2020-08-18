@@ -3,6 +3,7 @@
 /buildSrc/.gradle/
 /buildSrc/build/
 /core/build/
+/ext-eventhandler-annotation/build/
 /test-benchmarks/build/
 /test-env/build/
 /test-plugin/build/

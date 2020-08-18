@@ -26,7 +26,7 @@ public class ComponentContainer<T extends ComponentTarget> {
         }
     }
 
-    protected Object getComponent(int internalID) {
+    public Object getComponent(int internalID) {
         return components[internalID];
     }
 

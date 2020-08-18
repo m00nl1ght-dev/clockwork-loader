@@ -7,6 +7,9 @@ description = '''
 Contains some benchmarks for Clockwork Loader
 '''
 
+[[dependency]]
+id = "cwl-eventhandler-annotation"
+
 [[target]]
 id = "test-target"
 class = "dev.m00nl1ght.clockwork.benchmarks.TestTarget"

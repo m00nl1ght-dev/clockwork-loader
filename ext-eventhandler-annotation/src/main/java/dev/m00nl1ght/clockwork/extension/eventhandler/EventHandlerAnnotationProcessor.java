@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.events.annotation;
+package dev.m00nl1ght.clockwork.extension.eventhandler;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
@@ -18,10 +18,12 @@ import java.lang.reflect.Modifier;
 import java.util.function.BiConsumer;
 import java.util.function.Supplier;
 
-public class EventListenerAnnotationProcessor implements PluginProcessor {
+public class EventHandlerAnnotationProcessor implements PluginProcessor {
 
-    public static final String NAME = "core.event.annotation";
+    public static final String NAME = "eventhandler-annotation-processor";
+
     private static final Logger LOGGER = LogManager.getLogger();
+
     private static final MethodType GENERIC_TYPE = MethodType.methodType(Void.TYPE, Object.class, Object.class);
     private static final MethodType INVOKED_TYPE = MethodType.methodType(BiConsumer.class);
 
@@ -54,7 +56,7 @@ public class EventListenerAnnotationProcessor implements PluginProcessor {
         final var annotation = method.getAnnotation(EventHandler.class);
         final var priority = annotation == null ? EventListenerPriority.NORMAL : annotation.value();
         final var listener = new EventListener<>(eventClass, componentType, priority, consumer);
-        primer.registerEventListener(listener);
+        // TODO
     }
 
     @Override

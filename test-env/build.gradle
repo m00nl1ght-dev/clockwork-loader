@@ -22,7 +22,7 @@ sourceSets {
 
 dependencies {
     api project(':core')
-
+    implementation project(':ext-eventhandler-annotation')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 }
 

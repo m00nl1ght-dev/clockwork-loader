@@ -4,6 +4,7 @@ module dev.m00nl1ght.clockwork.benchmarks {
     opens dev.m00nl1ght.clockwork.benchmarks to dev.m00nl1ght.clockwork;
 
     requires dev.m00nl1ght.clockwork;
+    requires dev.m00nl1ght.clockwork.extension.eventhandler;
     requires org.apache.logging.log4j;
 
 }

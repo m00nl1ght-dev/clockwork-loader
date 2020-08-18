@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.events.annotation.EventHandler;
+import dev.m00nl1ght.clockwork.extension.eventhandler.EventHandler;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_A;
 import dev.m00nl1ght.clockwork.test.event.TestEvent_B;

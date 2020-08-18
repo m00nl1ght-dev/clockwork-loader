@@ -1,14 +1,13 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.events.EventType;
 import dev.m00nl1ght.clockwork.interfaces.ComponentInterfaceType;
 import dev.m00nl1ght.clockwork.util.CollectionUtil;
 import dev.m00nl1ght.clockwork.util.LogUtil;
-import dev.m00nl1ght.clockwork.util.Preconditions;
 
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 public abstract class TargetType<T extends ComponentTarget> {
 
@@ -16,10 +15,8 @@ public abstract class TargetType<T extends ComponentTarget> {
     protected final int internalIdx;
     protected final Class<T> targetClass;
     protected final PluginContainer plugin;
-    protected final List<TargetType<? extends T>> subtargets = new ArrayList<>();
+    protected final List<TargetType<? extends T>> directSubtargets = new ArrayList<>();
     protected final ArrayList<ComponentType<?, T>> components = new ArrayList<>();
-    protected final Map<Class<?>, EventType<?, T>> eventTypes = new HashMap<>();
-    protected final Map<Class<?>, ComponentInterfaceType<?, T>> interfaceTypes = new HashMap<>();
 
     private Primer<T> primer;
     protected int subtargetIdxFirst = -1, subtargetIdxLast = -1;
@@ -32,44 +29,12 @@ public abstract class TargetType<T extends ComponentTarget> {
         this.primer = new Primer<>(this);
     }
 
-    public final synchronized void registerEventType(EventType<?, T> eventType) {
-        Preconditions.notNull(eventType, "eventType");
-        final var existing = getEventType(eventType.getEventClass());
-        if (existing == eventType) return;
-        if (existing != null) throw new IllegalArgumentException(LogUtil.format(
-                "There is already an event type for [] registered to target []",
-                "[]", eventType.getEventClass().getSimpleName(), id));
-        eventTypes.put(eventType.getEventClass(), eventType);
-        eventType.register(this);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <E extends Event> EventType<E, ? super  T> getEventType(Class<E> eventClass) {
-        return (EventType<E, ? super T>) eventTypes.get(eventClass);
-    }
-
-    public final synchronized void registerInterfaceType(ComponentInterfaceType<?, T> interfaceType) {
-        Preconditions.notNull(interfaceType, "interfaceType");
-        final var existing = getInterfaceType(interfaceType.getInterfaceClass());
-        if (existing == interfaceType) return;
-        if (existing != null) throw new IllegalArgumentException(LogUtil.format(
-                "There is already an interface type for [] registered to target []",
-                "[]", interfaceType.getInterfaceClass().getSimpleName(), id));
-        interfaceTypes.put(interfaceType.getInterfaceClass(), interfaceType);
-        interfaceType.register(this);
-    }
-
-    @SuppressWarnings("unchecked")
-    protected <I> ComponentInterfaceType<I, ? super T> getInterfaceType(Class<I> interfaceClass) {
-        return (ComponentInterfaceType<I, ? super T>) interfaceTypes.get(interfaceClass);
-    }
-
     public abstract boolean canAcceptFrom(TargetType<?> other);
 
     public void checkCompatibility(EventType<?, ?> eventType) {
         if (eventType.getTargetType() == null) {
             final var msg = "Event type for [] is not registered";
-            throw new IllegalArgumentException(LogUtil.format(msg, eventType.getEventClass().getSimpleName()));
+            throw new IllegalArgumentException(LogUtil.format(msg, eventType.getEventClassType().getType().getTypeName()));
         } else if (!this.canAcceptFrom(eventType.getTargetType())) {
             final var msg = "Component target [] cannot use event type of component in different target []";
             throw new IllegalArgumentException(LogUtil.format(msg, id, eventType.getTargetType()));
@@ -79,7 +44,7 @@ public abstract class TargetType<T extends ComponentTarget> {
     public void checkCompatibility(ComponentInterfaceType<?, ?> interfaceType) {
         if (interfaceType.getTargetType() == null) {
             final var msg = "Interface type [] is not registered";
-            throw new IllegalArgumentException(LogUtil.format(msg, interfaceType.getInterfaceClass().getSimpleName()));
+            throw new IllegalArgumentException(LogUtil.format(msg, interfaceType.getInterfaceClass().getTypeName()));
         } else if (!this.canAcceptFrom(interfaceType.getTargetType())) {
             final var msg = "Component target [] cannot use interface type from different target []";
             throw new IllegalArgumentException(LogUtil.format(msg, id, interfaceType.getTargetType()));
@@ -109,8 +74,29 @@ public abstract class TargetType<T extends ComponentTarget> {
         return internalIdx;
     }
 
-    public List<TargetType<? extends T>> getSubtargets() {
-        return Collections.unmodifiableList(subtargets);
+    public final boolean isInitialised() {
+        return primer == null;
+    }
+
+    public final Primer<T> getPrimer() {
+        return primer;
+    }
+
+    public List<ComponentType<?, T>> getOwnComponentTypes() {
+        return Collections.unmodifiableList(components);
+    }
+
+    public abstract List<ComponentType<?, ? super T>> getComponentTypes();
+
+    public abstract TargetType<? super T> getParent();
+
+    public abstract TargetType<? super T> getRoot();
+
+    public abstract List<TargetType<? extends T>> getAllSubtargets();
+
+    public List<TargetType<? extends T>> getDirectSubtargets() {
+        if (!isInitialised()) throw new IllegalStateException();
+        return Collections.unmodifiableList(directSubtargets);
     }
 
     public int getSubtargetIdxFirst() {
@@ -120,20 +106,6 @@ public abstract class TargetType<T extends ComponentTarget> {
     public int getSubtargetIdxLast() {
         return subtargetIdxLast;
     }
-
-    public final boolean isInitialised() {
-        return primer == null;
-    }
-
-    public final Primer<T> getPrimer() {
-        return primer;
-    }
-
-    public abstract List<ComponentType<?, ? super T>> getComponentTypes();
-
-    public abstract TargetType<? super T> getParent();
-
-    public abstract TargetType<? super T> getRoot();
 
     protected abstract void init();
 
@@ -180,14 +152,6 @@ public abstract class TargetType<T extends ComponentTarget> {
             return componentType;
         }
 
-        public <E extends Event, C> void registerEventListener(EventListener<E, T, C> listener) {
-            // TODO
-        }
-
-        public <I, C extends I> void registerComponentInterface(Class<I> interfaceClass, ComponentType<C, T> componentType) {
-            // TODO
-        }
-
         synchronized void init() {
             if (targetType.primer == null) throw new IllegalStateException();
             targetType.components.trimToSize();
@@ -199,7 +163,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     private static final class Root<T extends ComponentTarget> extends TargetType<T> {
 
-        protected final List<ComponentType<?, ? super T>> publicList = Collections.unmodifiableList(components);
+        protected final ArrayList<TargetType<? extends T>> allSubtargets = new ArrayList<>();
 
         private Root(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass, int internalIdx) {
             super(definition, plugin, targetClass, internalIdx);
@@ -208,19 +172,20 @@ public abstract class TargetType<T extends ComponentTarget> {
         @Override
         protected void init() {
             for (var i = 0; i < components.size(); i++) components.get(i).init(i);
-            populateSubtargetIdxs(this, 0);
+            populateSubtargets(this);
+            allSubtargets.trimToSize();
         }
 
-        private int populateSubtargetIdxs(TargetType<?> pointer, int idx) {
-            pointer.subtargetIdxFirst = idx; idx++;
-            for (final var sub : pointer.subtargets) idx = populateSubtargetIdxs(sub, idx);
-            pointer.subtargetIdxLast = idx - 1;
-            return idx;
+        private void populateSubtargets(TargetType<? extends T> pointer) {
+            pointer.subtargetIdxFirst = allSubtargets.size();
+            allSubtargets.add(pointer);
+            for (final var sub : pointer.directSubtargets) populateSubtargets(sub);
+            pointer.subtargetIdxLast = allSubtargets.size() - 1;
         }
 
         @Override
         public List<ComponentType<?, ? super T>> getComponentTypes() {
-            return publicList;
+            return Collections.unmodifiableList(components);
         }
 
         @Override
@@ -231,6 +196,12 @@ public abstract class TargetType<T extends ComponentTarget> {
         @Override
         public TargetType<? super T> getRoot() {
             return this;
+        }
+
+        @Override
+        public List<TargetType<? extends T>> getAllSubtargets() {
+            if (!isInitialised()) throw new IllegalStateException();
+            return Collections.unmodifiableList(allSubtargets);
         }
 
         @Override
@@ -251,7 +222,7 @@ public abstract class TargetType<T extends ComponentTarget> {
             this.compoundList = CollectionUtil.compoundList(parent.getComponentTypes(), components);
             this.root = parent.getRoot();
             this.parent = parent;
-            this.parent.subtargets.add(this);
+            this.parent.directSubtargets.add(this);
         }
 
         @Override
@@ -267,18 +238,6 @@ public abstract class TargetType<T extends ComponentTarget> {
         }
 
         @Override
-        protected <E extends Event> EventType<E, ? super  T> getEventType(Class<E> eventClass) {
-            final var own = super.getEventType(eventClass);
-            return own != null ? own : parent.getEventType(eventClass);
-        }
-
-        @Override
-        protected <I> ComponentInterfaceType<I, ? super T> getInterfaceType(Class<I> interfaceClass) {
-            final var own = super.getInterfaceType(interfaceClass);
-            return own != null ? own : parent.getInterfaceType(interfaceClass);
-        }
-
-        @Override
         public TargetType<? super T> getParent() {
             return parent;
         }
@@ -286,6 +245,12 @@ public abstract class TargetType<T extends ComponentTarget> {
         @Override
         public TargetType<? super T> getRoot() {
             return root;
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public List<TargetType<? extends T>> getAllSubtargets() {
+            return (List<TargetType<? extends T>>) root.getAllSubtargets().subList(subtargetIdxFirst, subtargetIdxLast + 1);
         }
 
         @Override

@@ -7,7 +7,7 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 public class TestTarget implements ComponentTarget {
 
     public static final TargetType<TestTarget> TARGET_TYPE =
-            ClockworkBenchmarks.getClockworkCore().getTargetType(TestTarget.class).orElseThrow();
+            ClockworkBenchmarks.clockworkCore.getTargetType(TestTarget.class).orElseThrow();
 
     private final ComponentContainer<TestTarget> container;
 

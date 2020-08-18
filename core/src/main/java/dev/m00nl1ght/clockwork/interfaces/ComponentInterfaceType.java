@@ -6,6 +6,7 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 
 import java.util.List;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
 public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
@@ -19,12 +20,26 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
         this.interfaceClass = interfaceClass;
     }
 
-    public final synchronized void register(TargetType<T> targetType) {
-        if (this.targetType == targetType) return;
+    protected ComponentInterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+        this(interfaceClass, targetType.getTargetClass());
+        this.register(targetType, autoCollect);
+    }
+
+    public final synchronized void register(TargetType<T> targetType, boolean autoCollect) {
         if (this.targetType != null) throw new IllegalStateException();
-        targetType.registerInterfaceType(this);
+        if (!targetType.isInitialised()) throw new IllegalStateException();
         this.targetType = targetType;
         init();
+        if (autoCollect) autoCollectComponents();
+    }
+
+    @SuppressWarnings("unchecked")
+    private void autoCollectComponents() {
+        addComponents(targetType.getAllSubtargets().stream()
+                .flatMap(subtarget -> subtarget.getOwnComponentTypes().stream())
+                .filter(comp -> interfaceClass.isAssignableFrom(comp.getComponentClass()))
+                .map(comp -> (ComponentType<? extends I, ? extends T>) comp)
+                .collect(Collectors.toList()));
     }
 
     protected abstract void init();
@@ -33,7 +48,17 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
     public abstract <S extends T> List<ComponentType<? extends I, ? super S>> getComponents(TargetType<S> target);
 
-    public abstract void addComponent(ComponentType<? extends I, ? extends T> componentType);
+    public <C> void addComponent(ComponentType<? extends I, ? extends T> component) {
+        this.addComponents(List.of(component));
+    }
+
+    public abstract <C> void addComponents(Iterable<ComponentType<? extends I, ? extends T>> components);
+
+    public <C> void removeComponent(ComponentType<? extends I, ? extends T> component) {
+        this.removeComponents(List.of(component));
+    }
+
+    public abstract <C> void removeComponents(Iterable<ComponentType<? extends I, ? extends T>> components);
 
     public final Class<I> getInterfaceClass() {
         return interfaceClass;

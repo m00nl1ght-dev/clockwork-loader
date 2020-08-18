@@ -1,4 +1,5 @@
 module dev.m00nl1ght.clockwork.test {
+
     exports dev.m00nl1ght.clockwork.test;
     exports dev.m00nl1ght.clockwork.test.event;
 
@@ -6,5 +7,7 @@ module dev.m00nl1ght.clockwork.test {
     opens dev.m00nl1ght.clockwork.test to dev.m00nl1ght.clockwork;
 
     requires dev.m00nl1ght.clockwork;
+    requires dev.m00nl1ght.clockwork.extension.eventhandler;
     requires org.apache.logging.log4j;
+
 }

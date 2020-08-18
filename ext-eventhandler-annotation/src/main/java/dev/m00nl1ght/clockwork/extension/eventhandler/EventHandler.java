@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.events.annotation;
+package dev.m00nl1ght.clockwork.extension.eventhandler;
 
 import dev.m00nl1ght.clockwork.events.EventListenerPriority;
 
