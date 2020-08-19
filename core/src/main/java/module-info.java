@@ -16,7 +16,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.util;
 
     requires org.apache.logging.log4j;
-    requires nightconfig.core;
-    requires nightconfig.toml;
+    requires com.electronwill.nightconfig.core;
+    requires com.electronwill.nightconfig.toml;
 
 }
