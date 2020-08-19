@@ -10,7 +10,7 @@ public class LinkedEventTypeProfilerEntry<E extends Event, T extends ComponentTa
 
     private final EventTypeProfilerEntry<E, ? super T> parent;
 
-    public LinkedEventTypeProfilerEntry(EventType<E, ? super T> eventType, TargetType<T> targetType, ComponentType<?, ? super T> componentType, EventTypeProfilerEntry<E, ? super T> parent) {
+    public LinkedEventTypeProfilerEntry(EventType<E, ? super T> eventType, TargetType<T> targetType, ComponentType<?, ? extends T> componentType, EventTypeProfilerEntry<E, ? super T> parent) {
         super(eventType, targetType, componentType);
         this.parent = parent;
     }

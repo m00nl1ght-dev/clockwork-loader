@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
-import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.*;
 
@@ -9,7 +9,7 @@ public final class ComponentDefinition {
 
     private final PluginDefinition parent;
     private final String id;
-    private final Semver version;
+    private final Version version;
     private final String componentClass;
     private final String targetId;
     private final List<ComponentDescriptor> dependencies;
@@ -17,7 +17,7 @@ public final class ComponentDefinition {
 
     private final boolean optional;
 
-    protected ComponentDefinition(PluginDefinition parent, String id, Semver version, String componentClass, String targetId, Collection<ComponentDescriptor> dependencies, boolean optional, List<String> processors) {
+    protected ComponentDefinition(PluginDefinition parent, String id, Version version, String componentClass, String targetId, Collection<ComponentDescriptor> dependencies, boolean optional, List<String> processors) {
         this.parent = Preconditions.notNull(parent, "parent");
         this.id = parent.subId(Preconditions.notNull(id, "id"));
         this.version = Preconditions.notNull(version, "version");
@@ -33,7 +33,7 @@ public final class ComponentDefinition {
         return id;
     }
 
-    public Semver getVersion() {
+    public Version getVersion() {
         return version;
     }
 

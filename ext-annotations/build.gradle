@@ -3,8 +3,8 @@ plugins {
     id 'java-library'
 }
 
-sourceCompatibility = 12
-targetCompatibility = 12
+sourceCompatibility = 14
+targetCompatibility = 14
 
 java {
     modularity.getInferModulePath() set true

@@ -8,6 +8,8 @@ import dev.m00nl1ght.clockwork.util.LogUtil;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 public abstract class TargetType<T extends ComponentTarget> {
 
@@ -250,7 +252,10 @@ public abstract class TargetType<T extends ComponentTarget> {
         @Override
         @SuppressWarnings("unchecked")
         public List<TargetType<? extends T>> getAllSubtargets() {
-            return (List<TargetType<? extends T>>) root.getAllSubtargets().subList(subtargetIdxFirst, subtargetIdxLast + 1);
+            final var sub = root.getAllSubtargets();
+            return IntStream.rangeClosed(subtargetIdxFirst, subtargetIdxLast)
+                    .mapToObj(i -> (TargetType<? extends T>) sub.get(i))
+                    .collect(Collectors.toUnmodifiableList());
         }
 
         @Override

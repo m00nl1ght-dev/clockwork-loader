@@ -5,6 +5,8 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventType;
 
+// TODO
+
 public class LinkedEventTypeProfilerGroup<E extends Event, T extends ComponentTarget> extends EventTypeProfilerGroup<E, T> {
 
     private final EventTypeProfilerGroup<E, ? super T> parent;
@@ -17,11 +19,11 @@ public class LinkedEventTypeProfilerGroup<E extends Event, T extends ComponentTa
         final var splitIdx = parent.listenerEntries.length;
 
         for (int i = 0; i < splitIdx; i++) {
-            listenerEntries[i] = new LinkedEventTypeProfilerEntry<>(eventType, targetType, listeners.get(i), parent.get(i));
+            // listenerEntries[i] = new LinkedEventTypeProfilerEntry<>(eventType, targetType, listeners.get(i), parent.get(i));
         }
 
         for (int i = splitIdx; i < listenerEntries.length; i++) {
-            listenerEntries[i] = new EventTypeProfilerEntry<>(eventType, targetType, listeners.get(i));
+            // listenerEntries[i] = new EventTypeProfilerEntry<>(eventType, targetType, listeners.get(i));
         }
     }
 

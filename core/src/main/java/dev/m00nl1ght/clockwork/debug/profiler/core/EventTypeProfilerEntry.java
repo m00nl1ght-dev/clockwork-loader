@@ -11,7 +11,7 @@ public class EventTypeProfilerEntry<E extends Event, T extends ComponentTarget> 
 
     public static final int CAPACITY = 100;
 
-    public EventTypeProfilerEntry(EventType<E, ? super T> eventType, TargetType<T> targetType, ComponentType<?, ? super T> componentType) {
+    public EventTypeProfilerEntry(EventType<E, ? super T> eventType, TargetType<T> targetType, ComponentType<?, ? extends T> componentType) {
         super(componentType.getId(), CAPACITY);
     }
 

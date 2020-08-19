@@ -8,7 +8,7 @@ Contains some benchmarks for Clockwork Loader
 '''
 
 [[dependency]]
-id = "cwl-eventhandler-annotation"
+id = "cwl-annotations"
 
 [[target]]
 id = "test-target"

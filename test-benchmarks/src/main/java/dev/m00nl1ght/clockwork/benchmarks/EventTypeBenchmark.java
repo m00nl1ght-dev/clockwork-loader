@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
 import dev.m00nl1ght.clockwork.debug.profiler.SimpleCyclicProfilerEntry;
 import dev.m00nl1ght.clockwork.debug.profiler.generic.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.events.EventType;
-import dev.m00nl1ght.clockwork.extension.eventhandler.CWLEventHandlerExtension;
+import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,7 +40,7 @@ public class EventTypeBenchmark {
         }
 
         for (final var eventType : eventTypes) {
-            CWLEventHandlerExtension.fetchListeners(eventType);
+            CWLAnnotationsExtension.fetchListeners(eventType);
         }
 
         for (final var eventType : eventTypes) {

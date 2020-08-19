@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.core;
 
-import com.vdurmont.semver4j.Requirement;
-import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.version.VersionRequirement;
+import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.regex.Pattern;
 
@@ -15,9 +15,9 @@ public final class ComponentDescriptor {
     private final String plugin;
     private final String component;
     private final String ivyRange;
-    private final Requirement versionRequirement;
+    private final VersionRequirement versionRequirement;
 
-    private ComponentDescriptor(String targetId, String ivyRange, Requirement versionRequirement) {
+    private ComponentDescriptor(String targetId, String ivyRange, VersionRequirement versionRequirement) {
         this.ivyRange = ivyRange;
         this.versionRequirement = versionRequirement;
         Preconditions.notNullOrBlank(targetId, "targetId");
@@ -46,19 +46,19 @@ public final class ComponentDescriptor {
 
     public static ComponentDescriptor buildIvyRange(String targetId, String versionRange) {
         Preconditions.notNullOrEmpty(versionRange, "versionRange");
-        return new ComponentDescriptor(targetId, versionRange, Requirement.buildIvy(versionRange));
+        return new ComponentDescriptor(targetId, versionRange, VersionRequirement.buildIvy(versionRange));
     }
 
-    public static ComponentDescriptor buildExact(String targetId, Semver version) {
+    public static ComponentDescriptor buildExact(String targetId, Version version) {
         Preconditions.notNull(version, "version");
-        return new ComponentDescriptor(targetId, version.toString(), Requirement.build(version));
+        return new ComponentDescriptor(targetId, version.toString(), VersionRequirement.build(version));
     }
 
     public static ComponentDescriptor buildAnyVersion(String targetId) {
         return new ComponentDescriptor(targetId, "", null);
     }
 
-    public boolean acceptsVersion(Semver version) {
+    public boolean acceptsVersion(Version version) {
         return versionRequirement == null || versionRequirement.isSatisfiedBy(version);
     }
 

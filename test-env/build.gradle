@@ -6,8 +6,8 @@ plugins {
 
 mainClassName = "dev.m00nl1ght.clockwork.test.TestLauncher"
 
-sourceCompatibility = 12
-targetCompatibility = 12
+sourceCompatibility = 14
+targetCompatibility = 14
 
 java {
     modularity.getInferModulePath() set true
@@ -22,7 +22,7 @@ sourceSets {
 
 dependencies {
     api project(':core')
-    implementation project(':ext-eventhandler-annotation')
+    implementation project(':ext-annotations')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 }
 

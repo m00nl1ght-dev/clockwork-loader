@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.core;
 
-import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
+import dev.m00nl1ght.clockwork.version.Version;
 
 public class ComponentType<C, T extends ComponentTarget> {
 
     private final String componentId;
-    private final Semver version;
+    private final Version version;
     private final Class<C> componentClass;
     private final PluginContainer plugin;
     private final TargetType<T> targetType;
@@ -29,7 +29,7 @@ public class ComponentType<C, T extends ComponentTarget> {
         return componentId;
     }
 
-    public Semver getVersion() {
+    public Version getVersion() {
         return version;
     }
 

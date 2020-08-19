@@ -9,6 +9,8 @@ import dev.m00nl1ght.clockwork.events.EventType;
 
 import java.util.List;
 
+// TODO
+
 public class EventTypeProfilerGroup<E extends Event, T extends ComponentTarget> extends ProfilerGroup {
 
     protected final TargetType<T> targetType;
@@ -24,7 +26,7 @@ public class EventTypeProfilerGroup<E extends Event, T extends ComponentTarget> 
         final var listeners = eventType.getListeners(targetType);
         this.listenerEntries = new EventTypeProfilerEntry[listeners.size()];
         for (int i = 0; i < listeners.size(); i++) {
-            listenerEntries[i] = new EventTypeProfilerEntry<>(eventType, targetType, listeners.get(i));
+            // listenerEntries[i] = new EventTypeProfilerEntry<>(eventType, targetType, listeners.get(i));
         }
     }
 

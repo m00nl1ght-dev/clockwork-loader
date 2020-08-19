@@ -8,7 +8,7 @@ Test environment for CWL dev workspace
 '''
 
 [[dependency]]
-id = "cwl-eventhandler-annotation"
+id = "cwl-annotations"
 
 [[target]]
 id = "test-target-a"

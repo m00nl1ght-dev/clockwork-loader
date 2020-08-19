@@ -20,7 +20,7 @@ public class PluginProcessorManager {
     }
 
     private static MethodHandles.Lookup checkAccess(MethodHandles.Lookup reflectiveAccess) {
-        if (reflectiveAccess.lookupClass() != ClockworkCore.class || !reflectiveAccess.hasPrivateAccess()) {
+        if (reflectiveAccess.lookupClass() != ClockworkCore.class || !reflectiveAccess.hasFullPrivilegeAccess()) {
             throw new IllegalArgumentException("Invalid reflective access object");
         } else {
             return reflectiveAccess;

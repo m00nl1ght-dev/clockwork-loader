@@ -7,7 +7,7 @@ module dev.m00nl1ght.clockwork.test {
     opens dev.m00nl1ght.clockwork.test to dev.m00nl1ght.clockwork;
 
     requires dev.m00nl1ght.clockwork;
-    requires dev.m00nl1ght.clockwork.extension.eventhandler;
+    requires dev.m00nl1ght.clockwork.extension.annotations;
     requires org.apache.logging.log4j;
 
 }

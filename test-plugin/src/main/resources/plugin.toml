@@ -11,7 +11,7 @@ Test Plugin for Dev environment
 id = "test-env"
 
 [[dependency]]
-id = "cwl-eventhandler-annotation"
+id = "cwl-annotations"
 
 [[component]]
 id = "test-component-a"

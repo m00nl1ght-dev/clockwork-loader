@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.core;
 
-import com.vdurmont.semver4j.Semver;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.version.Version;
 
 import java.lang.module.ModuleFinder;
 import java.util.*;
@@ -21,7 +21,7 @@ public final class PluginDefinition {
     private final List<String> processors;
     private final List<String> permissions;
 
-    protected PluginDefinition(String pluginId, Semver version, String mainClass, String displayName, String description, List<String> authors, Collection<ComponentDescriptor> dependencies, PluginLocator locator, ModuleFinder moduleFinder, String mainModule, List<String> processors, List<String> permissions) {
+    protected PluginDefinition(String pluginId, Version version, String mainClass, String displayName, String description, List<String> authors, Collection<ComponentDescriptor> dependencies, PluginLocator locator, ModuleFinder moduleFinder, String mainModule, List<String> processors, List<String> permissions) {
         this.mainComponent = new ComponentDefinition(this, pluginId, version, mainClass, ClockworkCore.CORE_TARGET_ID, dependencies, false, processors);
         this.displayName = Preconditions.notNullOrBlank(displayName, "displayName");
         this.description = Preconditions.notNull(description, "description");
@@ -37,7 +37,7 @@ public final class PluginDefinition {
         return mainComponent.getId();
     }
 
-    public Semver getVersion() {
+    public Version getVersion() {
         return mainComponent.getVersion();
     }
 
@@ -139,7 +139,7 @@ public final class PluginDefinition {
     public static class Builder {
 
         protected final String id;
-        protected Semver version;
+        protected Version version;
         protected String mainClass;
         protected String displayName;
         protected String description = "";
@@ -161,7 +161,7 @@ public final class PluginDefinition {
             return new PluginDefinition(id, version, mainClass, displayName, description, authors, dependencies.values(), locator, moduleFinder, mainModule, processors, permissions);
         }
 
-        public Builder version(Semver version) {
+        public Builder version(Version version) {
             this.version = version;
             return this;
         }
