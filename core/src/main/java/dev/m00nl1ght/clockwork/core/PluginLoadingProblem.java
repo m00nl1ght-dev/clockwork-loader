@@ -4,14 +4,10 @@ import dev.m00nl1ght.clockwork.locator.PluginLocator;
 
 public abstract class PluginLoadingProblem {
 
-    protected final String cause;
+    private final String cause;
 
-    protected PluginLoadingProblem(ComponentDefinition errored) {
-        this.cause = errored.getId();
-    }
-
-    protected PluginLoadingProblem(ComponentDescriptor errored) {
-        this.cause = errored.getTarget();
+    PluginLoadingProblem(String cause) {
+        this.cause = cause;
     }
 
     public abstract String getMessage();
@@ -24,66 +20,78 @@ public abstract class PluginLoadingProblem {
         return true;
     }
 
-    public static PluginNotFound pluginNotFound(ComponentDescriptor target) {
+    public static PluginNotFound pluginNotFound(DependencyDescriptor target) {
         return new PluginNotFound(target);
     }
 
     public static class PluginNotFound extends PluginLoadingProblem {
 
-        private final ComponentDescriptor target;
+        private final DependencyDescriptor missing;
 
-        private PluginNotFound(ComponentDescriptor target) {
-            super(target);
-            this.target = target;
+        private PluginNotFound(DependencyDescriptor missing) {
+            super(missing.getTarget());
+            this.missing = missing;
         }
 
         @Override
         public String getMessage() {
-            return "Could not locate plugin [" + target.toString() + "]";
+            return "Could not locate plugin [" + missing.toString() + "]";
+        }
+
+        public DependencyDescriptor getMissing() {
+            return missing;
         }
 
     }
 
-    public static LocatorMismatch locatorMismatch(ComponentDefinition errored, PluginLocator locator) {
-        return new LocatorMismatch(errored, locator);
+    public static LocatorMismatch locatorMismatch(PluginReference plugin, PluginLocator actualLocator) {
+        return new LocatorMismatch(plugin, actualLocator);
     }
 
     public static class LocatorMismatch extends PluginLoadingProblem {
 
-        private final ComponentDefinition errored;
-        private final PluginLocator locator;
+        private final PluginReference plugin;
+        private final PluginLocator actualLocator;
 
-        private LocatorMismatch(ComponentDefinition errored, PluginLocator locator) {
-            super(errored);
-            this.errored = errored;
-            this.locator = locator;
+        private LocatorMismatch(PluginReference plugin, PluginLocator actualLocator) {
+            super(plugin.getId());
+            this.plugin = plugin;
+            this.actualLocator = actualLocator;
         }
 
         @Override
         public String getMessage() {
-            final String locA = locator.getName(), locB = errored.getParent().getLocator().getName();
+            final String locA = actualLocator.getName(), locB = plugin.getLocator().getName();
             return "Locator [" + locA + "] returned this definition, but it was actually located by [" + locB + "]";
+        }
+
+        public PluginLocator getActualLocator() {
+            return actualLocator;
+        }
+
+        public PluginReference getPlugin() {
+            return plugin;
         }
 
     }
 
-    public static DependencyNotFound depNotFound(ComponentDefinition errored, ComponentDescriptor required, ComponentDefinition present) {
+    public static DependencyNotFound depNotFound(ComponentDescriptor errored, DependencyDescriptor required, ComponentDescriptor present) {
         return new DependencyNotFound(errored, required, present);
     }
 
-    public static DependencyNotFound depSkipped(ComponentDefinition errored, ComponentDefinition present) {
+    public static DependencyNotFound depSkipped(ComponentDescriptor errored, ComponentDescriptor present) {
         return new DependencyNotFound(errored, null, present);
     }
 
     public static class DependencyNotFound extends PluginLoadingProblem {
 
-        private final ComponentDefinition errored;
-        private final ComponentDescriptor required;
-        private final ComponentDefinition present;
+        private final ComponentDescriptor component;
+        private final DependencyDescriptor required;
+        private final ComponentDescriptor present;
 
-        private DependencyNotFound(ComponentDefinition errored, ComponentDescriptor required, ComponentDefinition present) {
-            super(errored);
-            this.errored = errored;
+        private DependencyNotFound(ComponentDescriptor component, DependencyDescriptor required, ComponentDescriptor present) {
+            super(component.getId());
+            this.component = component;
             this.required = required;
             this.present = present;
         }
@@ -101,41 +109,57 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public boolean isFatal() {
-            return !errored.isOptional();
+            return !component.isOptional();
+        }
+
+        public ComponentDescriptor getComponent() {
+            return component;
+        }
+
+        public ComponentDescriptor getPresent() {
+            return present;
+        }
+
+        public DependencyDescriptor getRequired() {
+            return required;
         }
 
     }
 
-    public static PluginLoadingProblem parentNotFound(TargetDefinition obj) {
-        return new ParentNotFound(obj.getPlugin().getMainComponent(), obj);
+    public static PluginLoadingProblem parentNotFound(TargetDescriptor target) {
+        return new ParentNotFound(target);
     }
 
     public static class ParentNotFound extends PluginLoadingProblem {
 
-        private final TargetDefinition def;
+        private final TargetDescriptor target;
 
-        private ParentNotFound(ComponentDefinition errored, TargetDefinition def) {
-            super(errored);
-            this.def = def;
+        private ParentNotFound(TargetDescriptor target) {
+            super(target.getId());
+            this.target = target;
         }
 
         @Override
         public String getMessage() {
-            return "Parent [" + def.getParent() + "] for target [" + def + "] not found";
+            return "Parent [" + target.getParent() + "] for target [" + target.getId() + "] not found";
+        }
+
+        public TargetDescriptor getTarget() {
+            return target;
         }
 
     }
 
-    public static <T> DuplicateIdFound<T> duplicateIdFound(ComponentDefinition def, T current, T present) {
-        return new DuplicateIdFound<>(def, current, present);
+    public static <T> DuplicateIdFound<T> duplicateIdFound(PluginDescriptor plugin, T current, T present) {
+        return new DuplicateIdFound<>(plugin, current, present);
     }
 
     public static class DuplicateIdFound<T> extends PluginLoadingProblem {
 
         private final T current, present;
 
-        protected DuplicateIdFound(ComponentDefinition def, T current, T present) {
-            super(def);
+        private DuplicateIdFound(PluginDescriptor plugin, T current, T present) {
+            super(plugin.getId());
             this.current = current;
             this.present = present;
         }
@@ -144,37 +168,33 @@ public abstract class PluginLoadingProblem {
             return present;
         }
 
+        public T getCurrent() {
+            return current;
+        }
+
         @Override
         public String getMessage() {
-            if (current instanceof ComponentDefinition) {
-                return "Another component with the same id is already present: " + present;
-            } else {
-                return "Registered " + current + " but a " + current.getClass().getSimpleName() + " with the same id is already present: " + present;
-            }
+            return "Registered " + current + " but a " + current.getClass().getSimpleName() + " with the same id is already present: " + present;
         }
 
     }
 
-    public static <T> DepCycleFound<T> depCycleFound(ComponentDefinition def, T tail) {
-        return new DepCycleFound<>(def, tail);
+    public static <T> DepCycleFound<T> depCycleFound(PluginDescriptor plugin, T tail) {
+        return new DepCycleFound<>(plugin, tail);
     }
 
     public static class DepCycleFound<T> extends PluginLoadingProblem {
 
         private final T tail;
 
-        protected DepCycleFound(ComponentDefinition def, T tail) {
-            super(def);
+        private DepCycleFound(PluginDescriptor plugin, T tail) {
+            super(plugin.getId());
             this.tail = tail;
         }
 
         @Override
         public String getMessage() {
-            if (tail instanceof ComponentDefinition) {
-                return "This component has a (transient) dependency on itself";
-            } else {
-                return "The " + tail.getClass().getSimpleName() + " " + tail + " defined in this component is a (transient) parent of itself";
-            }
+            return tail.getClass().getSimpleName() + " [" + tail + "] has a (transient) dependency on itself";
         }
 
     }

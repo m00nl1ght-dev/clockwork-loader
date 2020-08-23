@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.locator;
 
-import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import dev.m00nl1ght.clockwork.core.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -32,7 +32,7 @@ public class JarFileLocator extends AbstractCachedLocator {
     }
 
     @Override
-    protected void scan(Consumer<PluginDefinition> pluginConsumer) {
+    protected void scan(Consumer<PluginReference> pluginConsumer) {
         final var list = lookupPath.listFiles();
         if (list != null) {
             for (var file : list) scanFile(file.toPath(), pluginConsumer);
@@ -41,7 +41,7 @@ public class JarFileLocator extends AbstractCachedLocator {
         }
     }
 
-    private PluginInfoFile scanFile(Path path, Consumer<PluginDefinition> pluginConsumer) {
+    private PluginInfoFile scanFile(Path path, Consumer<PluginReference> pluginConsumer) {
         if (path.getFileName().toString().toLowerCase().endsWith(".jar")) {
             try {
                 final var pluginInfo = PluginInfoFile.loadFromDir(path);
@@ -58,7 +58,7 @@ public class JarFileLocator extends AbstractCachedLocator {
         }
     }
 
-    private void scanFile(Path path, PluginInfoFile pluginInfo, Consumer<PluginDefinition> pluginConsumer) {
+    private void scanFile(Path path, PluginInfoFile pluginInfo, Consumer<PluginReference> pluginConsumer) {
         final var builder = pluginInfo.populatePluginBuilder();
         final var moduleFinder = ModuleFinder.of(path);
         final var modules = moduleFinder.findAll().iterator();
@@ -73,7 +73,7 @@ public class JarFileLocator extends AbstractCachedLocator {
         final var libDir = path.resolve(LIBS_DIR).toFile();
         final var libs = libDir.listFiles();
         if (libs == null) {
-            builder.moduleFinder(moduleFinder, mainModuleName);
+            builder.moduleFinder(moduleFinder);
         } else {
             final var finders = new ArrayList<ModuleFinder>();
             if (jarInJarPolicy == JarInJarPolicy.DENY) {
@@ -96,15 +96,12 @@ public class JarFileLocator extends AbstractCachedLocator {
                     }
                 }
             }
-
-            builder.moduleFinder(compose(finders, moduleFinder), mainModuleName);
+            builder.moduleFinder(compose(finders, moduleFinder));
         }
 
+        builder.mainModule(mainModuleName);
         builder.locator(this);
-        final var plugin = builder.build();
-        pluginInfo.populateComponents(plugin);
-        pluginInfo.populateTargets(plugin);
-        pluginConsumer.accept(plugin);
+        pluginConsumer.accept(builder.build());
     }
 
     private ModuleFinder compose(List<ModuleFinder> list, ModuleFinder base) {

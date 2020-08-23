@@ -28,7 +28,7 @@ public class ClockworkCore implements ComponentTarget {
     private final Map<Class<?>, TargetType<?>> classToTargetMap = new HashMap<>();
     private final Map<String, ComponentType<?, ?>> loadedComponents = new HashMap<>();
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
-    private final Map<String, PluginContainer> loadedPlugins = new HashMap<>();
+    private final Map<String, LoadedPlugin> loadedPlugins = new HashMap<>();
     private final PluginProcessorManager pluginProcessors = new PluginProcessorManager(MethodHandles.lookup());
     private final ModuleManager moduleManager;
 
@@ -42,10 +42,10 @@ public class ClockworkCore implements ComponentTarget {
         for (int i = 0; i < pluginDefs.size(); i++) {
             final var def = pluginDefs.get(i);
             final var mainModule = moduleManager.mainModuleFor(def);
-            final var plugin = new PluginContainer(def, mainModule, this);
+            final var plugin = new LoadedPlugin(def.getDescriptor(), this, mainModule);
             moduleManager.bindModule(plugin, mainModule.getName());
             loadedPlugins.put(plugin.getId(), plugin);
-            pluginProcessors.apply(plugin, def.getProcessors());
+            // pluginProcessors.apply(plugin, def.getProcessors()); // TODO not here
         }
 
         final var targetDefs = depResolver.getTargetDefinitions();
@@ -54,20 +54,19 @@ public class ClockworkCore implements ComponentTarget {
             final var plugin = loadedPlugins.get(def.getPlugin().getId());
             if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
             final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
-            if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def);
+            if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def, targetClass);
             @SuppressWarnings("unchecked") final var targetCasted = (Class<? extends ComponentTarget>) targetClass;
-            final var target = TargetType.create(def, plugin, targetCasted, i);
+            final var target = TargetType.create(plugin, def, targetCasted, i);
             final var existingByName = loadedTargets.putIfAbsent(target.getId(), target);
             if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
             final var existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
-            if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(def, existingByClass.getId());
-            pluginProcessors.apply(target, def.getProcessors());
+            if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(def, targetClass, existingByClass.getId());
         }
 
         final var componentDefs = depResolver.getComponentDefinitions();
         for (int i = 0; i < componentDefs.size(); i++) {
             final var def = componentDefs.get(i);
-            final var plugin = loadedPlugins.get(def.getParent().getId());
+            final var plugin = loadedPlugins.get(def.getPlugin().getId());
             if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
             final var compClass = moduleManager.loadClassForPlugin(def.getComponentClass(), plugin);
             final var target = loadedTargets.get(def.getTargetId());
@@ -76,8 +75,7 @@ public class ClockworkCore implements ComponentTarget {
             final var existingByName = loadedComponents.putIfAbsent(component.getId(), component);
             if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(def, existingByName.getId());
             final var existingByClass = classToComponentMap.putIfAbsent(compClass, component);
-            if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(def, existingByClass.getId());
-            pluginProcessors.apply(component, def.getProcessors());
+            if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(def, compClass, existingByClass.getId());
         }
 
         for (var targetType : loadedTargets.values()) targetType.getPrimer().init();
@@ -109,6 +107,11 @@ public class ClockworkCore implements ComponentTarget {
         }
 
         return new ClockworkCore(depResolver);
+    }
+
+    public static ClockworkCore load(ClockworkCore parent, ClockworkConfig config) {
+        // TODO
+        return null;
     }
 
     /**

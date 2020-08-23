@@ -37,9 +37,10 @@ public class TestLauncher {
         final var configBuilder = ClockworkConfig.builder();
         configBuilder.addPluginLocator(new BootLayerLocator());
         configBuilder.addPluginLocator(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
-        configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("clockwork"));
-        configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("test-env"));
-        configBuilder.addComponentDescriptor(ComponentDescriptor.buildAnyVersion("test-plugin"));
+        configBuilder.addComponentDescriptor(DependencyDescriptor.buildAnyVersion("clockwork"));
+        configBuilder.addComponentDescriptor(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
+        configBuilder.addComponentDescriptor(DependencyDescriptor.buildAnyVersion("test-env"));
+        configBuilder.addComponentDescriptor(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
         clockworkCore = ClockworkCore.load(configBuilder.build());
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();

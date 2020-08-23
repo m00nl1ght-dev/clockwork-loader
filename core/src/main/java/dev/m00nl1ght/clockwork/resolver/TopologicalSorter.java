@@ -29,7 +29,7 @@ public class TopologicalSorter<T, D> {
             if (dnode != null && sorterFuncs.isDepSatisfied(node.obj, d, dnode.obj)) {
                 dnode.depOf.add(node);
             } else {
-                node.flag = Flag.SKIPPED;
+                node.skip = true;
                 sorterFuncs.onMissingDep(node.obj, d, dnode == null ? null : dnode.obj);
             }
         }
@@ -37,22 +37,21 @@ public class TopologicalSorter<T, D> {
 
     private void processNode(final Node<T> node, final LinkedList<T> sorted) {
         switch (node.flag) {
-            case RESOLVING:
-                sorterFuncs.onCycleFound(node.obj);
-                break;
-            case PENDING:
+            case RESOLVING -> sorterFuncs.onCycleFound(node.obj);
+            case PENDING -> {
                 node.flag = Flag.RESOLVING;
-                for (var n : node.depOf) processNode(n, sorted);
-                sorted.addFirst(node.obj);
-                node.flag = Flag.RESOLVED;
-                break;
-            case SKIPPED:
-                node.flag = Flag.ABSENT;
-                for (var n : node.depOf) {
-                    n.flag = Flag.SKIPPED;
-                    sorterFuncs.onSkippedDep(node.obj, n.obj);
-                    processNode(n, sorted);
+                if (node.skip) {
+                    for (var n : node.depOf) {
+                        n.skip = true;
+                        sorterFuncs.onSkippedDep(n.obj, node.obj);
+                        processNode(n, sorted);
+                    }
+                } else {
+                    for (var n : node.depOf) processNode(n, sorted);
+                    sorted.addFirst(node.obj);
                 }
+                node.flag = Flag.RESOLVED;
+            }
         }
     }
 
@@ -61,10 +60,11 @@ public class TopologicalSorter<T, D> {
         private final T obj;
         private final LinkedList<Node<T>> depOf = new LinkedList<>();
         private Flag flag = Flag.PENDING;
+        private boolean skip;
     }
 
     private enum Flag {
-        PENDING, RESOLVING, RESOLVED, ABSENT, SKIPPED
+        PENDING, RESOLVING, RESOLVED
     }
 
     public interface SorterFuncs<T, D> {

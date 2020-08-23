@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.classloading;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.PluginContainer;
-import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import dev.m00nl1ght.clockwork.core.LoadedPlugin;
+import dev.m00nl1ght.clockwork.core.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 
@@ -28,13 +28,13 @@ public class ModuleManager {
      * This constructor is called during plugin loading, after all definitions have been located,
      * but before any components or classes are loaded.
      *
-     * @param defs   the list of {@link PluginDefinition}s this ModuleManager will find modules for
+     * @param defs   the list of {@link PluginReference}s this ModuleManager will find modules for
      * @param parent the module layer that will be used as a parent for the plugin module layer (usually the boot layer)
      */
-    public ModuleManager(List<PluginDefinition> defs, ModuleLayer parent) {
+    public ModuleManager(List<PluginReference> defs, ModuleLayer parent) {
         try {
             defs.forEach(d -> findModules(d.getModuleFinder(), d));
-            final var comp = defs.stream().map(PluginDefinition::getModuleFinder).filter(Objects::nonNull);
+            final var comp = defs.stream().map(PluginReference::getModuleFinder).filter(Objects::nonNull);
             final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
             final var config = parent.configuration().resolveAndBind(ModuleFinder.of(), finder, modules.keySet());
             classloader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);
@@ -48,32 +48,32 @@ public class ModuleManager {
     /**
      * Helper method that populates the internal module name to plugin id map.
      */
-    private void findModules(ModuleFinder finder, PluginDefinition owner) {
+    private void findModules(ModuleFinder finder, PluginReference owner) {
         try {
             if (finder != null) finder.findAll().forEach(m -> modules.put(m.descriptor().name(), owner.getId()));
         } catch (Exception e) {
-            throw PluginLoadingException.resolvingModules(e, owner);
+            throw PluginLoadingException.resolvingModules(e, owner.getDescriptor());
         }
     }
 
     /**
-     * Finds the main module for a specific {@link PluginDefinition}.
+     * Finds the main module for a specific {@link PluginReference}.
      * The {@link ModuleLayer} of the returned module can either be the
      * internal plugin module layer of this ModuleManager, or one of its parent layers.
      * If the module was loaded from a parent layer, it will also be registered to the respective plugin id.
      * If needed, this method will also patch the returned module to allow reflective access to its classes.
      */
-    public Module mainModuleFor(PluginDefinition def) {
+    public Module mainModuleFor(PluginReference def) {
         final var moduleName = def.getMainModule();
         final var layer = def.getModuleFinder() == null ? ModuleLayer.boot() : layerController.layer();
         final var found = layer.findModule(moduleName);
-        if (found.isEmpty()) throw PluginLoadingException.pluginMainModuleNotFound(def);
+        if (found.isEmpty()) throw PluginLoadingException.pluginMainModuleNotFound(def.getDescriptor(), def.getMainModule());
 
         if (def.getModuleFinder() == null) {
             modules.put(moduleName, def.getId());
         } else {
             final var pId = modules.get(moduleName);
-            if (!def.getId().equals(pId)) throw PluginLoadingException.pluginMainModuleIllegal(def, pId);
+            if (!def.getId().equals(pId)) throw PluginLoadingException.pluginMainModuleIllegal(def.getDescriptor(), def.getMainModule(), pId);
             patchModule(found.get());
         }
 
@@ -88,7 +88,7 @@ public class ModuleManager {
      * If no module with the given name is present, or its location can not be determined,
      * then this method just has no effect, and will not throw any exception.
      */
-    public void bindModule(PluginContainer plugin, String moduleName) {
+    public void bindModule(LoadedPlugin plugin, String moduleName) {
         classloader.bindPlugin(plugin, moduleName);
     }
 
@@ -111,17 +111,17 @@ public class ModuleManager {
      * @throws PluginLoadingException if the class is in a module other than
      *                                the main module of the plugin, or the class was not found
      */
-    public Class<?> loadClassForPlugin(String className, PluginContainer plugin) {
+    public Class<?> loadClassForPlugin(String className, LoadedPlugin plugin) {
         try {
             final var cl = plugin.getMainModule().getClassLoader();
             final var clazz = Class.forName(className, false, cl);
             final var md = clazz.getModule().getDescriptor();
             final var actPlugin = md == null ? null : modules.get(md.name());
             if (!plugin.getId().equals(actPlugin))
-                throw PluginLoadingException.componentClassIllegal(className, plugin, actPlugin, md);
+                throw PluginLoadingException.componentClassIllegal(className, plugin.getDescriptor(), actPlugin, md);
             return clazz;
         } catch (ClassNotFoundException e) {
-            throw PluginLoadingException.componentClassNotFound(className, plugin);
+            throw PluginLoadingException.componentClassNotFound(className, plugin.getDescriptor());
         }
     }
 

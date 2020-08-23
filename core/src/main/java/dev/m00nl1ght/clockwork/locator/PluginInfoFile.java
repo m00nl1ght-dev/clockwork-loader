@@ -3,10 +3,7 @@ package dev.m00nl1ght.clockwork.locator;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import dev.m00nl1ght.clockwork.core.ComponentDefinition;
-import dev.m00nl1ght.clockwork.core.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.core.PluginDefinition;
-import dev.m00nl1ght.clockwork.core.TargetDefinition;
+import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -54,60 +51,64 @@ public class PluginInfoFile {
         this.pluginId = config.get("plugin_id");
     }
 
-    public PluginDefinition.Builder populatePluginBuilder() {
-        final var builder = PluginDefinition.builder(pluginId);
-        builder.displayName(config.get("display_name"));
-        builder.version(new Version(config.get("version"), Version.VersionType.IVY));
-        builder.description(config.getOrElse("description", ""));
-        builder.authors(config.getOrElse("authors", List.of()));
-        builder.mainClass(config.get("main_class"));
-        final Optional<List<UnmodifiableConfig>> deps = config.getOptional("dependency");
-        deps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
+    public PluginReference.Builder populatePluginBuilder() {
+        final var descriptorBuilder = PluginDescriptor.builder();
+        descriptorBuilder.id(pluginId);
+        descriptorBuilder.displayName(config.get("display_name"));
+        descriptorBuilder.version(new Version(config.get("version"), Version.VersionType.IVY));
+        descriptorBuilder.description(config.getOrElse("description", ""));
+        final Optional<List<String>> authors = config.getOptional("authors");
+        authors.ifPresent(l -> l.forEach(descriptorBuilder::author));
         final Optional<List<UnmodifiableConfig>> perms = config.getOptional("permission");
-        perms.ifPresent(l -> l.forEach(p -> builder.permission(buildPerm(p))));
-        return builder;
-    }
+        perms.ifPresent(l -> l.forEach(p -> descriptorBuilder.permission(buildPerm(p))));
+        final var descriptor = descriptorBuilder.build();
 
-    public void populateComponents(PluginDefinition plugin) {
+        final var mainCompBuilder = ComponentDescriptor.builder(descriptor);
+        mainCompBuilder.id(pluginId);
+        mainCompBuilder.target(ClockworkCore.CORE_TARGET_ID);
+        mainCompBuilder.componentClass(config.get("main_class"));
+        final Optional<List<UnmodifiableConfig>> deps = config.getOptional("dependency");
+        deps.ifPresent(l -> l.forEach(d -> mainCompBuilder.dependency(buildDep(d))));
+        final var mainComp = mainCompBuilder.build();
+
+        final var referenceBuilder = PluginReference.builder(descriptor);
+        referenceBuilder.mainComponent(mainComp);
+
         final Optional<List<UnmodifiableConfig>> components = config.getOptional("component");
-        if (components.isEmpty()) return;
-        for (var conf : components.get()) {
-            final var builder = ComponentDefinition.builder(plugin, conf.get("id"));
-            builder.component(conf.get("class"));
+        if (components.isPresent()) for (var conf : components.get()) {
+            final var builder = ComponentDescriptor.builder(descriptor);
+            builder.id(conf.get("id"));
+            builder.componentClass(conf.get("class"));
             builder.target(conf.get("target"));
-            final Optional<List<UnmodifiableConfig>> deps = conf.getOptional("dependency");
-            deps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
+            final Optional<List<UnmodifiableConfig>> compDeps = conf.getOptional("dependency");
+            compDeps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
             final Optional<Boolean> optional = conf.getOptional("optional");
             optional.ifPresent(builder::optional);
-            builder.build();
+            referenceBuilder.component(builder.build());
         }
-    }
 
-    public void populateTargets(PluginDefinition plugin) {
         final Optional<List<UnmodifiableConfig>> targets = config.getOptional("target");
-        if (targets.isEmpty()) return;
-        for (var conf : targets.get()) {
-            final String id = conf.get("id");
-            final String targetClass = conf.get("class");
-            final String parent = conf.getOrElse("parent", () -> null);
-            TargetDefinition.build(plugin, id, autoId(parent, plugin.getId()), targetClass);
+        if (targets.isPresent()) for (var conf : targets.get()) {
+            final var builder = TargetDescriptor.builder(descriptor);
+            builder.id(conf.get("id"));
+            builder.targetClass(conf.get("class"));
+            builder.parent(conf.getOrElse("parent", () -> null));
+            referenceBuilder.target(builder.build());
         }
+
+        return referenceBuilder;
     }
 
-    private ComponentDescriptor buildDep(UnmodifiableConfig conf) {
+    private DependencyDescriptor buildDep(UnmodifiableConfig conf) {
         final String id = conf.get("id");
         final Optional<String> verStr = conf.getOptional("version");
-        return verStr.map(s -> ComponentDescriptor.buildIvyRange(id, s)).orElseGet(() -> ComponentDescriptor.buildAnyVersion(id));
+        return verStr.map(s -> DependencyDescriptor.buildIvyRange(id, s)).orElseGet(() -> DependencyDescriptor.buildAnyVersion(id));
     }
 
     private String buildPerm(UnmodifiableConfig conf) {
         final String perm = conf.get("id");
         final Optional<String> value = conf.getOptional("value");
         return (value.isPresent() && !value.get().isEmpty()) ? perm + ":" + value.get() : perm;
-    }
-
-    private static String autoId(String id, String pId) {
-        return id == null ? null : id.contains(":") ? id : pId + ":" + id;
     }
 
     public String getPluginId() {

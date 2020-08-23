@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.locator;
 
-import dev.m00nl1ght.clockwork.core.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import dev.m00nl1ght.clockwork.core.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.core.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 
 import java.util.*;
@@ -9,16 +9,16 @@ import java.util.function.Consumer;
 
 public abstract class AbstractCachedLocator implements PluginLocator {
 
-    private Map<String, PluginDefinition> cache;
+    private Map<String, PluginReference> cache;
 
     @Override
-    public Collection<PluginDefinition> findAll() {
+    public Collection<PluginReference> findAll() {
         scanIfNeeded();
         return Collections.unmodifiableCollection(cache.values());
     }
 
     @Override
-    public Collection<PluginDefinition> find(ComponentDescriptor target) {
+    public Collection<PluginReference> find(DependencyDescriptor target) {
         scanIfNeeded();
         final var ret = cache.get(target.getPlugin());
         if (ret != null && target.acceptsVersion(ret.getVersion())) {
@@ -35,11 +35,11 @@ public abstract class AbstractCachedLocator implements PluginLocator {
         }
     }
 
-    private void accept(PluginDefinition def) {
+    private void accept(PluginReference def) {
         final var prev = cache.putIfAbsent(def.getId(), def);
-        if (prev != null) throw PluginLoadingException.pluginDuplicate(this, def, prev);
+        if (prev != null) throw PluginLoadingException.pluginDuplicate(this, def.getDescriptor(), prev.getDescriptor());
     }
 
-    protected abstract void scan(Consumer<PluginDefinition> pluginConsumer);
+    protected abstract void scan(Consumer<PluginReference> pluginConsumer);
 
 }

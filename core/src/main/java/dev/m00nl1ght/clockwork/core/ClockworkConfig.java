@@ -9,7 +9,7 @@ import java.util.List;
 public final class ClockworkConfig {
 
     private final List<PluginLocator> pluginLocators = new ArrayList<>();
-    private final List<ComponentDescriptor> componentDescriptors = new ArrayList<>();
+    private final List<DependencyDescriptor> dependencyDescriptors = new ArrayList<>();
 
     public static Builder builder() {
         return new Builder();
@@ -17,11 +17,11 @@ public final class ClockworkConfig {
 
     public ClockworkConfig(Builder builder) {
         this.pluginLocators.addAll(builder.pluginLocators);
-        this.componentDescriptors.addAll(builder.componentDescriptors);
+        this.dependencyDescriptors.addAll(builder.dependencyDescriptors);
     }
 
-    public List<ComponentDescriptor> getComponentDescriptors() {
-        return Collections.unmodifiableList(componentDescriptors);
+    public List<DependencyDescriptor> getComponentDescriptors() {
+        return Collections.unmodifiableList(dependencyDescriptors);
     }
 
     public List<PluginLocator> getPluginLocators() {
@@ -31,7 +31,7 @@ public final class ClockworkConfig {
     public static class Builder {
 
         private final List<PluginLocator> pluginLocators = new ArrayList<>();
-        private final List<ComponentDescriptor> componentDescriptors = new ArrayList<>();
+        private final List<DependencyDescriptor> dependencyDescriptors = new ArrayList<>();
 
         private Builder() {}
 
@@ -45,10 +45,10 @@ public final class ClockworkConfig {
             this.pluginLocators.add(locator);
         }
 
-        public void addComponentDescriptor(ComponentDescriptor descriptor) {
-            if (componentDescriptors.stream().anyMatch(d -> d.getTarget().equals(descriptor.getTarget())))
+        public void addComponentDescriptor(DependencyDescriptor descriptor) {
+            if (dependencyDescriptors.stream().anyMatch(d -> d.getTarget().equals(descriptor.getTarget())))
                 throw new IllegalArgumentException("duplicate component descriptor: " + descriptor.getTarget());
-            this.componentDescriptors.add(descriptor);
+            this.dependencyDescriptors.add(descriptor);
         }
 
     }

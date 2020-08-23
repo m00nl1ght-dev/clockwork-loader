@@ -2,39 +2,35 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
-import dev.m00nl1ght.clockwork.version.Version;
 
 public class ComponentType<C, T extends ComponentTarget> {
 
-    private final String componentId;
-    private final Version version;
+    private final LoadedPlugin plugin;
+    private final ComponentDescriptor descriptor;
     private final Class<C> componentClass;
-    private final PluginContainer plugin;
     private final TargetType<T> targetType;
 
     private int internalID = -1;
     private ComponentFactory<T, C> factory;
 
-    ComponentType(ComponentDefinition definition, PluginContainer plugin, Class<C> componentClass, TargetType<T> targetType) {
-        Preconditions.notNull(definition, "definition");
-        this.componentId = definition.getId();
-        this.version = definition.getVersion();
-        this.plugin = Preconditions.notNullAnd(plugin, o -> o.getId().equals(definition.getParent().getId()), "parent");
-        this.targetType = Preconditions.notNullAnd(targetType, o -> definition.getTargetId().equals(o.getId()), "targetType");
-        this.componentClass = Preconditions.notNullAnd(componentClass, o -> definition.getComponentClass().equals(o.getCanonicalName()), "componentClass");
+    ComponentType(LoadedPlugin plugin, ComponentDescriptor descriptor, Class<C> componentClass, TargetType<T> targetType) {
+        this.descriptor = Preconditions.notNull(descriptor, "descriptor");
+        this.plugin = Preconditions.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
+        this.targetType = Preconditions.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
+        this.componentClass = Preconditions.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
         this.factory = buildDefaultFactory(componentClass);
     }
 
-    public String getId() {
-        return componentId;
-    }
-
-    public Version getVersion() {
-        return version;
-    }
-
-    public PluginContainer getPlugin() {
+    public LoadedPlugin getPlugin() {
         return plugin;
+    }
+
+    public ComponentDescriptor getDescriptor() {
+        return descriptor;
+    }
+
+    public String getId() {
+        return descriptor.getId();
     }
 
     public TargetType<T> getTargetType() {
@@ -47,7 +43,7 @@ public class ComponentType<C, T extends ComponentTarget> {
 
     @Override
     public String toString() {
-        return componentId;
+        return descriptor.toString();
     }
 
     public int getInternalID() {
@@ -74,12 +70,8 @@ public class ComponentType<C, T extends ComponentTarget> {
         this.factory = factory;
     }
 
-    public C buildComponentFor(T object) {
-        try {
-            return factory == null ? null : factory.create(object);
-        } catch (Exception e) {
-            throw new RuntimeException("An error occurred trying to initialize component [" + getId() + "]", e);
-        }
+    protected C buildComponentFor(T object) throws Exception {
+        return factory == null ? null : factory.create(object);
     }
 
     @SuppressWarnings("Convert2MethodRef")

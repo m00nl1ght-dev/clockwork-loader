@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.security;
 
 import dev.m00nl1ght.clockwork.classloading.PluginClassloader;
-import dev.m00nl1ght.clockwork.core.PluginContainer;
+import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -31,7 +31,7 @@ public final class ClockworkSecurityPolicy extends Policy {
         return new Permissions();
     }
 
-    public PermissionCollection getUntrusted(PluginContainer plugin) {
+    public PermissionCollection getUntrusted(LoadedPlugin plugin) {
         return config.getPermissionsFor(plugin);
     }
 

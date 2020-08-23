@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.locator;
 
-import dev.m00nl1ght.clockwork.core.PluginDefinition;
+import dev.m00nl1ght.clockwork.core.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -27,13 +27,13 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
     }
 
     @Override
-    protected void scan(Consumer<PluginDefinition> pluginConsumer) {
+    protected void scan(Consumer<PluginReference> pluginConsumer) {
         if (lookupPath.isDirectory() && scanDir(lookupPath.toPath(), pluginConsumer)) return;
         final var list = lookupPath.listFiles();
         if (list != null) Arrays.stream(list).filter(File::isDirectory).forEach(d -> scanDir(d.toPath(), pluginConsumer));
     }
 
-    private boolean scanDir(Path path, Consumer<PluginDefinition> pluginConsumer) {
+    private boolean scanDir(Path path, Consumer<PluginReference> pluginConsumer) {
         final var pluginInfo = PluginInfoFile.loadFromDir(path);
         if (pluginInfo == null) return false;
         final var builder = pluginInfo.populatePluginBuilder();
@@ -45,12 +45,10 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
         }
 
         builder.locator(this);
-        builder.moduleFinder(moduleFinder, modules.next().descriptor().name());
+        builder.moduleFinder(moduleFinder);
+        builder.mainModule(modules.next().descriptor().name());
         if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
-        final var plugin = builder.build();
-        pluginInfo.populateComponents(plugin);
-        pluginInfo.populateTargets(plugin);
-        pluginConsumer.accept(plugin);
+        pluginConsumer.accept(builder.build());
         return true;
     }
 

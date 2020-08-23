@@ -1,97 +1,138 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
-import dev.m00nl1ght.clockwork.version.VersionRequirement;
 import dev.m00nl1ght.clockwork.version.Version;
 
-import java.util.regex.Pattern;
+import java.util.*;
 
 public final class ComponentDescriptor {
 
-    public static final Pattern PLUGIN_ID_PATTERN = Pattern.compile("^[a-z][a-z0-9_-]{3,32}$");
-    public static final Pattern COMPONENT_ID_PATTERN = Pattern.compile("^([a-z][a-z0-9_-]{3,32})(?::([a-z][a-z0-9_-]{3,32}))?$");
-    public static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("^([a-z][a-z0-9_-]{3,32})(?::([a-z][a-z0-9_-]{3,32}))?(?:\\[(.*)])?$");
+    private final PluginDescriptor plugin;
+    private final String id;
+    private final String targetId;
+    private final String componentClass;
+    private final List<DependencyDescriptor> dependencies;
+    private final boolean optional;
 
-    private final String plugin;
-    private final String component;
-    private final String ivyRange;
-    private final VersionRequirement versionRequirement;
-
-    private ComponentDescriptor(String targetId, String ivyRange, VersionRequirement versionRequirement) {
-        this.ivyRange = ivyRange;
-        this.versionRequirement = versionRequirement;
-        Preconditions.notNullOrBlank(targetId, "targetId");
-        final var matcher = COMPONENT_ID_PATTERN.matcher(targetId);
-        if (matcher.matches()) {
-            this.plugin = matcher.group(1);
-            this.component = matcher.group(2) == null ? "" : matcher.group(2);
-        } else {
-            throw new IllegalArgumentException("invalid descriptor: " + targetId);
-        }
+    ComponentDescriptor(Builder builder) {
+        this.plugin = Preconditions.notNull(builder.plugin, "plugin");
+        this.id = Preconditions.notNullOrBlank(builder.id, "id");
+        this.targetId = Preconditions.notNullOrBlank(builder.targetId, "");
+        this.componentClass = Preconditions.notNullOrBlank(builder.componentClass, "componentClass");
+        this.dependencies = List.copyOf(Preconditions.notNull(builder.dependencies, "dependencies").values());
+        this.optional = builder.optional;
     }
 
-    public static ComponentDescriptor build(String descriptor) {
-        Preconditions.notNullOrBlank(descriptor, "descriptor");
-        final var matcher = DESCRIPTOR_PATTERN.matcher(descriptor);
-        if (matcher.matches()) {
-            final var plugin = matcher.group(1);
-            final var component = matcher.group(2);
-            final var range = matcher.group(3);
-            final var id = component == null ? plugin : plugin + ":" + component;
-            return range == null ? buildAnyVersion(id) : buildIvyRange(id, range);
-        } else {
-            throw new IllegalArgumentException("invalid descriptor: " + descriptor);
-        }
-    }
-
-    public static ComponentDescriptor buildIvyRange(String targetId, String versionRange) {
-        Preconditions.notNullOrEmpty(versionRange, "versionRange");
-        return new ComponentDescriptor(targetId, versionRange, VersionRequirement.buildIvy(versionRange));
-    }
-
-    public static ComponentDescriptor buildExact(String targetId, Version version) {
-        Preconditions.notNull(version, "version");
-        return new ComponentDescriptor(targetId, version.toString(), VersionRequirement.build(version));
-    }
-
-    public static ComponentDescriptor buildAnyVersion(String targetId) {
-        return new ComponentDescriptor(targetId, "", null);
-    }
-
-    public boolean acceptsVersion(Version version) {
-        return versionRequirement == null || versionRequirement.isSatisfiedBy(version);
-    }
-
-    public String getPlugin() {
+    public PluginDescriptor getPlugin() {
         return plugin;
     }
 
-    public String getComponent() {
-        return component;
+    public String getId() {
+        return id;
     }
 
-    public String getTarget() {
-        return component.isEmpty() ? plugin : plugin + ":" + component;
+    public Version getVersion() {
+        return plugin.getVersion();
+    }
+
+    public String getTargetId() {
+        return targetId;
+    }
+
+    public String getComponentClass() {
+        return componentClass;
+    }
+
+    public List<DependencyDescriptor> getDependencies() {
+        return dependencies;
+    }
+
+    public boolean isOptional() {
+        return optional;
     }
 
     @Override
     public String toString() {
-        final StringBuilder builder = new StringBuilder();
+        return getId() + ":" + getVersion();
+    }
 
-        builder.append(plugin);
+    public static Builder builder(PluginDescriptor plugin) {
+        return new Builder(plugin);
+    }
 
-        if (!component.isEmpty()) {
-            builder.append(':');
-            builder.append(component);
+    public static final class Builder {
+
+        private final PluginDescriptor plugin;
+        private String id;
+        private String componentClass;
+        private String targetId;
+        private final Map<String, DependencyDescriptor> dependencies = new LinkedHashMap<>();
+        private boolean optional = false;
+
+        private Builder(PluginDescriptor plugin) {
+            this.plugin = plugin;
         }
 
-        if (!ivyRange.isEmpty()) {
-            builder.append('[');
-            builder.append(ivyRange);
-            builder.append(']');
+        public ComponentDescriptor build() {
+            this.addTrivialDeps();
+            return new ComponentDescriptor(this);
         }
 
-        return builder.toString();
+        private void addTrivialDeps() {
+            if (!plugin.getId().equals(ClockworkCore.CORE_PLUGIN_ID)) {
+                dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDescriptor::buildAnyVersion);
+                if (!id.equals(plugin.getId())) dependencies.computeIfAbsent(plugin.getId(), DependencyDescriptor::buildAnyVersion);
+                if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDescriptor::buildAnyVersion);
+            }
+        }
+
+        public Builder id(String id) {
+            if (id == null) return this;
+            if (id.equals(plugin.getId())) {this.id = id; return this;}
+            if (!id.contains(":")) id = plugin.getId() + ":" + id;
+            final var matcher = DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(id);
+            if (matcher.matches()) {
+                if (matcher.group(1).equals(plugin.getId())) {
+                    this.id = id;
+                    return this;
+                } else {
+                    throw PluginLoadingException.subIdMismatch(plugin, id);
+                }
+            } else {
+                throw PluginLoadingException.invalidId(id);
+            }
+        }
+
+        public Builder componentClass(String componentClass) {
+            this.componentClass = componentClass;
+            return this;
+        }
+
+        public Builder target(String targetId) {
+            this.targetId = targetId;
+            return this;
+        }
+
+        public Builder dependency(DependencyDescriptor dependency) {
+            final var prev = this.dependencies.putIfAbsent(dependency.getTarget(), dependency);
+            if (prev != null) throw PluginLoadingException.dependencyDuplicate(id, dependency, prev);
+            return this;
+        }
+
+        public Builder optional(boolean optional) {
+            this.optional = optional;
+            return this;
+        }
+
+        public Builder optional() {
+            return optional(true);
+        }
+
+    }
+
+    private static String pluginId(String id) {
+        final var i = id.indexOf(':');
+        return i < 0 ? id : id.substring(0, i);
     }
 
 }

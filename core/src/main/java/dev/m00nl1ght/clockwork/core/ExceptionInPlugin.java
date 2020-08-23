@@ -5,23 +5,23 @@ import dev.m00nl1ght.clockwork.util.Preconditions;
 
 public class ExceptionInPlugin extends RuntimeException {
 
-    private final PluginContainer plugin;
+    private final LoadedPlugin plugin;
 
-    private ExceptionInPlugin(PluginContainer plugin, String msg) {
+    private ExceptionInPlugin(LoadedPlugin plugin, String msg) {
         super(msg);
         this.plugin = Preconditions.notNull(plugin, "plugin");
     }
 
-    private ExceptionInPlugin(PluginContainer plugin, String msg, Throwable throwable) {
+    private ExceptionInPlugin(LoadedPlugin plugin, String msg, Throwable throwable) {
         super(msg, throwable);
         this.plugin = Preconditions.notNull(plugin, "plugin");
     }
 
-    public static ExceptionInPlugin generic(PluginContainer plugin, String msg, Object... objects) {
+    public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Object... objects) {
         return new ExceptionInPlugin(plugin, LogUtil.format(msg, "[]", objects));
     }
 
-    public static ExceptionInPlugin generic(PluginContainer plugin, String msg, Throwable cause, Object... objects) {
+    public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Throwable cause, Object... objects) {
         return new ExceptionInPlugin(plugin, LogUtil.format(msg, "[]", objects), cause);
     }
 

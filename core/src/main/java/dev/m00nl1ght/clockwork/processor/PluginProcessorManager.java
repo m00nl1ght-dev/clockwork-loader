@@ -27,7 +27,7 @@ public class PluginProcessorManager {
         }
     }
 
-    public void apply(PluginContainer object, Collection<String> processors) {
+    public void apply(LoadedPlugin object, Collection<String> processors) {
         for (var name : processors) {
             final var prc = loadedProcessors.get(name);
             if (prc == null) throw PluginLoadingException.missingProcessor("plugin", object.getId(), name);

@@ -19,6 +19,5 @@ sourceSets {
 
 dependencies {
     api project(':core')
-
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 }

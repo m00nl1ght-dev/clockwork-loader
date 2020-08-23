@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.events.EventType;
 import dev.m00nl1ght.clockwork.interfaces.ComponentInterfaceType;
 import dev.m00nl1ght.clockwork.util.CollectionUtil;
 import dev.m00nl1ght.clockwork.util.LogUtil;
+import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -13,20 +14,20 @@ import java.util.stream.IntStream;
 
 public abstract class TargetType<T extends ComponentTarget> {
 
-    protected final String id;
-    protected final int internalIdx;
+    protected final LoadedPlugin plugin;
+    protected final TargetDescriptor descriptor;
     protected final Class<T> targetClass;
-    protected final PluginContainer plugin;
     protected final List<TargetType<? extends T>> directSubtargets = new ArrayList<>();
     protected final ArrayList<ComponentType<?, T>> components = new ArrayList<>();
+    protected final int internalIdx;
 
     private Primer<T> primer;
     protected int subtargetIdxFirst = -1, subtargetIdxLast = -1;
 
-    private TargetType(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass, int internalIdx) {
+    private TargetType(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass, int internalIdx) {
         this.plugin = plugin;
+        this.descriptor = descriptor;
         this.targetClass = targetClass;
-        this.id = definition.getId();
         this.internalIdx = internalIdx;
         this.primer = new Primer<>(this);
     }
@@ -39,7 +40,7 @@ public abstract class TargetType<T extends ComponentTarget> {
             throw new IllegalArgumentException(LogUtil.format(msg, eventType.getEventClassType().getType().getTypeName()));
         } else if (!this.canAcceptFrom(eventType.getTargetType())) {
             final var msg = "Component target [] cannot use event type of component in different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, eventType.getTargetType()));
+            throw new IllegalArgumentException(LogUtil.format(msg, "[]", this, eventType.getTargetType()));
         }
     }
 
@@ -49,23 +50,27 @@ public abstract class TargetType<T extends ComponentTarget> {
             throw new IllegalArgumentException(LogUtil.format(msg, interfaceType.getInterfaceClass().getTypeName()));
         } else if (!this.canAcceptFrom(interfaceType.getTargetType())) {
             final var msg = "Component target [] cannot use interface type from different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, interfaceType.getTargetType()));
+            throw new IllegalArgumentException(LogUtil.format(msg, "[]", this, interfaceType.getTargetType()));
         }
     }
 
     public void checkCompatibility(ComponentType<?, ?> componentType) {
         if (!this.canAcceptFrom(componentType.getTargetType())) {
             final var msg = "Component target [] cannot get component in different target []";
-            throw new IllegalArgumentException(LogUtil.format(msg, id, componentType.getTargetType()));
+            throw new IllegalArgumentException(LogUtil.format(msg, "[]", this, componentType.getTargetType()));
         }
     }
 
-    public PluginContainer getPlugin() {
+    public LoadedPlugin getPlugin() {
         return plugin;
     }
 
+    public TargetDescriptor getDescriptor() {
+        return descriptor;
+    }
+
     public String getId() {
-        return id;
+        return descriptor.getId();
     }
 
     public Class<T> getTargetClass() {
@@ -111,30 +116,33 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     protected abstract void init();
 
-    static <T extends ComponentTarget> TargetType<T> create(TargetDefinition def, PluginContainer plugin, Class<T> targetClass, int idx) {
-        if (def.getParent() == null) {
-            checkSuperclasses(def, targetClass, Object.class, plugin.getClockworkCore());
-            return new Root<>(def, plugin, targetClass, idx);
+    static <T extends ComponentTarget> TargetType<T> create(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass, int idx) {
+        Preconditions.notNull(descriptor, "descriptor");
+        Preconditions.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
+        Preconditions.notNullAnd(targetClass, o -> o.getName().equals(descriptor.getTargetClass()), "targetClass");
+        if (descriptor.getParent() == null) {
+            checkSuperclasses(descriptor, targetClass, Object.class, plugin.getClockworkCore());
+            return new Root<>(plugin, descriptor, targetClass, idx);
         } else {
-            final var found = plugin.getClockworkCore().getTargetType(def.getParent()).orElseThrow();
+            final var found = plugin.getClockworkCore().getTargetType(descriptor.getParent()).orElseThrow();
             if (found.isInitialised()) throw new IllegalStateException();
             if (found.targetClass.isAssignableFrom(targetClass)) {
-                checkSuperclasses(def, targetClass, found.targetClass, plugin.getClockworkCore());
+                checkSuperclasses(descriptor, targetClass, found.targetClass, plugin.getClockworkCore());
                 @SuppressWarnings("unchecked") final var parentType = (TargetType<? super T>) found;
-                return new ForSubclass<>(def, parentType, plugin, targetClass, idx);
+                return new ForSubclass<>(plugin, descriptor, parentType, targetClass, idx);
             } else {
-                throw PluginLoadingException.invalidParentForTarget(def, found);
+                throw PluginLoadingException.invalidParentForTarget(descriptor, found);
             }
         }
     }
 
-    private static void checkSuperclasses(TargetDefinition def, Class<?> targetClass, Class<?> expected, ClockworkCore core) {
+    private static void checkSuperclasses(TargetDescriptor descriptor, Class<?> targetClass, Class<?> expected, ClockworkCore core) {
         var current = targetClass;
         while ((current = current.getSuperclass()) != null) {
             if (current == expected) return;
             final var found = core.getTargetTypeUncasted(current);
             if (found.isPresent()) {
-                throw PluginLoadingException.illegalTargetSubclass(def, targetClass, found.get());
+                throw PluginLoadingException.illegalTargetSubclass(descriptor, targetClass, found.get());
             }
         }
     }
@@ -147,9 +155,9 @@ public abstract class TargetType<T extends ComponentTarget> {
             this.targetType = targetType;
         }
 
-        public synchronized <C> ComponentType<C, T> register(ComponentDefinition def, PluginContainer plugin, Class<C> compClass) {
+        public synchronized <C> ComponentType<C, T> register(ComponentDescriptor component, LoadedPlugin plugin, Class<C> compClass) {
             if (targetType.isInitialised()) throw new IllegalStateException();
-            final var componentType = new ComponentType<>(def, plugin, compClass, targetType);
+            final var componentType = new ComponentType<>(plugin, component, compClass, targetType);
             targetType.components.add(componentType);
             return componentType;
         }
@@ -167,8 +175,8 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         protected final ArrayList<TargetType<? extends T>> allSubtargets = new ArrayList<>();
 
-        private Root(TargetDefinition definition, PluginContainer plugin, Class<T> targetClass, int internalIdx) {
-            super(definition, plugin, targetClass, internalIdx);
+        private Root(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass, int internalIdx) {
+            super(plugin, descriptor, targetClass, internalIdx);
         }
 
         @Override
@@ -219,8 +227,8 @@ public abstract class TargetType<T extends ComponentTarget> {
         private final TargetType<? super T> parent;
         private final List<ComponentType<?, ? super T>> compoundList;
 
-        private ForSubclass(TargetDefinition definition, TargetType<? super T> parent, PluginContainer plugin, Class<T> targetClass, int internalIdx) {
-            super(definition, plugin, targetClass, internalIdx);
+        private ForSubclass(LoadedPlugin plugin, TargetDescriptor descriptor, TargetType<? super T> parent, Class<T> targetClass, int internalIdx) {
+            super(plugin, descriptor, targetClass, internalIdx);
             this.compoundList = CollectionUtil.compoundList(parent.getComponentTypes(), components);
             this.root = parent.getRoot();
             this.parent = parent;

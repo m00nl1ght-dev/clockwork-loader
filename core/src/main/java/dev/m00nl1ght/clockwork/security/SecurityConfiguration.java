@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.security;
 
-import dev.m00nl1ght.clockwork.core.PluginContainer;
+import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.security.permissions.PluginPermissionEntry;
 
 import java.security.Permissions;
@@ -23,14 +23,14 @@ public final class SecurityConfiguration {
         }
     }
 
-    public Permissions getPermissionsFor(PluginContainer plugin) {
+    public Permissions getPermissionsFor(LoadedPlugin plugin) {
         final var perms = new Permissions();
 
         for (var entry : simplePerms) {
             entry.getPermissions(perms::add, plugin, "");
         }
 
-        for (var str : plugin.getPermissions()) {
+        for (var str : plugin.getDescriptor().getPermissions()) {
             var i = str.indexOf(':');
             var perm = i < 0 ? str : str.substring(0, i);
             var value = i < 0 ? "" : str.substring(i + 1);

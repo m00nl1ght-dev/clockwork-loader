@@ -12,11 +12,11 @@ public class DependencyResolver {
 
     private final ClockworkConfig config;
 
-    private final TopologicalSorter<ComponentDefinition, ComponentDescriptor> compSorter = new TopologicalSorter<>(new CompSortFuncs());
-    private final TopologicalSorter<TargetDefinition, String> targetSorter = new TopologicalSorter<>(new TargetSortFuncs());
-    private final LinkedList<PluginDefinition> pluginDefinitions = new LinkedList<>();
-    private final LinkedList<ComponentDefinition> componentDefinitions = new LinkedList<>();
-    private final LinkedList<TargetDefinition> targetDefinitions = new LinkedList<>();
+    private final TopologicalSorter<ComponentDescriptor, DependencyDescriptor> compSorter = new TopologicalSorter<>(new CompSortFuncs());
+    private final TopologicalSorter<TargetDescriptor, String> targetSorter = new TopologicalSorter<>(new TargetSortFuncs());
+    private final LinkedList<PluginReference> pluginReferences = new LinkedList<>();
+    private final LinkedList<ComponentDescriptor> componentDescriptors = new LinkedList<>();
+    private final LinkedList<TargetDescriptor> targetDescriptors = new LinkedList<>();
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
@@ -24,32 +24,32 @@ public class DependencyResolver {
         this.config = config;
     }
 
-    private void addDefinition(PluginDefinition def) {
-        pluginDefinitions.add(def);
+    private void addDefinition(PluginReference def) {
+        pluginReferences.add(def);
         def.getTargetDefinitions().forEach(this::addDefinition);
         def.getComponentDefinitions().forEach(this::addDefinition);
     }
 
-    private void addDefinition(ComponentDefinition def) {
+    private void addDefinition(ComponentDescriptor def) {
         final var present = compSorter.add(def);
-        if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def, def, present));
+        if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def.getPlugin(), def, present));
     }
 
-    private void addDefinition(TargetDefinition def) {
+    private void addDefinition(TargetDescriptor def) {
         final var present = targetSorter.add(def);
-        if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def.getPlugin().getMainComponent(), def, present));
+        if (present != null) addProblem(PluginLoadingProblem.duplicateIdFound(def.getPlugin(), def, present));
     }
 
     public void resolveAndSort() {
-        final Comparator<PluginDefinition> sorter = Comparator.comparing(PluginDefinition::getVersion).reversed();
+        final Comparator<PluginReference> sorter = Comparator.comparing(PluginReference::getVersion).reversed();
 
         for (final var descriptor : config.getComponentDescriptors()) {
-            final var found = new ArrayList<PluginDefinition>();
+            final var found = new ArrayList<PluginReference>();
             for (var locator : config.getPluginLocators()) {
                 for (var def : locator.find(descriptor)) {
                     found.add(def);
                     if (def.getLocator() != locator)
-                        addProblem(PluginLoadingProblem.locatorMismatch(def.getMainComponent(), locator));
+                        addProblem(PluginLoadingProblem.locatorMismatch(def, locator));
                 }
             }
 
@@ -63,53 +63,53 @@ public class DependencyResolver {
             }
         }
 
-        compSorter.sort(componentDefinitions);
-        targetSorter.sort(targetDefinitions);
+        compSorter.sort(componentDescriptors);
+        targetSorter.sort(targetDescriptors);
     }
 
-    private class CompSortFuncs implements TopologicalSorter.SorterFuncs<ComponentDefinition, ComponentDescriptor> {
+    private class CompSortFuncs implements TopologicalSorter.SorterFuncs<ComponentDescriptor, DependencyDescriptor> {
 
         @Override
-        public String idFor(ComponentDefinition obj) {
+        public String idFor(ComponentDescriptor obj) {
             return obj.getId();
         }
 
         @Override
-        public String idOfDep(ComponentDescriptor obj) {
+        public String idOfDep(DependencyDescriptor obj) {
             return obj.getTarget();
         }
 
         @Override
-        public boolean isDepSatisfied(ComponentDefinition node, ComponentDescriptor dep, ComponentDefinition present) {
+        public boolean isDepSatisfied(ComponentDescriptor node, DependencyDescriptor dep, ComponentDescriptor present) {
             return dep.acceptsVersion(present.getVersion());
         }
 
         @Override
-        public Iterable<ComponentDescriptor> depsFor(ComponentDefinition obj) {
+        public Iterable<DependencyDescriptor> depsFor(ComponentDescriptor obj) {
             return obj.getDependencies();
         }
 
         @Override
-        public void onCycleFound(ComponentDefinition tail) {
-            addProblem(PluginLoadingProblem.depCycleFound(tail, tail));
+        public void onCycleFound(ComponentDescriptor tail) {
+            addProblem(PluginLoadingProblem.depCycleFound(tail.getPlugin(), tail));
         }
 
         @Override
-        public void onMissingDep(ComponentDefinition node, ComponentDescriptor dep, ComponentDefinition present) {
+        public void onMissingDep(ComponentDescriptor node, DependencyDescriptor dep, ComponentDescriptor present) {
             addProblem(PluginLoadingProblem.depNotFound(node, dep, present));
         }
 
         @Override
-        public void onSkippedDep(ComponentDefinition node, ComponentDefinition present) {
+        public void onSkippedDep(ComponentDescriptor node, ComponentDescriptor present) {
             addProblem(PluginLoadingProblem.depSkipped(node, present));
         }
 
     }
 
-    private class TargetSortFuncs implements TopologicalSorter.SorterFuncs<TargetDefinition, String> {
+    private class TargetSortFuncs implements TopologicalSorter.SorterFuncs<TargetDescriptor, String> {
 
         @Override
-        public String idFor(TargetDefinition obj) {
+        public String idFor(TargetDescriptor obj) {
             return obj.getId();
         }
 
@@ -119,27 +119,27 @@ public class DependencyResolver {
         }
 
         @Override
-        public boolean isDepSatisfied(TargetDefinition node, String dep, TargetDefinition present) {
+        public boolean isDepSatisfied(TargetDescriptor node, String dep, TargetDescriptor present) {
             return true;
         }
 
         @Override
-        public Iterable<String> depsFor(TargetDefinition obj) {
+        public Iterable<String> depsFor(TargetDescriptor obj) {
             return obj.getParent() == null ? Collections.emptySet() : Collections.singleton(obj.getParent());
         }
 
         @Override
-        public void onCycleFound(TargetDefinition tail) {
-            addProblem(PluginLoadingProblem.depCycleFound(tail.getPlugin().getMainComponent(), tail));
+        public void onCycleFound(TargetDescriptor tail) {
+            addProblem(PluginLoadingProblem.depCycleFound(tail.getPlugin(), tail));
         }
 
         @Override
-        public void onMissingDep(TargetDefinition node, String required, TargetDefinition present) {
+        public void onMissingDep(TargetDescriptor node, String required, TargetDescriptor present) {
             addProblem(PluginLoadingProblem.parentNotFound(node));
         }
 
         @Override
-        public void onSkippedDep(TargetDefinition node, TargetDefinition present) {
+        public void onSkippedDep(TargetDescriptor node, TargetDescriptor present) {
             addProblem(PluginLoadingProblem.parentNotFound(node));
         }
 
@@ -153,16 +153,16 @@ public class DependencyResolver {
         }
     }
 
-    public List<ComponentDefinition> getComponentDefinitions() {
-        return Collections.unmodifiableList(componentDefinitions);
+    public List<ComponentDescriptor> getComponentDefinitions() {
+        return Collections.unmodifiableList(componentDescriptors);
     }
 
-    public List<TargetDefinition> getTargetDefinitions() {
-        return Collections.unmodifiableList(targetDefinitions);
+    public List<TargetDescriptor> getTargetDefinitions() {
+        return Collections.unmodifiableList(targetDescriptors);
     }
 
-    public List<PluginDefinition> getPluginDefinitions() {
-        return Collections.unmodifiableList(pluginDefinitions);
+    public List<PluginReference> getPluginDefinitions() {
+        return Collections.unmodifiableList(pluginReferences);
     }
 
     public List<PluginLoadingProblem> getFatalProblems() {

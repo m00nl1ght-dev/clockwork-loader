@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.security.permissions;
 
-import dev.m00nl1ght.clockwork.core.PluginContainer;
+import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 
 import java.net.SocketPermission;
 import java.security.Permission;
@@ -36,7 +36,7 @@ public class NetworkPermissionEntry implements PluginPermissionEntry {
     }
 
     @Override
-    public void getPermissions(Consumer<Permission> permissions, PluginContainer plugin, String value) {
+    public void getPermissions(Consumer<Permission> permissions, LoadedPlugin plugin, String value) {
         if (value.isEmpty()) value = "*";
         permissions.accept(new SocketPermission(portRange == null ? value : value + ":" + portRange, actions));
     }
