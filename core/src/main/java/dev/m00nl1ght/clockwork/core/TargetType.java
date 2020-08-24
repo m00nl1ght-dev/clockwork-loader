@@ -19,16 +19,14 @@ public abstract class TargetType<T extends ComponentTarget> {
     protected final Class<T> targetClass;
     protected final List<TargetType<? extends T>> directSubtargets = new ArrayList<>();
     protected final ArrayList<ComponentType<?, T>> components = new ArrayList<>();
-    protected final int internalIdx;
 
     private Primer<T> primer;
     protected int subtargetIdxFirst = -1, subtargetIdxLast = -1;
 
-    private TargetType(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass, int internalIdx) {
+    private TargetType(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass) {
         this.plugin = plugin;
         this.descriptor = descriptor;
         this.targetClass = targetClass;
-        this.internalIdx = internalIdx;
         this.primer = new Primer<>(this);
     }
 
@@ -77,10 +75,6 @@ public abstract class TargetType<T extends ComponentTarget> {
         return targetClass;
     }
 
-    public int getInternalIdx() {
-        return internalIdx;
-    }
-
     public final boolean isInitialised() {
         return primer == null;
     }
@@ -116,20 +110,20 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     protected abstract void init();
 
-    static <T extends ComponentTarget> TargetType<T> create(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass, int idx) {
+    static <T extends ComponentTarget> TargetType<T> create(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass) {
         Preconditions.notNull(descriptor, "descriptor");
         Preconditions.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
         Preconditions.notNullAnd(targetClass, o -> o.getName().equals(descriptor.getTargetClass()), "targetClass");
         if (descriptor.getParent() == null) {
             checkSuperclasses(descriptor, targetClass, Object.class, plugin.getClockworkCore());
-            return new Root<>(plugin, descriptor, targetClass, idx);
+            return new Root<>(plugin, descriptor, targetClass);
         } else {
             final var found = plugin.getClockworkCore().getTargetType(descriptor.getParent()).orElseThrow();
             if (found.isInitialised()) throw new IllegalStateException();
             if (found.targetClass.isAssignableFrom(targetClass)) {
                 checkSuperclasses(descriptor, targetClass, found.targetClass, plugin.getClockworkCore());
                 @SuppressWarnings("unchecked") final var parentType = (TargetType<? super T>) found;
-                return new ForSubclass<>(plugin, descriptor, parentType, targetClass, idx);
+                return new ForSubclass<>(plugin, descriptor, parentType, targetClass);
             } else {
                 throw PluginLoadingException.invalidParentForTarget(descriptor, found);
             }
@@ -175,8 +169,8 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         protected final ArrayList<TargetType<? extends T>> allSubtargets = new ArrayList<>();
 
-        private Root(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass, int internalIdx) {
-            super(plugin, descriptor, targetClass, internalIdx);
+        private Root(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass) {
+            super(plugin, descriptor, targetClass);
         }
 
         @Override
@@ -227,8 +221,8 @@ public abstract class TargetType<T extends ComponentTarget> {
         private final TargetType<? super T> parent;
         private final List<ComponentType<?, ? super T>> compoundList;
 
-        private ForSubclass(LoadedPlugin plugin, TargetDescriptor descriptor, TargetType<? super T> parent, Class<T> targetClass, int internalIdx) {
-            super(plugin, descriptor, targetClass, internalIdx);
+        private ForSubclass(LoadedPlugin plugin, TargetDescriptor descriptor, TargetType<? super T> parent, Class<T> targetClass) {
+            super(plugin, descriptor, targetClass);
             this.compoundList = CollectionUtil.compoundList(parent.getComponentTypes(), components);
             this.root = parent.getRoot();
             this.parent = parent;

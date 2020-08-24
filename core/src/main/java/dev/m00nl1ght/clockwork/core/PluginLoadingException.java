@@ -57,16 +57,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Class [] defined for plugin [] not found", className, plugin.getId());
     }
 
-    public static PluginLoadingException componentClassDuplicate(ComponentDescriptor component, Class<?> componentClass, String existing) {
-        return generic("Component class [] defined for component type [] is already defined for component []", componentClass.getSimpleName(), component.getId(), existing);
+    public static PluginLoadingException componentClassDuplicate(ComponentDescriptor component, String existing) {
+        return generic("Component class [] defined for component type [] is already defined for component []", component.getComponentClass(), component.getId(), existing);
     }
 
     public static PluginLoadingException componentIdDuplicate(ComponentDescriptor component, String existing) {
         return generic("Multiple component definitions with the same id [] are present", existing);
     }
 
-    public static PluginLoadingException targetClassDuplicate(TargetDescriptor target, Class<?> targetClass, String existing) {
-        return generic("Target class [] defined for target type [] is already defined for target []", targetClass.getSimpleName(), target.getId(), existing);
+    public static PluginLoadingException targetClassDuplicate(TargetDescriptor target, String existing) {
+        return generic("Target class [] defined for target type [] is already defined for target []", target.getTargetClass(), target.getId(), existing);
     }
 
     public static PluginLoadingException targetIdDuplicate(TargetDescriptor target, String existing) {
@@ -117,8 +117,8 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Duplicate dependency defined for []: [] vs. []", of, dependency, existing);
     }
 
-    public static PluginLoadingException pluginDuplicate(PluginLocator locator, PluginDescriptor plugin, PluginDescriptor existing) {
-        return generic("[] found multiple plugins with the same id []", locator.getName(), plugin.getId());
+    public static PluginLoadingException pluginDuplicate(PluginDescriptor plugin, PluginDescriptor existing) {
+        return generic("Multiple plugins with the same id [] are present", plugin.getId());
     }
 
     public static PluginLoadingException multipleModulesFound(PluginLocator locator, Path path) {

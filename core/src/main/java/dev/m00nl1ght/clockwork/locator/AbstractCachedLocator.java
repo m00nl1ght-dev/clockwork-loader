@@ -37,7 +37,7 @@ public abstract class AbstractCachedLocator implements PluginLocator {
 
     private void accept(PluginReference def) {
         final var prev = cache.putIfAbsent(def.getId(), def);
-        if (prev != null) throw PluginLoadingException.pluginDuplicate(this, def.getDescriptor(), prev.getDescriptor());
+        if (prev != null) throw PluginLoadingException.pluginDuplicate(def.getDescriptor(), prev.getDescriptor());
     }
 
     protected abstract void scan(Consumer<PluginReference> pluginConsumer);

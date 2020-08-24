@@ -61,7 +61,7 @@ public class ComponentType<C, T extends ComponentTarget> {
         }
     }
 
-    protected void init(int internalID) {
+    protected void init(int internalID) { // TODO can this be avoided?
         if (this.internalID >= 0) throw new IllegalStateException();
         this.internalID = internalID;
     }

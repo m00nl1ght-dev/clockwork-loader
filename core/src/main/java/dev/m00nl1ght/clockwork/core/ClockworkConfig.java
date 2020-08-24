@@ -9,7 +9,7 @@ import java.util.List;
 public final class ClockworkConfig {
 
     private final List<PluginLocator> pluginLocators = new ArrayList<>();
-    private final List<DependencyDescriptor> dependencyDescriptors = new ArrayList<>();
+    private final List<DependencyDescriptor> wantedComponents = new ArrayList<>();
 
     public static Builder builder() {
         return new Builder();
@@ -17,11 +17,11 @@ public final class ClockworkConfig {
 
     public ClockworkConfig(Builder builder) {
         this.pluginLocators.addAll(builder.pluginLocators);
-        this.dependencyDescriptors.addAll(builder.dependencyDescriptors);
+        this.wantedComponents.addAll(builder.wantedComponents);
     }
 
-    public List<DependencyDescriptor> getComponentDescriptors() {
-        return Collections.unmodifiableList(dependencyDescriptors);
+    public List<DependencyDescriptor> getWantedComponents() {
+        return Collections.unmodifiableList(wantedComponents);
     }
 
     public List<PluginLocator> getPluginLocators() {
@@ -31,7 +31,7 @@ public final class ClockworkConfig {
     public static class Builder {
 
         private final List<PluginLocator> pluginLocators = new ArrayList<>();
-        private final List<DependencyDescriptor> dependencyDescriptors = new ArrayList<>();
+        private final List<DependencyDescriptor> wantedComponents = new ArrayList<>();
 
         private Builder() {}
 
@@ -45,10 +45,10 @@ public final class ClockworkConfig {
             this.pluginLocators.add(locator);
         }
 
-        public void addComponentDescriptor(DependencyDescriptor descriptor) {
-            if (dependencyDescriptors.stream().anyMatch(d -> d.getTarget().equals(descriptor.getTarget())))
-                throw new IllegalArgumentException("duplicate component descriptor: " + descriptor.getTarget());
-            this.dependencyDescriptors.add(descriptor);
+        public void addWantedComponent(DependencyDescriptor descriptor) {
+            if (wantedComponents.stream().anyMatch(d -> d.getTarget().equals(descriptor.getTarget())))
+                throw new IllegalArgumentException("duplicate wanted component: " + descriptor.getTarget());
+            this.wantedComponents.add(descriptor);
         }
 
     }

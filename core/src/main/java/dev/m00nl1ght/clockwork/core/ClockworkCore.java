@@ -1,21 +1,14 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
-import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
-import dev.m00nl1ght.clockwork.resolver.DependencyResolver;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 /**
- * The entry point of the plugin loading framework.
- * This class manages the loading process and represents all component
- * and target types of the loaded plugins.
- *
- * From application code, call {@link ClockworkCore#load}
- * to get an instance of ClockworkCore.
+ * This class represents a collection of {@link LoadedPlugin}s,
+ * and the {@link ComponentType}s and {@link TargetType}s they provide.
  */
 public class ClockworkCore implements ComponentTarget {
 
@@ -24,94 +17,19 @@ public class ClockworkCore implements ComponentTarget {
     public static final String CORE_PLUGIN_ID = "clockwork";
     public static final String CORE_TARGET_ID = CORE_PLUGIN_ID + ":core";
 
+    private final Map<String, LoadedPlugin> loadedPlugins = new HashMap<>();
     private final Map<String, TargetType<?>> loadedTargets = new HashMap<>();
     private final Map<Class<?>, TargetType<?>> classToTargetMap = new HashMap<>();
     private final Map<String, ComponentType<?, ?>> loadedComponents = new HashMap<>();
     private final Map<Class<?>, ComponentType<?, ?>> classToComponentMap = new HashMap<>();
-    private final Map<String, LoadedPlugin> loadedPlugins = new HashMap<>();
-    private final PluginProcessorManager pluginProcessors = new PluginProcessorManager(MethodHandles.lookup());
+
     private final ModuleManager moduleManager;
 
     private volatile State state = State.CONSTRUCTED;
     private ComponentContainer<ClockworkCore> coreContainer;
 
-    private ClockworkCore(DependencyResolver depResolver) {
-        moduleManager = new ModuleManager(depResolver.getPluginDefinitions(), ModuleLayer.boot());
-
-        final var pluginDefs = depResolver.getPluginDefinitions();
-        for (int i = 0; i < pluginDefs.size(); i++) {
-            final var def = pluginDefs.get(i);
-            final var mainModule = moduleManager.mainModuleFor(def);
-            final var plugin = new LoadedPlugin(def.getDescriptor(), this, mainModule);
-            moduleManager.bindModule(plugin, mainModule.getName());
-            loadedPlugins.put(plugin.getId(), plugin);
-            // pluginProcessors.apply(plugin, def.getProcessors()); // TODO not here
-        }
-
-        final var targetDefs = depResolver.getTargetDefinitions();
-        for (int i = 0; i < targetDefs.size(); i++) {
-            final var def = targetDefs.get(i);
-            final var plugin = loadedPlugins.get(def.getPlugin().getId());
-            if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
-            final var targetClass = moduleManager.loadClassForPlugin(def.getTargetClass(), plugin);
-            if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(def, targetClass);
-            @SuppressWarnings("unchecked") final var targetCasted = (Class<? extends ComponentTarget>) targetClass;
-            final var target = TargetType.create(plugin, def, targetCasted, i);
-            final var existingByName = loadedTargets.putIfAbsent(target.getId(), target);
-            if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(def, existingByName.getId());
-            final var existingByClass = classToTargetMap.putIfAbsent(targetClass, target);
-            if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(def, targetClass, existingByClass.getId());
-        }
-
-        final var componentDefs = depResolver.getComponentDefinitions();
-        for (int i = 0; i < componentDefs.size(); i++) {
-            final var def = componentDefs.get(i);
-            final var plugin = loadedPlugins.get(def.getPlugin().getId());
-            if (plugin == null) throw new IllegalStateException("plugin vanished somehow");
-            final var compClass = moduleManager.loadClassForPlugin(def.getComponentClass(), plugin);
-            final var target = loadedTargets.get(def.getTargetId());
-            if (target == null) throw PluginLoadingException.componentMissingTarget(def);
-            final var component = target.getPrimer().register(def, plugin, compClass);
-            final var existingByName = loadedComponents.putIfAbsent(component.getId(), component);
-            if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(def, existingByName.getId());
-            final var existingByClass = classToComponentMap.putIfAbsent(compClass, component);
-            if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(def, compClass, existingByClass.getId());
-        }
-
-        for (var targetType : loadedTargets.values()) targetType.getPrimer().init();
-        this.state = State.LOCATED;
-    }
-
-    /**
-     * Finds plugins based on the given {@link ClockworkConfig} and resolves all dependencies.
-     *
-     * @param config the {@link ClockworkConfig} defining how plugins will be located
-     * @return a new {@link ClockworkCore} that can be used to load the plugins that have been located
-     * @throws PluginLoadingException if there were any fatal dependency resolution problems
-     */
-    public static ClockworkCore load(ClockworkConfig config) {
-        final var depResolver = new DependencyResolver(config);
-        depResolver.resolveAndSort();
-
-        final var fatalProblems = depResolver.getFatalProblems();
-        if (!fatalProblems.isEmpty()) {
-            LOGGER.error("The following fatal problems occurred during dependency resolution:");
-            for (var p : fatalProblems) LOGGER.error(p.format());
-            throw PluginLoadingException.fatalLoadingProblems(fatalProblems);
-        }
-
-        final var skips = depResolver.getSkippedProblems();
-        if (!skips.isEmpty()) {
-            LOGGER.info("The following optional components have been skipped, because their dependencies are not present:");
-            for (var p : skips) LOGGER.info(p.format());
-        }
-
-        return new ClockworkCore(depResolver);
-    }
-
-    public static ClockworkCore load(ClockworkCore parent, ClockworkConfig config) {
-        // TODO
-        return null;
+    ClockworkCore(ModuleManager moduleManager) {
+        this.moduleManager = moduleManager;
     }
 
     /**
@@ -143,17 +61,47 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     /**
-     * Returns an unmodifiable collection of all registered {@link TargetType}s.
+     * Returns an unmodifiable collection of all {@link LoadedPlugin}s.
      */
-    public Collection<TargetType<?>> getRegisteredTargetTypes() {
-        return Collections.unmodifiableCollection(loadedTargets.values());
+    public Collection<LoadedPlugin> getLoadedPlugins() {
+        return Collections.unmodifiableCollection(loadedPlugins.values());
+    }
+
+    void addLoadedPlugin(LoadedPlugin loadedPlugin) {
+        final var existing = loadedPlugins.putIfAbsent(loadedPlugin.getId(), loadedPlugin);
+        if (existing != null) throw PluginLoadingException.pluginDuplicate(loadedPlugin.getDescriptor(), existing.getDescriptor());
+    }
+
+    public Optional<LoadedPlugin> getLoadedPlugin(String pluginId) {
+        return Optional.ofNullable(loadedPlugins.get(pluginId));
     }
 
     /**
-     * Returns an unmodifiable collection of all registered {@link ComponentType}s.
+     * Returns an unmodifiable collection of all loaded {@link TargetType}s.
      */
-    public Collection<ComponentType<?, ?>> getRegisteredComponentTypes() {
+    public Collection<TargetType<?>> getLoadedTargetTypes() {
+        return Collections.unmodifiableCollection(loadedTargets.values());
+    }
+
+    void addLoadedTargetType(TargetType<?> targetType) {
+        final var existingByName = loadedTargets.putIfAbsent(targetType.getId(), targetType);
+        if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(targetType.getDescriptor(), existingByName.getId());
+        final var existingByClass = classToTargetMap.putIfAbsent(targetType.getTargetClass(), targetType);
+        if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(targetType.getDescriptor(), existingByClass.getId());
+    }
+
+    /**
+     * Returns an unmodifiable collection of all loaded {@link ComponentType}s.
+     */
+    public Collection<ComponentType<?, ?>> getLoadedComponentTypes() {
         return Collections.unmodifiableCollection(loadedComponents.values());
+    }
+
+    void addLoadedComponentType(ComponentType<?, ?> componentType) {
+        final var existingByName = loadedComponents.putIfAbsent(componentType.getId(), componentType);
+        if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());
+        final var existingByClass = classToComponentMap.putIfAbsent(componentType.getComponentClass(), componentType);
+        if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(componentType.getDescriptor(), existingByClass.getId());
     }
 
     /**
@@ -252,6 +200,10 @@ public class ClockworkCore implements ComponentTarget {
     @Override
     public ComponentContainer<ClockworkCore> getComponentContainer() {
         return coreContainer;
+    }
+
+    public ModuleLayer getModuleLayer() {
+        return moduleManager.getModuleLayer();
     }
 
     /**

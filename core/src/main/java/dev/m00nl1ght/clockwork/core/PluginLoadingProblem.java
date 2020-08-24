@@ -44,6 +44,36 @@ public abstract class PluginLoadingProblem {
 
     }
 
+    public static InheritedVersionClash inheritedVersionClash(DependencyDescriptor wanted, ComponentDescriptor inherited) {
+        return new InheritedVersionClash(wanted, inherited);
+    }
+
+    public static class InheritedVersionClash extends PluginLoadingProblem {
+
+        private final DependencyDescriptor wanted;
+        private final ComponentDescriptor inherited;
+
+        private InheritedVersionClash(DependencyDescriptor wanted, ComponentDescriptor inherited) {
+            super(wanted.getTarget());
+            this.wanted = wanted;
+            this.inherited = inherited;
+        }
+
+        @Override
+        public String getMessage() {
+            return "Version [" + inherited.getVersion() + "] of inherited component clashes with wanted version [" + wanted + "]";
+        }
+
+        public DependencyDescriptor getWanted() {
+            return wanted;
+        }
+
+        public ComponentDescriptor getInherited() {
+            return inherited;
+        }
+
+    }
+
     public static LocatorMismatch locatorMismatch(PluginReference plugin, PluginLocator actualLocator) {
         return new LocatorMismatch(plugin, actualLocator);
     }
@@ -194,7 +224,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return tail.getClass().getSimpleName() + " [" + tail + "] has a (transient) dependency on itself";
+            return "Dependency cycle found, [" + tail + "] has a (transient) dependency on itself";
         }
 
     }

@@ -125,4 +125,8 @@ public class ModuleManager {
         }
     }
 
+    public ModuleLayer getModuleLayer() {
+        return layerController.layer();
+    }
+
 }

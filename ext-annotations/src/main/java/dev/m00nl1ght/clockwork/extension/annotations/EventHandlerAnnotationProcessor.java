@@ -51,8 +51,6 @@ public class EventHandlerAnnotationProcessor implements PluginProcessor {
     private <E extends Event, C, T extends ComponentTarget> void
     registerListener(ComponentType<C, T> componentType, Class<E> eventClass, CallSite callSite, Method method) throws Throwable {
         @SuppressWarnings("unchecked") final var consumer = (BiConsumer<C, E>) callSite.getTarget().invokeExact();
-        final var primer = componentType.getTargetType().getPrimer();
-        if (primer == null) throw new IllegalStateException();
         final var annotation = method.getAnnotation(EventHandler.class);
         final var priority = annotation == null ? EventListenerPriority.NORMAL : annotation.value();
         final var listener = new EventListener<>(eventClass, componentType, priority, consumer);
