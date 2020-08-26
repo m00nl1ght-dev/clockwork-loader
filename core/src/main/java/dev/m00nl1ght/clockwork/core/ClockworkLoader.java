@@ -1,7 +1,9 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
-import dev.m00nl1ght.clockwork.processor.PluginProcessorManager;
+import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
+import dev.m00nl1ght.clockwork.processor.PluginProcessor;
+import dev.m00nl1ght.clockwork.processor.ReflectiveAccess;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import org.apache.logging.log4j.LogManager;
@@ -19,6 +21,7 @@ import java.util.*;
 public final class ClockworkLoader {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    private static final MethodHandles.Lookup rootLookup = MethodHandles.lookup();
 
     /**
      * Finds plugins based on the given {@link ClockworkConfig} and resolves all dependencies.
@@ -32,15 +35,14 @@ public final class ClockworkLoader {
     }
 
     public static ClockworkCore load(ClockworkCore parent, ClockworkConfig config) {
-        final var state = Preconditions.notNull(parent, "parent").getState();
-        if (state == ClockworkCore.State.CONSTRUCTED) throw new IllegalArgumentException();
+        Preconditions.notNull(parent, "parent").getState().requireOrAfter(State.POPULATED);
         return new ClockworkLoader(parent, Preconditions.notNull(config, "config")).load();
     }
 
     private final ClockworkCore parent;
     private final ClockworkConfig config;
 
-    private final PluginProcessorManager pluginProcessors = new PluginProcessorManager(MethodHandles.lookup());
+    private final Map<String, PluginProcessor> registeredProcessors = new HashMap<>();
 
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
@@ -50,7 +52,7 @@ public final class ClockworkLoader {
         this.config = config;
     }
 
-    private ClockworkCore load() {
+    public ClockworkCore load() {
 
         final var pluginReferences = new LinkedList<PluginReference>();
         final var versionSorter = Comparator.comparing(PluginReference::getVersion).reversed();
@@ -200,7 +202,8 @@ public final class ClockworkLoader {
         }
 
         // Lock the internal registries of the core.
-        core.lock();
+        for (var targetType : core.getLoadedTargetTypes()) targetType.init();
+        core.setState(State.PROCESSING);
 
         // Apply all plugin processors defined to each plugin respectively.
         for (final var pluginReference : pluginReferences) {
@@ -211,28 +214,39 @@ public final class ClockworkLoader {
 
             // Get the corresponding LoadedPlugin instance and apply the processors.
             final var plugin = core.getLoadedPlugin(pluginReference.getId()).orElseThrow();
-            pluginProcessors.apply(plugin, pluginReference.getProcessors());
-
-            // Apply the processors to all TargetTypes provided by the plugin next.
-            for (final var targetDescriptor : pluginReference.getTargetDescriptors()) {
-                final var target = core.getTargetType(targetDescriptor.getId()).orElseThrow();
-                pluginProcessors.apply(target, pluginReference.getProcessors());
-            }
-
-            // Finally, apply the processors to all ComponentTypes provided by the plugin as well.
-            for (final var componentDescriptor : pluginReference.getComponentDescriptors()) {
-                final var component = core.getComponentType(componentDescriptor.getId()).orElseThrow();
-                pluginProcessors.apply(component, pluginReference.getProcessors());
+            final var reflectiveAccess = new ReflectiveAccess(plugin, rootLookup);
+            for (var name : processors) {
+                final var processor = registeredProcessors.get(name);
+                if (processor == null) throw PluginLoadingException.missingProcessor("plugin", plugin.getId(), name);
+                try {
+                    processor.process(plugin, reflectiveAccess);
+                } catch (Throwable t) {
+                    throw PluginLoadingException.inProcessor("plugin", plugin.getId(), name, t);
+                }
             }
 
         }
 
         // The core is now ready for use.
+        core.setState(State.POPULATED);
         return core;
+    }
+
+    public void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
+        final var existing = registeredProcessors.putIfAbsent(id, pluginProcessor);
+        if (existing != null) throw new IllegalArgumentException("Plugin processor with id [" + id + "] is already present");
     }
 
     private void addProblem(PluginLoadingProblem problem) {
         (problem.isFatal() ? fatalProblems : skippedProblems).add(problem);
+    }
+
+    public List<PluginLoadingProblem> getFatalProblems() {
+        return Collections.unmodifiableList(fatalProblems);
+    }
+
+    public List<PluginLoadingProblem> getSkippedProblems() {
+        return Collections.unmodifiableList(skippedProblems);
     }
 
     private class ComponentSorter extends AbstractTopologicalSorter<ComponentDescriptor, DependencyDescriptor> {
@@ -279,7 +293,7 @@ public final class ClockworkLoader {
 
     }
 
-    public class TargetSorter extends AbstractTopologicalSorter<TargetDescriptor, String> {
+    private class TargetSorter extends AbstractTopologicalSorter<TargetDescriptor, String> {
 
         @Override
         public String idFor(TargetDescriptor obj) {

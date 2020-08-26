@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.events;
 
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.util.TypeRef;
@@ -35,7 +36,7 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType) {
         if (this.targetType != null) throw new IllegalStateException();
-        // if (targetType.getPlugin().getClockworkCore().getState()) ... TODO check state
+        targetType.getPlugin().getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         this.targetType = targetType;
         init();
     }

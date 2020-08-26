@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.interfaces;
 
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
@@ -27,7 +28,7 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType, boolean autoCollect) {
         if (this.targetType != null) throw new IllegalStateException();
-        // if (targetType.getPlugin().getClockworkCore().getState()) ... TODO check state
+        targetType.getPlugin().getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         this.targetType = targetType;
         init();
         if (autoCollect) autoCollectComponents();

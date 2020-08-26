@@ -97,6 +97,7 @@ public class ModuleManager {
      * This is needed for {@link PluginProcessor}s that use annotation processing and method handles to work.
      */
     private void patchModule(Module module) {
+        localModule.addReads(module);
         for (var pn : module.getPackages()) {
             layerController.addOpens(module, pn, localModule);
         }
