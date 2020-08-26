@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.LogUtil;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 public class ExceptionInPlugin extends RuntimeException {
@@ -18,11 +18,11 @@ public class ExceptionInPlugin extends RuntimeException {
     }
 
     public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Object... objects) {
-        return new ExceptionInPlugin(plugin, LogUtil.format(msg, "[]", objects));
+        return new ExceptionInPlugin(plugin, FormatUtil.format(msg, "[]", objects));
     }
 
     public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Throwable cause, Object... objects) {
-        return new ExceptionInPlugin(plugin, LogUtil.format(msg, "[]", objects), cause);
+        return new ExceptionInPlugin(plugin, FormatUtil.format(msg, "[]", objects), cause);
     }
 
     public static ExceptionInPlugin inEventHandler(ComponentType component, Object event, Object target, Throwable cause) {

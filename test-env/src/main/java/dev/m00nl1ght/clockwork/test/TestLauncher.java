@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
@@ -42,7 +43,8 @@ public class TestLauncher {
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
-        clockworkCore = ClockworkLoader.load(configBuilder.build());
+        final var loader = ClockworkLoader.build(configBuilder.build());
+        clockworkCore = loader.load();
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
 
         clockworkCore.init(new ComponentContainer<>(coreTargetType, clockworkCore));

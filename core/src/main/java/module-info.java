@@ -3,6 +3,7 @@ module dev.m00nl1ght.clockwork {
     uses dev.m00nl1ght.clockwork.processor.PluginProcessor;
 
     exports dev.m00nl1ght.clockwork.core;
+    exports dev.m00nl1ght.clockwork.descriptor;
     exports dev.m00nl1ght.clockwork.locator;
     exports dev.m00nl1ght.clockwork.processor;
     exports dev.m00nl1ght.clockwork.events;

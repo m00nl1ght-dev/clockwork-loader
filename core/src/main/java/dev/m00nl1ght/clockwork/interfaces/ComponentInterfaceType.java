@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.List;
 import java.util.function.Consumer;
@@ -28,7 +29,7 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType, boolean autoCollect) {
         if (this.targetType != null) throw new IllegalStateException();
-        targetType.getPlugin().getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         this.targetType = targetType;
         init();
         if (autoCollect) autoCollectComponents();
@@ -71,6 +72,21 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
     public final TargetType<T> getTargetType() {
         return targetType;
+    }
+
+    @Override
+    public String toString() {
+        return targetType == null ? interfaceClass.getSimpleName() + "@?" : interfaceClass.getSimpleName() + "@" + targetType;
+    }
+
+    protected void checkCompatibility(TargetType<?> otherType) {
+        if (targetType == null) {
+            final var msg = "Interface type for [] is not registered";
+            throw new IllegalArgumentException(FormatUtil.format(msg, interfaceClass.getSimpleName()));
+        } else if (!otherType.isEquivalentTo(targetType)) {
+            final var msg = "Cannot use interface type [] (created for target []) on different target []";
+            throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherType));
+        }
     }
 
 }

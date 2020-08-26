@@ -2,6 +2,10 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.processor.ReflectiveAccess;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
@@ -10,18 +14,19 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.util.*;
 
 /**
  * The entry point of the plugin loading framework.
  *
- * From application code, call {@link ClockworkLoader#load}
+ * From application code, call {@link ClockworkLoader#build}
  * to get a ClockworkCore instance.
  */
 public final class ClockworkLoader {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final MethodHandles.Lookup rootLookup = MethodHandles.lookup();
+    private static final Lookup INTERNAL_REFLECTIVE_ACCESS = MethodHandles.lookup();
 
     /**
      * Finds plugins based on the given {@link ClockworkConfig} and resolves all dependencies.
@@ -30,13 +35,13 @@ public final class ClockworkLoader {
      * @return a new {@link ClockworkCore} that can be used to load the plugins that have been located
      * @throws PluginLoadingException if there were any fatal dependency resolution problems
      */
-    public static ClockworkCore load(ClockworkConfig config) {
-        return new ClockworkLoader(null, Preconditions.notNull(config, "config")).load();
+    public static ClockworkLoader build(ClockworkConfig config) {
+        return new ClockworkLoader(null, Preconditions.notNull(config, "config"));
     }
 
-    public static ClockworkCore load(ClockworkCore parent, ClockworkConfig config) {
+    public static ClockworkLoader build(ClockworkCore parent, ClockworkConfig config) {
         Preconditions.notNull(parent, "parent").getState().requireOrAfter(State.POPULATED);
-        return new ClockworkLoader(parent, Preconditions.notNull(config, "config")).load();
+        return new ClockworkLoader(parent, Preconditions.notNull(config, "config"));
     }
 
     private final ClockworkCore parent;
@@ -50,6 +55,19 @@ public final class ClockworkLoader {
     private ClockworkLoader(ClockworkCore parent, ClockworkConfig config) {
         this.parent = parent;
         this.config = config;
+    }
+
+    public void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
+        final var existing = registeredProcessors.putIfAbsent(id, pluginProcessor);
+        if (existing != null) throw new IllegalArgumentException("Plugin processor with id [" + id + "] is already present");
+    }
+
+    public List<PluginLoadingProblem> getFatalProblems() {
+        return Collections.unmodifiableList(fatalProblems);
+    }
+
+    public List<PluginLoadingProblem> getSkippedProblems() {
+        return Collections.unmodifiableList(skippedProblems);
     }
 
     public ClockworkCore load() {
@@ -154,9 +172,7 @@ public final class ClockworkLoader {
             if (parent != null) {
                 final var inherited = parent.getTargetType(targetDescriptor.getId());
                 if (inherited.isPresent()) {
-                    final var targetClass = inherited.get().getTargetClass();
-                    final var target = TargetType.create(plugin, targetDescriptor, targetClass);
-                    core.addLoadedTargetType(target);
+                    buildTarget(plugin, targetDescriptor, inherited.get().getTargetClass());
                     continue;
                 }
             }
@@ -166,10 +182,7 @@ public final class ClockworkLoader {
             if (!ComponentTarget.class.isAssignableFrom(targetClass))
                 throw PluginLoadingException.invalidTargetClass(targetDescriptor, targetClass);
             @SuppressWarnings("unchecked") final var targetCasted = (Class<? extends ComponentTarget>) targetClass;
-
-            // Finally, construct the new TargetType and add it to the core.
-            final var target = TargetType.create(plugin, targetDescriptor, targetCasted);
-            core.addLoadedTargetType(target);
+            buildTarget(plugin, targetDescriptor, targetCasted);
 
         }
 
@@ -185,23 +198,18 @@ public final class ClockworkLoader {
             if (parent != null) {
                 final var inherited = parent.getComponentType(componentDescriptor.getId());
                 if (inherited.isPresent()) {
-                    final var componentClass = inherited.get().getComponentClass();
-                    final var component = target.get().addComponent(componentDescriptor, plugin, componentClass);
-                    core.addLoadedComponentType(component);
+                    buildComponent(plugin, componentDescriptor, target.get(), inherited.get().getComponentClass());
                     continue;
                 }
             }
 
             // Otherwise, get the component class from the ModuleManager.
-            final var compClass = moduleManager.loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
-
-            // Finally, construct the new ComponentType and add it to the core.
-            final var component = target.get().addComponent(componentDescriptor, plugin, compClass);
-            core.addLoadedComponentType(component);
+            final var componentClass = moduleManager.loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
+            buildComponent(plugin, componentDescriptor, target.get(), componentClass);
 
         }
 
-        // Lock the internal registries of the core.
+        // Init and lock the target types.
         for (var targetType : core.getLoadedTargetTypes()) targetType.init();
         core.setState(State.PROCESSING);
 
@@ -214,7 +222,7 @@ public final class ClockworkLoader {
 
             // Get the corresponding LoadedPlugin instance and apply the processors.
             final var plugin = core.getLoadedPlugin(pluginReference.getId()).orElseThrow();
-            final var reflectiveAccess = new ReflectiveAccess(plugin, rootLookup);
+            final var reflectiveAccess = new ReflectiveAccess(plugin, INTERNAL_REFLECTIVE_ACCESS);
             for (var name : processors) {
                 final var processor = registeredProcessors.get(name);
                 if (processor == null) throw PluginLoadingException.missingProcessor("plugin", plugin.getId(), name);
@@ -232,21 +240,60 @@ public final class ClockworkLoader {
         return core;
     }
 
-    public void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
-        final var existing = registeredProcessors.putIfAbsent(id, pluginProcessor);
-        if (existing != null) throw new IllegalArgumentException("Plugin processor with id [" + id + "] is already present");
+    private <T extends ComponentTarget> void
+    buildTarget(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass) {
+
+        // First, fetch the parent target if there is any, and verify it.
+        TargetType<? super T> parentType = null;
+        if (descriptor.getParent() != null) {
+            final var found = plugin.getClockworkCore().getTargetType(descriptor.getParent()).orElseThrow();
+            if (found.getTargetClass().isAssignableFrom(targetClass)) {
+                @SuppressWarnings("unchecked") final var casted = (TargetType<? super T>) found;
+                parentType = casted;
+            } else {
+                throw PluginLoadingException.invalidParentForTarget(descriptor, found);
+            }
+        }
+
+        // Assert that there are no inconsistencies in the target hierarchy.
+        Class<?> sctCurrent = targetClass;
+        final var sctExpected = parentType == null ? Object.class : parentType.getTargetClass();
+        while ((sctCurrent = sctCurrent.getSuperclass()) != null) {
+            if (sctCurrent == sctExpected) break;
+            final var found = plugin.getClockworkCore().getTargetTypeUncasted(sctCurrent);
+            if (found.isPresent()) {
+                throw PluginLoadingException.illegalTargetSubclass(descriptor, targetClass, found.get());
+            }
+        }
+
+        // Construct the new TargetType.
+        final var target = new TargetType<>(plugin, parentType, descriptor, targetClass);
+
+        // Then add it to the core and plugin.
+        plugin.getClockworkCore().addLoadedTargetType(target);
+        plugin.addLoadedTargetType(target);
+
+    }
+
+    private <C, T extends ComponentTarget> void
+    buildComponent(LoadedPlugin plugin, ComponentDescriptor descriptor, TargetType<T> targetType, Class<C> componentClass) {
+
+        // Construct the new ComponentType.
+        final var component = new ComponentType<>(plugin, descriptor, componentClass, targetType);
+
+        // Then add it to the core, plugin and target.
+        plugin.getClockworkCore().addLoadedComponentType(component);
+        plugin.addLoadedComponentType(component);
+        targetType.addComponent(component);
+
     }
 
     private void addProblem(PluginLoadingProblem problem) {
         (problem.isFatal() ? fatalProblems : skippedProblems).add(problem);
     }
 
-    public List<PluginLoadingProblem> getFatalProblems() {
-        return Collections.unmodifiableList(fatalProblems);
-    }
-
-    public List<PluginLoadingProblem> getSkippedProblems() {
-        return Collections.unmodifiableList(skippedProblems);
+    static Lookup getInternalReflectiveAccess() {
+        return INTERNAL_REFLECTIVE_ACCESS;
     }
 
     private class ComponentSorter extends AbstractTopologicalSorter<ComponentDescriptor, DependencyDescriptor> {

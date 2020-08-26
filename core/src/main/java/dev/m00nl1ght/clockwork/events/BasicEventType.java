@@ -34,20 +34,20 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
     protected void init() {
         this.rootTarget = getTargetType().getRoot();
         this.idxOffset = getTargetType().getSubtargetIdxFirst();
-        final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset;
+        final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
         this.listeners = new List[cnt];
     }
 
     @Override
     public <S extends T> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
-        if (target.getRoot() != rootTarget) target.checkCompatibility(this);
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             @SuppressWarnings("unchecked")
             final List<EventListener<E, S, ?>> list = listeners[target.getSubtargetIdxFirst() - idxOffset];
             if (list == null) return List.of();
             return list;
         } catch (Exception e) {
-            target.checkCompatibility(this);
+            checkCompatibility(target);
             throw e;
         }
     }
@@ -57,7 +57,7 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
         final var modified = new HashSet<TargetType<? extends T>>();
         for (final var listener : eventListeners) {
             final var type = listener.getComponentType().getTargetType();
-            if (type.getRoot() != rootTarget) type.checkCompatibility(this);
+            if (type.getRoot() != rootTarget) checkCompatibility(type);
             final var idx = type.getSubtargetIdxFirst() - idxOffset;
             if (listeners[idx] == null) listeners[idx] = new ArrayList(5);
             @SuppressWarnings("unchecked") final var list = (List<EventListener<E, ? extends T, ?>>) listeners[idx];
@@ -76,7 +76,7 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
         final var modified = new HashSet<TargetType<? extends T>>();
         for (final var listener : eventListeners) {
             final var type = listener.getComponentType().getTargetType();
-            if (type.getRoot() != rootTarget) type.checkCompatibility(this);
+            if (type.getRoot() != rootTarget) checkCompatibility(type);
             final var idx = type.getSubtargetIdxFirst() - idxOffset;
             if (listeners[idx] == null) continue;
             final var list = listeners[idx];

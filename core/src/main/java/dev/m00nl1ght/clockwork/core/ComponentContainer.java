@@ -10,17 +10,18 @@ public class ComponentContainer<T extends ComponentTarget> {
 
     public ComponentContainer(TargetType<T> targetType, T object) {
         this.targetType = Preconditions.notNull(targetType, "targetType");
-        targetType.getPlugin().getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
-        this.components = new Object[targetType.getComponentTypes().size()];
+        this.components = new Object[targetType.getAllComponentTypes().size()];
         this.object = object;
         this.initComponents();
     }
 
     protected void initComponents() {
-        for (var comp : targetType.getComponentTypes()) {
+        for (var comp : targetType.getAllComponentTypes()) {
             try {
-                components[comp.getInternalID()] = comp.buildComponentFor(object);
+                final var factory = comp.getFactory();
+                components[comp.getInternalID()] = factory == null ? null : factory.create(object);
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inComponentInit(comp, t);
             }

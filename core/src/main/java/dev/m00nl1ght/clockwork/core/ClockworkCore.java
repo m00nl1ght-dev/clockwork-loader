@@ -252,7 +252,6 @@ public class ClockworkCore implements ComponentTarget {
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(targetType.getDescriptor(), existingByName.getId());
         final var existingByClass = classToTargetMap.putIfAbsent(targetType.getTargetClass(), targetType);
         if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(targetType.getDescriptor(), existingByClass.getId());
-        targetType.getPlugin().addLoadedTargetType(targetType);
     }
 
     void addLoadedComponentType(ComponentType<?, ?> componentType) {
@@ -261,7 +260,6 @@ public class ClockworkCore implements ComponentTarget {
         if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());
         final var existingByClass = classToComponentMap.putIfAbsent(componentType.getComponentClass(), componentType);
         if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(componentType.getDescriptor(), existingByClass.getId());
-        componentType.getPlugin().addLoadedComponentType(componentType);
     }
 
 }

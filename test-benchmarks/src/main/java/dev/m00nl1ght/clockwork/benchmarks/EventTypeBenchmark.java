@@ -7,11 +7,15 @@ import dev.m00nl1ght.clockwork.debug.profiler.SimpleCyclicProfilerEntry;
 import dev.m00nl1ght.clockwork.debug.profiler.generic.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.events.EventType;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class EventTypeBenchmark {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final TestTarget testTarget = new TestTarget();
 
@@ -40,7 +44,7 @@ public class EventTypeBenchmark {
         }
 
         for (final var eventType : eventTypes) {
-            CWLAnnotationsExtension.fetchListeners(eventType);
+            CWLAnnotationsExtension.fetchListeners(ClockworkBenchmarks.annotationProcessor, eventType);
         }
 
         for (final var eventType : eventTypes) {
@@ -53,7 +57,7 @@ public class EventTypeBenchmark {
             }
         }
 
-        DebugUtils.printProfilerInfo(profiler);
+        System.out.println(DebugUtils.printProfilerInfo(profiler));
 
     }
 

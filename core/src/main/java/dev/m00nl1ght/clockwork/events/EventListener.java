@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.events;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Comparator;
 import java.util.function.BiConsumer;
@@ -12,18 +13,22 @@ public final class EventListener<E extends Event, T extends ComponentTarget, C> 
 
     private final ComponentType<C, T> componentType;
     private final EventListenerPriority priority;
-    private final Class<E> eventClass;
+    private final TypeRef<E> eventClassType;
     private final BiConsumer<C, E> consumer;
 
-    public EventListener(Class<E> eventClass, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
+    public EventListener(TypeRef<E> eventClassType, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
         this.componentType = componentType;
         this.priority = priority;
-        this.eventClass = eventClass;
+        this.eventClassType = eventClassType;
         this.consumer = consumer;
     }
 
-    public Class<E> getEventClass() {
-        return eventClass;
+    public EventListener(Class<E> eventClass, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
+        this(TypeRef.of(eventClass), componentType, priority, consumer);
+    }
+
+    public TypeRef<E> getEventClassType() {
+        return eventClassType;
     }
 
     public ComponentType<C, T> getComponentType() {

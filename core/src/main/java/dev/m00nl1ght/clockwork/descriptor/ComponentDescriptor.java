@@ -1,5 +1,7 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.descriptor;
 
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.version.Version;
 

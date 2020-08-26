@@ -1,7 +1,11 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
-import dev.m00nl1ght.clockwork.util.LogUtil;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.lang.module.ModuleDescriptor;
 import java.nio.file.Path;
@@ -18,11 +22,11 @@ public class PluginLoadingException extends RuntimeException {
     }
 
     public static PluginLoadingException generic(String msg, Object... objects) {
-        return new PluginLoadingException(LogUtil.format(msg, "[]", objects));
+        return new PluginLoadingException(FormatUtil.format(msg, "[]", objects));
     }
 
     public static PluginLoadingException generic(String msg, Throwable cause, Object... objects) {
-        return new PluginLoadingException(LogUtil.format(msg, "[]", objects), cause);
+        return new PluginLoadingException(FormatUtil.format(msg, "[]", objects), cause);
     }
 
     public static PluginLoadingException coreTargetMissing(String id) {

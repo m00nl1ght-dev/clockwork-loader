@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
 
 public abstract class PluginLoadingProblem {

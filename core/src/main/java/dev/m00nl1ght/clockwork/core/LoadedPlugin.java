@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 
 import java.util.Collection;
@@ -7,7 +8,7 @@ import java.util.Collections;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
-public class LoadedPlugin {
+public final class LoadedPlugin {
 
     private final PluginDescriptor descriptor;
     private final ClockworkCore clockworkCore;

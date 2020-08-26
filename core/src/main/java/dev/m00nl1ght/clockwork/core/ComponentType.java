@@ -1,9 +1,10 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Preconditions;
-import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 
-public class ComponentType<C, T extends ComponentTarget> {
+public final class ComponentType<C, T extends ComponentTarget> {
 
     private final LoadedPlugin plugin;
     private final ComponentDescriptor descriptor;
@@ -18,11 +19,15 @@ public class ComponentType<C, T extends ComponentTarget> {
         this.plugin = Preconditions.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
         this.targetType = Preconditions.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
         this.componentClass = Preconditions.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
-        this.factory = buildDefaultFactory(componentClass);
+        this.factory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalReflectiveAccess(), componentClass, targetType.getTargetClass());
     }
 
     public LoadedPlugin getPlugin() {
         return plugin;
+    }
+
+    public ClockworkCore getClockworkCore() {
+        return plugin.getClockworkCore();
     }
 
     public ComponentDescriptor getDescriptor() {
@@ -47,6 +52,7 @@ public class ComponentType<C, T extends ComponentTarget> {
     }
 
     public int getInternalID() {
+        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         return internalID;
     }
 
@@ -55,36 +61,33 @@ public class ComponentType<C, T extends ComponentTarget> {
         final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
             return (C) container.getComponent(internalID);
-        } catch (ClassCastException | ArrayIndexOutOfBoundsException e) {
-            container.getTargetType().checkCompatibility(this);
+        } catch (Exception e) {
+            checkCompatibility(container.getTargetType());
             throw e;
         }
-    }
-
-    protected void init(int internalID) { // TODO can this be avoided?
-        if (this.internalID >= 0) throw new IllegalStateException();
-        this.internalID = internalID;
     }
 
     public void setFactory(ComponentFactory<T, C> factory) {
         this.factory = factory;
     }
 
-    protected C buildComponentFor(T object) throws Exception {
-        return factory == null ? null : factory.create(object);
+    // ### Internal ###
+
+    private void checkCompatibility(TargetType<?> otherTarget) {
+        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        if (!otherTarget.isEquivalentTo(this.targetType)) {
+            final var msg = "Cannot retrieve component [] (registered to target []) from different target []";
+            throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherTarget));
+        }
     }
 
-    @SuppressWarnings("Convert2MethodRef")
-    private ComponentFactory<T, C> buildDefaultFactory(Class<C> componentClass) {
-        final var objCtr = ReflectionUtil.getConstructorOrNull(componentClass, targetType.getTargetClass());
-        if (objCtr != null) return o -> objCtr.newInstance(o);
-        final var emptyCtr = ReflectionUtil.getConstructorOrNull(componentClass);
-        if (emptyCtr != null) return o -> emptyCtr.newInstance();
-        return null;
+    void setInternalID(int internalID) {
+        getClockworkCore().getState().require(ClockworkCore.State.POPULATING);
+        this.internalID = internalID;
     }
 
-    public interface ComponentFactory<T, C> {
-        C create(T obj) throws Exception;
+    ComponentFactory<T, C> getFactory() {
+        return factory;
     }
 
 }

@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.classloading;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
-import dev.m00nl1ght.clockwork.core.PluginReference;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 
@@ -97,7 +97,6 @@ public class ModuleManager {
      * This is needed for {@link PluginProcessor}s that use annotation processing and method handles to work.
      */
     private void patchModule(Module module) {
-        localModule.addReads(module);
         for (var pn : module.getPackages()) {
             layerController.addOpens(module, pn, localModule);
         }

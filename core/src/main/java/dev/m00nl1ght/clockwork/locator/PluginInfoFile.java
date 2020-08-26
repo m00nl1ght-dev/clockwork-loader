@@ -4,6 +4,7 @@ import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import dev.m00nl1ght.clockwork.core.*;
+import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -95,6 +96,9 @@ public class PluginInfoFile {
             builder.parent(conf.getOrElse("parent", () -> null));
             referenceBuilder.target(builder.build());
         }
+
+        final Optional<List<String>> processors = config.getOptional("processors");
+        processors.ifPresent(l -> l.forEach(referenceBuilder::markForProcessor));
 
         return referenceBuilder;
     }

@@ -1,7 +1,8 @@
 module dev.m00nl1ght.clockwork.benchmarks {
 
-    // needed so that event annotation processor can use reflective access in boot layer
+    // needed so that reflective access works in boot layer
     opens dev.m00nl1ght.clockwork.benchmarks to dev.m00nl1ght.clockwork;
+    opens dev.m00nl1ght.clockwork.benchmarks.components to dev.m00nl1ght.clockwork;
 
     requires dev.m00nl1ght.clockwork;
     requires dev.m00nl1ght.clockwork.extension.annotations;

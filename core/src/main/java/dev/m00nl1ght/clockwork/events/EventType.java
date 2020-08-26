@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.events;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
@@ -36,7 +37,7 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType) {
         if (this.targetType != null) throw new IllegalStateException();
-        targetType.getPlugin().getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         this.targetType = targetType;
         init();
     }
@@ -78,6 +79,11 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
         return targetType;
     }
 
+    @Override
+    public String toString() {
+        return targetType == null ? eventClassType + "@?" : eventClassType + "@" + targetType;
+    }
+
     protected void forTargetAndParents(TargetType<? extends T> origin, Consumer<TargetType<? extends T>> consumer) {
         TargetType<? extends T> type = origin;
         while (type != null) {
@@ -85,6 +91,16 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
             @SuppressWarnings("unchecked")
             final var castedType = (TargetType<? extends T>) type.getParent();
             type = castedType;
+        }
+    }
+
+    protected void checkCompatibility(TargetType<?> otherType) {
+        if (targetType == null) {
+            final var msg = "Event type for [] is not registered";
+            throw new IllegalArgumentException(FormatUtil.format(msg, eventClassType.getType().getTypeName()));
+        } else if (!otherType.isEquivalentTo(targetType)) {
+            final var msg = "Cannot post event [] (created for target []) to different target []";
+            throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherType));
         }
     }
 

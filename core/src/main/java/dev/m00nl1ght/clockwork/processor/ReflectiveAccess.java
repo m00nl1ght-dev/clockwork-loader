@@ -25,6 +25,7 @@ public class ReflectiveAccess {
         final var targetModule = targetClass.getModule();
         if (targetModule != plugin.getMainModule())
             throw new IllegalAccessException();
+        ClockworkLoader.class.getModule().addReads(targetClass.getModule());
         final var lookup = MethodHandles.privateLookupIn(targetClass, rootLookup);
         return lookup; // TODO check for potential security exploits
     }

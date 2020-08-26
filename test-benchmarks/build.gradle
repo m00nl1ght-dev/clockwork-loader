@@ -1,7 +1,10 @@
 
 plugins {
+    id 'application'
     id 'java-library'
 }
+
+mainClassName = "dev.m00nl1ght.clockwork.benchmarks.EventTypeBenchmark"
 
 sourceCompatibility = 14
 targetCompatibility = 14
@@ -21,4 +24,12 @@ dependencies {
     api project(':core')
     implementation project(':ext-annotations')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+}
+
+application {
+    getMainModule() set "dev.m00nl1ght.clockwork.benchmarks"
+}
+
+run {
+    workingDir rootProject.rootDir
 }

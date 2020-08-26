@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.util;
 
-public class LogUtil {
+public class FormatUtil {
 
     public static String format(String str, String tok, Object... objects) {
         var p = 0;

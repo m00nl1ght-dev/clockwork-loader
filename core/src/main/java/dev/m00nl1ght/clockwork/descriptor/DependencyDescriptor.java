@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import dev.m00nl1ght.clockwork.version.VersionRequirement;

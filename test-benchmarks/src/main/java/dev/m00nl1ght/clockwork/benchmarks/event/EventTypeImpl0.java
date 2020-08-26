@@ -35,7 +35,8 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
 
     @Override
     protected void init() {
-        final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset;
+        super.init();
+        final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
         this.dispatchers = new EventDispatcher[cnt];
         Arrays.fill(dispatchers, EmptyEventDispatcher.INSTANCE);
     }
@@ -57,14 +58,14 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
     @SuppressWarnings("unchecked")
     public E post(T object, E event) {
         final var target = object.getComponentContainer().getTargetType();
-        if (target.getRoot() != rootTarget) target.checkCompatibility(this);
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
         final var dispatcher = dispatchers[target.getSubtargetIdxFirst() - idxOffset];
         event.dispatcher = dispatcher;
         try {
             dispatcher.dispatch(object.getComponentContainer(), event);
             return event;
         } catch (Throwable t) {
-            target.checkCompatibility(this);
+            checkCompatibility(target);
             throw t;
         }
     }
