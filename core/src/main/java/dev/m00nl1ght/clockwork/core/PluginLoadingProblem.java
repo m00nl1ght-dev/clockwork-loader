@@ -44,16 +44,16 @@ public abstract class PluginLoadingProblem {
 
     }
 
-    public static InheritedVersionClash inheritedVersionClash(DependencyDescriptor wanted, ComponentDescriptor inherited) {
+    public static InheritedVersionClash inheritedVersionClash(DependencyDescriptor wanted, PluginDescriptor inherited) {
         return new InheritedVersionClash(wanted, inherited);
     }
 
     public static class InheritedVersionClash extends PluginLoadingProblem {
 
         private final DependencyDescriptor wanted;
-        private final ComponentDescriptor inherited;
+        private final PluginDescriptor inherited;
 
-        private InheritedVersionClash(DependencyDescriptor wanted, ComponentDescriptor inherited) {
+        private InheritedVersionClash(DependencyDescriptor wanted, PluginDescriptor inherited) {
             super(wanted.getTarget());
             this.wanted = wanted;
             this.inherited = inherited;
@@ -61,14 +61,14 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return "Version [" + inherited.getVersion() + "] of inherited component clashes with wanted version [" + wanted + "]";
+            return "Version [" + inherited.getVersion() + "] of inherited plugin clashes with wanted version [" + wanted + "]";
         }
 
         public DependencyDescriptor getWanted() {
             return wanted;
         }
 
-        public ComponentDescriptor getInherited() {
+        public PluginDescriptor getInherited() {
             return inherited;
         }
 

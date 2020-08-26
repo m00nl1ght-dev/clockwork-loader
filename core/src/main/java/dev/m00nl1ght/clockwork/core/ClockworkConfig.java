@@ -9,7 +9,7 @@ import java.util.List;
 public final class ClockworkConfig {
 
     private final List<PluginLocator> pluginLocators = new ArrayList<>();
-    private final List<DependencyDescriptor> wantedComponents = new ArrayList<>();
+    private final List<DependencyDescriptor> wantedPlugins = new ArrayList<>();
 
     public static Builder builder() {
         return new Builder();
@@ -17,11 +17,11 @@ public final class ClockworkConfig {
 
     public ClockworkConfig(Builder builder) {
         this.pluginLocators.addAll(builder.pluginLocators);
-        this.wantedComponents.addAll(builder.wantedComponents);
+        this.wantedPlugins.addAll(builder.wantedPlugins);
     }
 
-    public List<DependencyDescriptor> getWantedComponents() {
-        return Collections.unmodifiableList(wantedComponents);
+    public List<DependencyDescriptor> getWantedPlugins() {
+        return Collections.unmodifiableList(wantedPlugins);
     }
 
     public List<PluginLocator> getPluginLocators() {
@@ -31,7 +31,7 @@ public final class ClockworkConfig {
     public static class Builder {
 
         private final List<PluginLocator> pluginLocators = new ArrayList<>();
-        private final List<DependencyDescriptor> wantedComponents = new ArrayList<>();
+        private final List<DependencyDescriptor> wantedPlugins = new ArrayList<>();
 
         private Builder() {}
 
@@ -45,10 +45,11 @@ public final class ClockworkConfig {
             this.pluginLocators.add(locator);
         }
 
-        public void addWantedComponent(DependencyDescriptor descriptor) {
-            if (wantedComponents.stream().anyMatch(d -> d.getTarget().equals(descriptor.getTarget())))
-                throw new IllegalArgumentException("duplicate wanted component: " + descriptor.getTarget());
-            this.wantedComponents.add(descriptor);
+        public void addWantedPlugin(DependencyDescriptor descriptor) {
+            if (!descriptor.getComponent().isEmpty()) throw new IllegalArgumentException("not a plugin id");
+            if (wantedPlugins.stream().anyMatch(d -> d.getPlugin().equals(descriptor.getPlugin())))
+                throw new IllegalArgumentException("duplicate wanted plugin: " + descriptor.getPlugin());
+            this.wantedPlugins.add(descriptor);
         }
 
     }

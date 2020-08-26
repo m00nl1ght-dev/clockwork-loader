@@ -27,7 +27,7 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType, boolean autoCollect) {
         if (this.targetType != null) throw new IllegalStateException();
-        if (!targetType.isInitialised()) throw new IllegalStateException();
+        // if (targetType.getPlugin().getClockworkCore().getState()) ... TODO check state
         this.targetType = targetType;
         init();
         if (autoCollect) autoCollectComponents();

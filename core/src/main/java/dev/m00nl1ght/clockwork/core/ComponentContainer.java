@@ -9,7 +9,8 @@ public class ComponentContainer<T extends ComponentTarget> {
     protected final T object;
 
     public ComponentContainer(TargetType<T> targetType, T object) {
-        this.targetType = Preconditions.notNullAnd(targetType, TargetType::isInitialised, "targetType");
+        this.targetType = Preconditions.notNull(targetType, "targetType");
+        // if (targetType.getPlugin().getClockworkCore().getState()) ... TODO check state
         Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
         this.components = new Object[targetType.getComponentTypes().size()];
         this.object = object;

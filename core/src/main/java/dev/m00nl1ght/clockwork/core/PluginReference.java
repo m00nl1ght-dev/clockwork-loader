@@ -46,11 +46,11 @@ public final class PluginReference {
         return mainComponent;
     }
 
-    public List<ComponentDescriptor> getComponentDefinitions() {
+    public List<ComponentDescriptor> getComponentDescriptors() {
         return components;
     }
 
-    public List<TargetDescriptor> getTargetDefinitions() {
+    public List<TargetDescriptor> getTargetDescriptors() {
         return targets;
     }
 

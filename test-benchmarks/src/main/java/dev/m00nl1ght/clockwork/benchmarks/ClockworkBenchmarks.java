@@ -11,8 +11,8 @@ public class ClockworkBenchmarks {
     static {
         final var configBuilder = ClockworkConfig.builder();
         configBuilder.addPluginLocator(new BootLayerLocator());
-        configBuilder.addWantedComponent(DependencyDescriptor.buildAnyVersion("clockwork"));
-        configBuilder.addWantedComponent(DependencyDescriptor.buildAnyVersion("clockwork-benchmarks"));
+        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
+        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork-benchmarks"));
         clockworkCore = ClockworkLoader.load(configBuilder.build());
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
         clockworkCore.init(new ComponentContainer<>(coreTargetType, clockworkCore));

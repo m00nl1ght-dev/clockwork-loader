@@ -57,15 +57,18 @@ public final class ClockworkLoader {
         final var componentSorter = new ComponentSorter();
         final var targetSorter = new TargetSorter();
 
+        // If there is a parent core, add it's components and targets to the sorters first.
         if (parent != null) {
             for (final var c : parent.getLoadedComponentTypes()) componentSorter.add(c.getDescriptor());
             for (final var t : parent.getLoadedTargetTypes()) targetSorter.add(t.getDescriptor());
         }
 
-        for (final var wanted : config.getWantedComponents()) {
+        // Now try to find all the plugins that are wanted by the config.
+        for (final var wanted : config.getWantedPlugins()) {
 
+            // If the parent has it and the version matches, it doesn't have to be located again.
             if (parent != null) {
-                final var inherited = parent.getComponentType(wanted.getTarget());
+                final var inherited = parent.getLoadedPlugin(wanted.getPlugin());
                 if (inherited.isPresent()) {
                     if (!wanted.acceptsVersion(inherited.get().getDescriptor().getVersion()))
                         addProblem(PluginLoadingProblem.inheritedVersionClash(wanted, inherited.get().getDescriptor()));
@@ -73,6 +76,7 @@ public final class ClockworkLoader {
                 }
             }
 
+            // Otherwise, try to find it with the PluginLocators from the config.
             final var located = new LinkedList<PluginReference>();
             for (var locator : config.getPluginLocators()) {
                 for (var ref : locator.find(wanted)) {
@@ -82,40 +86,55 @@ public final class ClockworkLoader {
                 }
             }
 
+            // If anything was found, add it to the sorters.
             if (located.isEmpty()) {
                 addProblem(PluginLoadingProblem.pluginNotFound(wanted));
             } else {
                 located.sort(versionSorter);
                 final var ref = located.get(0);
                 pluginReferences.addLast(ref);
-                ref.getComponentDefinitions().forEach(componentSorter::add);
-                ref.getTargetDefinitions().forEach(targetSorter::add);
+                ref.getComponentDescriptors().forEach(componentSorter::add);
+                ref.getTargetDescriptors().forEach(targetSorter::add);
                 LOGGER.debug("Located plugin [" + ref + "] using locator [" + ref.getLocator().getName() + "].");
             }
 
         }
 
+        // These will contain the sorted components and targets.
         final var componentDescriptors = new LinkedList<ComponentDescriptor>();
         final var targetDescriptors = new LinkedList<TargetDescriptor>();
 
+        // Now trigger the sorters.
         componentSorter.sort(componentDescriptors);
         targetSorter.sort(targetDescriptors);
 
+        // If there were any fatal problems, print them and throw an exception.
         if (!fatalProblems.isEmpty()) {
             LOGGER.error("The following fatal problems occurred during dependency resolution:");
             for (var p : fatalProblems) LOGGER.error(p.format());
             throw PluginLoadingException.fatalLoadingProblems(fatalProblems);
         }
 
+        // If there were any other problems, just print them.
         if (!skippedProblems.isEmpty()) {
             LOGGER.info("The following optional components have been skipped, because their dependencies are not present:");
             for (var p : skippedProblems) LOGGER.info(p.format());
         }
 
+        // Create the new ModuleLayer and the ClockworkCore instance.
         final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
         final var moduleManager = new ModuleManager(pluginReferences, parentLayer);
         final var core = new ClockworkCore(moduleManager);
 
+        // First add the plugins inherited from the parent.
+        if (parent != null) {
+            for (final var inherited : parent.getLoadedPlugins()) {
+                final var plugin = new LoadedPlugin(inherited.getDescriptor(), core, inherited.getMainModule());
+                core.addLoadedPlugin(plugin);
+            }
+        }
+
+        // Then add the new ones that were located using the config.
         for (final var pluginReference : pluginReferences) {
             final var mainModule = moduleManager.mainModuleFor(pluginReference);
             final var plugin = new LoadedPlugin(pluginReference.getDescriptor(), core, mainModule);
@@ -123,28 +142,92 @@ public final class ClockworkLoader {
             core.addLoadedPlugin(plugin);
         }
 
+        // Next, prepare and add all targets provided by the plugins.
         for (final var targetDescriptor : targetDescriptors) {
+
+            // Get the plugin that is providing this target.
             final var plugin = core.getLoadedPlugin(targetDescriptor.getPlugin().getId()).orElseThrow();
+
+            // If the parent has it, get the target class from there.
+            if (parent != null) {
+                final var inherited = parent.getTargetType(targetDescriptor.getId());
+                if (inherited.isPresent()) {
+                    final var targetClass = inherited.get().getTargetClass();
+                    final var target = TargetType.create(plugin, targetDescriptor, targetClass);
+                    core.addLoadedTargetType(target);
+                    continue;
+                }
+            }
+
+            // Otherwise, get the target class from the ModuleManager, then verify and cast it.
             final var targetClass = moduleManager.loadClassForPlugin(targetDescriptor.getTargetClass(), plugin);
-            if (!ComponentTarget.class.isAssignableFrom(targetClass)) throw PluginLoadingException.invalidTargetClass(targetDescriptor, targetClass);
+            if (!ComponentTarget.class.isAssignableFrom(targetClass))
+                throw PluginLoadingException.invalidTargetClass(targetDescriptor, targetClass);
             @SuppressWarnings("unchecked") final var targetCasted = (Class<? extends ComponentTarget>) targetClass;
+
+            // Finally, construct the new TargetType and add it to the core.
             final var target = TargetType.create(plugin, targetDescriptor, targetCasted);
             core.addLoadedTargetType(target);
+
         }
 
+        // Also, prepare and add all components provided by the plugins.
         for (final var componentDescriptor : componentDescriptors) {
+
+            // Get the plugin that is providing this component, and the target it is for.
             final var plugin = core.getLoadedPlugin(componentDescriptor.getPlugin().getId()).orElseThrow();
-            final var compClass = moduleManager.loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
             final var target = core.getTargetType(componentDescriptor.getTargetId());
             if (target.isEmpty()) throw PluginLoadingException.componentMissingTarget(componentDescriptor);
-            final var component = target.get().getPrimer().register(componentDescriptor, plugin, compClass);
+
+            // If the parent has it, get the component class from there.
+            if (parent != null) {
+                final var inherited = parent.getComponentType(componentDescriptor.getId());
+                if (inherited.isPresent()) {
+                    final var componentClass = inherited.get().getComponentClass();
+                    final var component = target.get().addComponent(componentDescriptor, plugin, componentClass);
+                    core.addLoadedComponentType(component);
+                    continue;
+                }
+            }
+
+            // Otherwise, get the component class from the ModuleManager.
+            final var compClass = moduleManager.loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
+
+            // Finally, construct the new ComponentType and add it to the core.
+            final var component = target.get().addComponent(componentDescriptor, plugin, compClass);
             core.addLoadedComponentType(component);
+
         }
 
-        for (var targetType : core.getLoadedTargetTypes()) targetType.getPrimer().init();
-        // TODO plugin processors
-        // this.state = State.LOCATED;
+        // Lock the internal registries of the core.
+        core.lock();
 
+        // Apply all plugin processors defined to each plugin respectively.
+        for (final var pluginReference : pluginReferences) {
+
+            // Get the processors, and skip the plugin if there are none.
+            final var processors = pluginReference.getProcessors();
+            if (processors.isEmpty()) continue;
+
+            // Get the corresponding LoadedPlugin instance and apply the processors.
+            final var plugin = core.getLoadedPlugin(pluginReference.getId()).orElseThrow();
+            pluginProcessors.apply(plugin, pluginReference.getProcessors());
+
+            // Apply the processors to all TargetTypes provided by the plugin next.
+            for (final var targetDescriptor : pluginReference.getTargetDescriptors()) {
+                final var target = core.getTargetType(targetDescriptor.getId()).orElseThrow();
+                pluginProcessors.apply(target, pluginReference.getProcessors());
+            }
+
+            // Finally, apply the processors to all ComponentTypes provided by the plugin as well.
+            for (final var componentDescriptor : pluginReference.getComponentDescriptors()) {
+                final var component = core.getComponentType(componentDescriptor.getId()).orElseThrow();
+                pluginProcessors.apply(component, pluginReference.getProcessors());
+            }
+
+        }
+
+        // The core is now ready for use.
         return core;
     }
 

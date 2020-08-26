@@ -20,14 +20,12 @@ public abstract class TargetType<T extends ComponentTarget> {
     protected final List<TargetType<? extends T>> directSubtargets = new ArrayList<>();
     protected final ArrayList<ComponentType<?, T>> components = new ArrayList<>();
 
-    private Primer<T> primer;
     protected int subtargetIdxFirst = -1, subtargetIdxLast = -1;
 
     private TargetType(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass) {
         this.plugin = plugin;
         this.descriptor = descriptor;
         this.targetClass = targetClass;
-        this.primer = new Primer<>(this);
     }
 
     public abstract boolean canAcceptFrom(TargetType<?> other);
@@ -75,14 +73,6 @@ public abstract class TargetType<T extends ComponentTarget> {
         return targetClass;
     }
 
-    public final boolean isInitialised() {
-        return primer == null;
-    }
-
-    public final Primer<T> getPrimer() {
-        return primer;
-    }
-
     public List<ComponentType<?, T>> getOwnComponentTypes() {
         return Collections.unmodifiableList(components);
     }
@@ -96,7 +86,6 @@ public abstract class TargetType<T extends ComponentTarget> {
     public abstract List<TargetType<? extends T>> getAllSubtargets();
 
     public List<TargetType<? extends T>> getDirectSubtargets() {
-        if (!isInitialised()) throw new IllegalStateException();
         return Collections.unmodifiableList(directSubtargets);
     }
 
@@ -108,7 +97,13 @@ public abstract class TargetType<T extends ComponentTarget> {
         return subtargetIdxLast;
     }
 
-    protected abstract void init();
+    abstract void init();
+
+    <C> ComponentType<C, T> addComponent(ComponentDescriptor component, LoadedPlugin plugin, Class<C> compClass) {
+        final var componentType = new ComponentType<>(plugin, component, compClass, this);
+        components.add(componentType);
+        return componentType;
+    }
 
     static <T extends ComponentTarget> TargetType<T> create(LoadedPlugin plugin, TargetDescriptor descriptor, Class<T> targetClass) {
         Preconditions.notNull(descriptor, "descriptor");
@@ -119,11 +114,10 @@ public abstract class TargetType<T extends ComponentTarget> {
             return new Root<>(plugin, descriptor, targetClass);
         } else {
             final var found = plugin.getClockworkCore().getTargetType(descriptor.getParent()).orElseThrow();
-            if (found.isInitialised()) throw new IllegalStateException();
             if (found.targetClass.isAssignableFrom(targetClass)) {
                 checkSuperclasses(descriptor, targetClass, found.targetClass, plugin.getClockworkCore());
                 @SuppressWarnings("unchecked") final var parentType = (TargetType<? super T>) found;
-                return new ForSubclass<>(plugin, descriptor, parentType, targetClass);
+                return new Branch<>(plugin, descriptor, parentType, targetClass);
             } else {
                 throw PluginLoadingException.invalidParentForTarget(descriptor, found);
             }
@@ -141,30 +135,6 @@ public abstract class TargetType<T extends ComponentTarget> {
         }
     }
 
-    public static class Primer<T extends ComponentTarget> {
-
-        private final TargetType<T> targetType;
-
-        private Primer(TargetType<T> targetType) {
-            this.targetType = targetType;
-        }
-
-        public synchronized <C> ComponentType<C, T> register(ComponentDescriptor component, LoadedPlugin plugin, Class<C> compClass) {
-            if (targetType.isInitialised()) throw new IllegalStateException();
-            final var componentType = new ComponentType<>(plugin, component, compClass, targetType);
-            targetType.components.add(componentType);
-            return componentType;
-        }
-
-        synchronized void init() {
-            if (targetType.primer == null) throw new IllegalStateException();
-            targetType.components.trimToSize();
-            targetType.init();
-            targetType.primer = null;
-        }
-
-    }
-
     private static final class Root<T extends ComponentTarget> extends TargetType<T> {
 
         protected final ArrayList<TargetType<? extends T>> allSubtargets = new ArrayList<>();
@@ -175,6 +145,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         @Override
         protected void init() {
+            components.trimToSize();
             for (var i = 0; i < components.size(); i++) components.get(i).init(i);
             populateSubtargets(this);
             allSubtargets.trimToSize();
@@ -204,7 +175,6 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         @Override
         public List<TargetType<? extends T>> getAllSubtargets() {
-            if (!isInitialised()) throw new IllegalStateException();
             return Collections.unmodifiableList(allSubtargets);
         }
 
@@ -215,13 +185,13 @@ public abstract class TargetType<T extends ComponentTarget> {
 
     }
 
-    private static final class ForSubclass<T extends ComponentTarget> extends TargetType<T> {
+    private static final class Branch<T extends ComponentTarget> extends TargetType<T> {
 
         private final TargetType<? super T> root;
         private final TargetType<? super T> parent;
         private final List<ComponentType<?, ? super T>> compoundList;
 
-        private ForSubclass(LoadedPlugin plugin, TargetDescriptor descriptor, TargetType<? super T> parent, Class<T> targetClass) {
+        private Branch(LoadedPlugin plugin, TargetDescriptor descriptor, TargetType<? super T> parent, Class<T> targetClass) {
             super(plugin, descriptor, targetClass);
             this.compoundList = CollectionUtil.compoundList(parent.getComponentTypes(), components);
             this.root = parent.getRoot();
@@ -231,7 +201,7 @@ public abstract class TargetType<T extends ComponentTarget> {
 
         @Override
         protected void init() {
-            if (parent.primer != null) throw new IllegalStateException();
+            components.trimToSize();
             final var bIdx = parent.getComponentTypes().size();
             for (var i = 0; i < components.size(); i++) components.get(i).init(bIdx + i);
         }

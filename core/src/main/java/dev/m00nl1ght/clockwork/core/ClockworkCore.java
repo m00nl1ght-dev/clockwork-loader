@@ -32,6 +32,12 @@ public class ClockworkCore implements ComponentTarget {
         this.moduleManager = moduleManager;
     }
 
+    void lock() {
+        if (this.state != State.CONSTRUCTED) throw new IllegalStateException();
+        for (var targetType : loadedTargets.values()) targetType.init();
+        this.state = State.POPULATED;
+    }
+
     /**
      * Initialises this ClockworkCore with a default core container.
      * The default core container is created for target id {@code clockwork:core}
@@ -54,8 +60,8 @@ public class ClockworkCore implements ComponentTarget {
      *
      * @param coreContainer the core container for this ClockworkCore
      */
-    public synchronized void init(ComponentContainer<ClockworkCore> coreContainer) {
-        if (this.state != State.LOCATED) throw new IllegalStateException();
+    public void init(ComponentContainer<ClockworkCore> coreContainer) {
+        if (this.state != State.POPULATED) throw new IllegalStateException();
         this.coreContainer = coreContainer;
         this.state = State.INITIALISED;
     }
@@ -67,13 +73,13 @@ public class ClockworkCore implements ComponentTarget {
         return Collections.unmodifiableCollection(loadedPlugins.values());
     }
 
+    public Optional<LoadedPlugin> getLoadedPlugin(String pluginId) {
+        return Optional.ofNullable(loadedPlugins.get(pluginId));
+    }
+
     void addLoadedPlugin(LoadedPlugin loadedPlugin) {
         final var existing = loadedPlugins.putIfAbsent(loadedPlugin.getId(), loadedPlugin);
         if (existing != null) throw PluginLoadingException.pluginDuplicate(loadedPlugin.getDescriptor(), existing.getDescriptor());
-    }
-
-    public Optional<LoadedPlugin> getLoadedPlugin(String pluginId) {
-        return Optional.ofNullable(loadedPlugins.get(pluginId));
     }
 
     /**
@@ -225,7 +231,7 @@ public class ClockworkCore implements ComponentTarget {
          * Component and target types are now available, and the core components
          * can be initialised by calling {@link ClockworkCore#init()}.
          */
-        LOCATED,
+        POPULATED,
 
         /**
          * Plugin loading is complete and all core components have been initialised.
