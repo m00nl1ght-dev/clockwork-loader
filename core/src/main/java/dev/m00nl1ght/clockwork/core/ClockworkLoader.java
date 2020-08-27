@@ -9,11 +9,9 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
-import dev.m00nl1ght.clockwork.processor.PluginProcessor;
-import dev.m00nl1ght.clockwork.processor.ReflectiveAccess;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -42,12 +40,12 @@ public final class ClockworkLoader {
      * @throws PluginLoadingException if there were any fatal dependency resolution problems
      */
     public static ClockworkLoader build(ClockworkConfig config) {
-        return new ClockworkLoader(null, Preconditions.notNull(config, "config"));
+        return new ClockworkLoader(null, Arguments.notNull(config, "config"));
     }
 
     public static ClockworkLoader build(ClockworkCore parent, ClockworkConfig config) {
-        Preconditions.notNull(parent, "parent").getState().requireOrAfter(State.POPULATED);
-        return new ClockworkLoader(parent, Preconditions.notNull(config, "config"));
+        Arguments.notNull(parent, "parent").getState().requireOrAfter(State.POPULATED);
+        return new ClockworkLoader(parent, Arguments.notNull(config, "config"));
     }
 
     public static ClockworkLoader buildBootLayerDefault() {
@@ -245,7 +243,12 @@ public final class ClockworkLoader {
         for (var targetType : core.getLoadedTargetTypes()) targetType.init();
         core.setState(State.PROCESSING);
 
-        // Apply all plugin processors defined to each plugin respectively.
+        // Init all registered plugin processors.
+        for (final var pluginProcessor : registeredProcessors.values()) {
+            pluginProcessor.init(core);
+        }
+
+        // Apply the plugin processors defined to each plugin respectively.
         for (final var pluginReference : pluginReferences) {
 
             // Get the processors, and skip the plugin if there are none.
@@ -254,14 +257,19 @@ public final class ClockworkLoader {
 
             // Get the corresponding LoadedPlugin instance and apply the processors.
             final var plugin = core.getLoadedPlugin(pluginReference.getId()).orElseThrow();
-            final var reflectiveAccess = new ReflectiveAccess(plugin, INTERNAL_REFLECTIVE_ACCESS);
+            final var reflectiveAccess = new PluginProcessorContext(plugin, INTERNAL_REFLECTIVE_ACCESS);
             for (var name : processors) {
+                final var optional = name.startsWith("?");
+                if (optional) name = name.substring(1);
                 final var processor = registeredProcessors.get(name);
-                if (processor == null) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
-                try {
-                    processor.process(plugin, reflectiveAccess);
-                } catch (Throwable t) {
-                    throw PluginLoadingException.inProcessor("plugin", plugin.getId(), name, t);
+                if (processor == null) {
+                    if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
+                } else {
+                    try {
+                        processor.process(reflectiveAccess);
+                    } catch (Throwable t) {
+                        throw PluginLoadingException.inProcessor("plugin", plugin.getId(), name, t);
+                    }
                 }
             }
 

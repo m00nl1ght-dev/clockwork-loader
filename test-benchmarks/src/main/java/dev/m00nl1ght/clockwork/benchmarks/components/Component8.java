@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.benchmarks.components;
 
 import dev.m00nl1ght.clockwork.benchmarks.TestEvent;
 import dev.m00nl1ght.clockwork.events.EventListenerPriority;
-import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
+import dev.m00nl1ght.clockwork.extension.annotations.eventhandler.EventHandler;
 
 public class Component8 {
 

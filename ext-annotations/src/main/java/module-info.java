@@ -1,6 +1,7 @@
 module dev.m00nl1ght.clockwork.extension.annotations {
 
     exports dev.m00nl1ght.clockwork.extension.annotations;
+    exports dev.m00nl1ght.clockwork.extension.annotations.eventhandler;
 
     // needed so that reflective access works in boot layer
     opens dev.m00nl1ght.clockwork.extension.annotations to dev.m00nl1ght.clockwork;

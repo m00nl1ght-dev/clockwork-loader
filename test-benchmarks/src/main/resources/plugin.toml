@@ -2,7 +2,7 @@ plugin_id = "clockwork-benchmarks"
 display_name = "Clockwork Loader Benchmarks"
 version = "0.5"
 authors = ["m00nl1ght"]
-processors = ["eventhandler-annotation-processor"]
+processors = ["extension.annotations.eventhandler"]
 main_class = "dev.m00nl1ght.clockwork.benchmarks.ClockworkBenchmarks"
 description = '''
 Contains some benchmarks for Clockwork Loader

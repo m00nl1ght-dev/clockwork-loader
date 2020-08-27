@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.security;
 
 import dev.m00nl1ght.clockwork.classloading.PluginClassloader;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -60,7 +60,7 @@ public final class ClockworkSecurityPolicy extends Policy {
     }
 
     public static void install(SecurityConfiguration config) {
-        Preconditions.notNull(config, "config");
+        Arguments.notNull(config, "config");
         final var policy = new ClockworkSecurityPolicy(config);
         Policy.setPolicy(policy); INSTALLED = policy;
         System.setSecurityManager(new SecurityManager());

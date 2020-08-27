@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.processor.PluginProcessor;
+import dev.m00nl1ght.clockwork.core.PluginProcessor;
 
 import java.lang.module.ModuleFinder;
 import java.util.HashMap;

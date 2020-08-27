@@ -17,8 +17,12 @@ public abstract class TypeRef<T> {
         return new TypeRef<>(theClass) {};
     }
 
-    private TypeRef(Class<T> theClass) {
-        this.type = theClass;
+    public static <T> TypeRef<T> of(Type type) {
+        return new TypeRef<>(type) {};
+    }
+
+    private TypeRef(Type type) {
+        this.type = type;
     }
 
     protected TypeRef() {

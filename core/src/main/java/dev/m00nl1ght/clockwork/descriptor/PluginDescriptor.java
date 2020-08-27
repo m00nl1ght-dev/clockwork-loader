@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.LinkedList;
@@ -17,12 +17,12 @@ public final class PluginDescriptor {
     private final List<String> permissions;
 
     PluginDescriptor(Builder builder) {
-        this.id = Preconditions.notNullOrBlank(builder.id, "id");
-        this.version = Preconditions.notNull(builder.version, "version");
-        this.displayName = Preconditions.notNullOrBlank(builder.displayName, "displayName");
-        this.description = Preconditions.notNull(builder.description, "description");
-        this.authors = List.copyOf(Preconditions.notNull(builder.authors, "authors"));
-        this.permissions = List.copyOf(Preconditions.notNull(builder.permissions, "permissions"));
+        this.id = Arguments.notNullOrBlank(builder.id, "id");
+        this.version = Arguments.notNull(builder.version, "version");
+        this.displayName = Arguments.notNullOrBlank(builder.displayName, "displayName");
+        this.description = Arguments.notNull(builder.description, "description");
+        this.authors = List.copyOf(Arguments.notNull(builder.authors, "authors"));
+        this.permissions = List.copyOf(Arguments.notNull(builder.permissions, "permissions"));
     }
 
     public String getId() {

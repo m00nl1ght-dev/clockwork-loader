@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 public final class ComponentType<C, T extends ComponentTarget> {
 
@@ -15,10 +15,10 @@ public final class ComponentType<C, T extends ComponentTarget> {
     private ComponentFactory<T, C> factory;
 
     ComponentType(LoadedPlugin plugin, ComponentDescriptor descriptor, Class<C> componentClass, TargetType<T> targetType) {
-        this.descriptor = Preconditions.notNull(descriptor, "descriptor");
-        this.plugin = Preconditions.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
-        this.targetType = Preconditions.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
-        this.componentClass = Preconditions.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
+        this.descriptor = Arguments.notNull(descriptor, "descriptor");
+        this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
+        this.targetType = Arguments.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
+        this.componentClass = Arguments.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
         this.factory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalReflectiveAccess(), componentClass, targetType.getTargetClass());
     }
 
@@ -67,8 +67,14 @@ public final class ComponentType<C, T extends ComponentTarget> {
         }
     }
 
+    public ComponentFactory<T, C> getFactory() {
+        if (!descriptor.isFactoryAccessEnabled()) throw new UnsupportedOperationException();
+        return this.getFactoryInternal();
+    }
+
     public void setFactory(ComponentFactory<T, C> factory) {
-        this.factory = factory;
+        if (!descriptor.isFactoryAccessEnabled()) throw new UnsupportedOperationException();
+        this.setFactoryInternal(factory);
     }
 
     // ### Internal ###
@@ -86,8 +92,12 @@ public final class ComponentType<C, T extends ComponentTarget> {
         this.internalID = internalID;
     }
 
-    ComponentFactory<T, C> getFactory() {
+    ComponentFactory<T, C> getFactoryInternal() {
         return factory;
+    }
+
+    void setFactoryInternal(ComponentFactory<T, C> factory) {
+        this.factory = factory;
     }
 
 }

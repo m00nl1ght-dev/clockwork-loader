@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 public class ExceptionInPlugin extends RuntimeException {
 
@@ -9,12 +9,12 @@ public class ExceptionInPlugin extends RuntimeException {
 
     private ExceptionInPlugin(LoadedPlugin plugin, String msg) {
         super(msg);
-        this.plugin = Preconditions.notNull(plugin, "plugin");
+        this.plugin = Arguments.notNull(plugin, "plugin");
     }
 
     private ExceptionInPlugin(LoadedPlugin plugin, String msg, Throwable throwable) {
         super(msg, throwable);
-        this.plugin = Preconditions.notNull(plugin, "plugin");
+        this.plugin = Arguments.notNull(plugin, "plugin");
     }
 
     public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Object... objects) {

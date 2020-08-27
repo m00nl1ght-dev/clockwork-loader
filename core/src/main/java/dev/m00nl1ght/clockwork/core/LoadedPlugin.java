@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -17,9 +17,9 @@ public final class LoadedPlugin {
     private final Module mainModule;
 
     LoadedPlugin(PluginDescriptor descriptor, ClockworkCore clockworkCore, Module mainModule) {
-        this.descriptor = Preconditions.notNull(descriptor, "descriptor");
-        this.clockworkCore = Preconditions.notNull(clockworkCore, "clockworkCore");
-        this.mainModule = Preconditions.notNull(mainModule, "mainModule");
+        this.descriptor = Arguments.notNull(descriptor, "descriptor");
+        this.clockworkCore = Arguments.notNull(clockworkCore, "clockworkCore");
+        this.mainModule = Arguments.notNull(mainModule, "mainModule");
     }
 
     public PluginDescriptor getDescriptor() {
@@ -32,6 +32,10 @@ public final class LoadedPlugin {
 
     public ClockworkCore getClockworkCore() {
         return clockworkCore;
+    }
+
+    public ComponentType<?, ClockworkCore> getMainComponent() {
+        return clockworkCore.getComponentType(getId(), ClockworkCore.class).orElseThrow();
     }
 
     public Collection<ComponentType<?, ?>> getComponentTypes() {

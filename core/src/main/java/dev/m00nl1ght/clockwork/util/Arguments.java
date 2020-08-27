@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.util;
 
 import java.util.function.Predicate;
 
-public class Preconditions {
+public class Arguments {
 
     public static <T> T nullOr(T object, Predicate<T> test, String name) {
         if (object != null && !test.test(object)) throw new IllegalArgumentException(name + " is invalid");

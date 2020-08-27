@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.test.plugin;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
+import dev.m00nl1ght.clockwork.extension.annotations.eventhandler.EventHandler;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;

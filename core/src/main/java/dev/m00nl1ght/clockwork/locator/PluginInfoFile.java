@@ -85,6 +85,8 @@ public class PluginInfoFile {
             compDeps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
             final Optional<Boolean> optional = conf.getOptional("optional");
             optional.ifPresent(builder::optional);
+            final Optional<Boolean> factoryAccess = conf.getOptional("factoryAccess");
+            factoryAccess.ifPresent(builder::factoryAccessEnabled);
             referenceBuilder.component(builder.build());
         }
 

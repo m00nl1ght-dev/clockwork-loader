@@ -60,7 +60,7 @@ public class TestLauncher {
         TestEvent_A.TYPE.register(TestTarget_A.TARGET_TYPE);
         TestEvent_B.TYPE.register(TestTarget_B.TARGET_TYPE);
 
-        CWLAnnotationsExtension.fetchListeners(clockworkCore, List.of(PluginInitEvent.TYPE, TestEvent_A.TYPE, TestEvent_B.TYPE));
+        CWLAnnotationsExtension.buildListeners(clockworkCore, List.of(PluginInitEvent.TYPE, TestEvent_A.TYPE, TestEvent_B.TYPE));
 
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
     }

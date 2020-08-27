@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.lang.module.ModuleFinder;
@@ -21,13 +21,13 @@ public final class PluginReference {
     private final ModuleFinder moduleFinder;
 
     PluginReference(Builder builder) {
-        this.descriptor = Preconditions.notNull(builder.descriptor, "descriptor");
-        this.mainComponent = Preconditions.notNull(builder.mainComponent, "mainComponent");
-        this.components = List.copyOf(Preconditions.notNull(builder.components, "components"));
-        this.targets = List.copyOf(Preconditions.notNull(builder.targets, "targets"));
-        this.processors = List.copyOf(Preconditions.notNull(builder.processors, "processors"));
-        this.locator = Preconditions.notNull(builder.locator, "locator");
-        this.mainModule = Preconditions.notNullOrBlank(builder.mainModule, "mainModule");
+        this.descriptor = Arguments.notNull(builder.descriptor, "descriptor");
+        this.mainComponent = Arguments.notNull(builder.mainComponent, "mainComponent");
+        this.components = List.copyOf(Arguments.notNull(builder.components, "components"));
+        this.targets = List.copyOf(Arguments.notNull(builder.targets, "targets"));
+        this.processors = List.copyOf(Arguments.notNull(builder.processors, "processors"));
+        this.locator = Arguments.notNull(builder.locator, "locator");
+        this.mainModule = Arguments.notNullOrBlank(builder.mainModule, "mainModule");
         this.moduleFinder = builder.moduleFinder;
     }
 

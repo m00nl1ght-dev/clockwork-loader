@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
 public final class TargetDescriptor {
@@ -12,10 +12,10 @@ public final class TargetDescriptor {
     private final String targetClass;
 
     TargetDescriptor(Builder builder) {
-        this.plugin = Preconditions.notNull(builder.plugin, "plugin");
-        this.id = Preconditions.notNullOrBlank(builder.id, "id");
+        this.plugin = Arguments.notNull(builder.plugin, "plugin");
+        this.id = Arguments.notNullOrBlank(builder.id, "id");
         this.parent = builder.parentId;
-        this.targetClass = Preconditions.notNullOrBlank(builder.targetClass, "targetClass");
+        this.targetClass = Arguments.notNullOrBlank(builder.targetClass, "targetClass");
     }
 
     public PluginDescriptor getPlugin() {

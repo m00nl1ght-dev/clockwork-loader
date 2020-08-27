@@ -1,38 +1,30 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
-public class ComponentContainer<T extends ComponentTarget> {
+public abstract class ComponentContainer<T extends ComponentTarget> {
 
     protected final TargetType<T> targetType;
-    protected final Object[] components;
     protected final T object;
 
-    public ComponentContainer(TargetType<T> targetType, T object) {
-        this.targetType = Preconditions.notNull(targetType, "targetType");
+    protected ComponentContainer(TargetType<T> targetType, T object) {
+        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.object = Arguments.notNull(object, "object");
         targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
-        Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
-        this.components = new Object[targetType.getAllComponentTypes().size()];
-        this.object = object;
+        Arguments.verifyType(object.getClass(), targetType.getTargetClass(), "object");
     }
 
-    public void initComponents() { // TODO restrict access (controller?)
-        for (var comp : targetType.getAllComponentTypes()) {
-            try {
-                final var factory = comp.getFactory();
-                components[comp.getInternalID()] = factory == null ? null : factory.create(object);
-            } catch (Throwable t) {
-                throw ExceptionInPlugin.inComponentInit(comp, t);
-            }
-        }
-    }
+    public abstract void initComponents();
 
-    public Object getComponent(int internalID) {
-        return components[internalID];
-    }
+    public abstract Object getComponent(int internalID);
 
-    public TargetType<T> getTargetType() {
+    public final TargetType<T> getTargetType() {
         return targetType;
+    }
+
+    protected <C> C buildComponent(ComponentType<C, ? super T> componentType) throws Throwable {
+        final var factory = componentType.getFactoryInternal();
+        return factory == null ? null : factory.create(object);
     }
 
 }

@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
+import dev.m00nl1ght.clockwork.core.SimpleComponentContainer;
 import dev.m00nl1ght.clockwork.core.TargetType;
 
 public class TestTarget_B extends TestTarget_A {
@@ -9,7 +10,7 @@ public class TestTarget_B extends TestTarget_A {
 
     @Override
     protected ComponentContainer<?> buildContainer() {
-        return new ComponentContainer<>(TARGET_TYPE, this);
+        return new SimpleComponentContainer<>(TARGET_TYPE, this);
     }
 
 }

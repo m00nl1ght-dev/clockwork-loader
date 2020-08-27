@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.*;
@@ -14,14 +14,16 @@ public final class ComponentDescriptor {
     private final String targetId;
     private final String componentClass;
     private final List<DependencyDescriptor> dependencies;
+    private final boolean factoryAccessEnabled;
     private final boolean optional;
 
     ComponentDescriptor(Builder builder) {
-        this.plugin = Preconditions.notNull(builder.plugin, "plugin");
-        this.id = Preconditions.notNullOrBlank(builder.id, "id");
-        this.targetId = Preconditions.notNullOrBlank(builder.targetId, "");
-        this.componentClass = Preconditions.notNullOrBlank(builder.componentClass, "componentClass");
-        this.dependencies = List.copyOf(Preconditions.notNull(builder.dependencies, "dependencies").values());
+        this.plugin = Arguments.notNull(builder.plugin, "plugin");
+        this.id = Arguments.notNullOrBlank(builder.id, "id");
+        this.targetId = Arguments.notNullOrBlank(builder.targetId, "");
+        this.componentClass = Arguments.notNullOrBlank(builder.componentClass, "componentClass");
+        this.dependencies = List.copyOf(Arguments.notNull(builder.dependencies, "dependencies").values());
+        this.factoryAccessEnabled = builder.factoryAccessEnabled;
         this.optional = builder.optional;
     }
 
@@ -53,6 +55,10 @@ public final class ComponentDescriptor {
         return optional;
     }
 
+    public boolean isFactoryAccessEnabled() {
+        return factoryAccessEnabled;
+    }
+
     @Override
     public String toString() {
         return getId() + ":" + getVersion();
@@ -69,6 +75,7 @@ public final class ComponentDescriptor {
         private String componentClass;
         private String targetId;
         private final Map<String, DependencyDescriptor> dependencies = new LinkedHashMap<>();
+        private boolean factoryAccessEnabled = false;
         private boolean optional = false;
 
         private Builder(PluginDescriptor plugin) {
@@ -128,6 +135,10 @@ public final class ComponentDescriptor {
 
         public Builder optional() {
             return optional(true);
+        }
+
+        public void factoryAccessEnabled(boolean factoryAccessEnabled) {
+            this.factoryAccessEnabled = factoryAccessEnabled;
         }
 
     }

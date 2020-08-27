@@ -5,8 +5,8 @@ import java.util.*;
 public class CollectionUtil {
 
     public static <T> Iterator<T> compoundIterator(Iterator<T> iteratorA, Iterator<T> iteratorB) {
-        Preconditions.notNull(iteratorA, "iteratorA");
-        Preconditions.notNull(iteratorB, "iteratorB");
+        Arguments.notNull(iteratorA, "iteratorA");
+        Arguments.notNull(iteratorB, "iteratorB");
         return new CompoundIterator<>(iteratorA, iteratorB);
     }
 
@@ -32,8 +32,8 @@ public class CollectionUtil {
     }
 
     public static <T> List<T> compoundList(List<? extends T> listA, List<? extends T> listB) {
-        Preconditions.notNull(listA, "listA");
-        Preconditions.notNull(listB, "listB");
+        Arguments.notNull(listA, "listA");
+        Arguments.notNull(listB, "listB");
         return new CompoundList<>(listA, listB);
     }
 

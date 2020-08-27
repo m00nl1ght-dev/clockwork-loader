@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.benchmarks;
 
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
+import dev.m00nl1ght.clockwork.extension.annotations.eventhandler.EventHandlerAnnotationProcessor;
 import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 
 public class ClockworkBenchmarks {

@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
-import dev.m00nl1ght.clockwork.util.Preconditions;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -43,7 +43,7 @@ public class ClockworkCore implements ComponentTarget {
     public void init() {
         final var coreTarget = getTargetType(ClockworkCore.class);
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
-        this.init(new ComponentContainer<>(coreTarget.get(), this));
+        this.init(new CoreComponentContainer(coreTarget.get(), this));
     }
 
     /**
@@ -139,6 +139,21 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     /**
+     * Returns the {@link ComponentType} with the given id and target classes, wrapped in an {@link Optional}.
+     * If no such component is registered to this ClockworkCore, this method will return an empty optional.
+     *
+     * @param componentId the id of the desired ComponentType
+     * @param targetClass the class corresponding to the target of the desired ComponentType
+     */
+    @SuppressWarnings("unchecked")
+    public <T extends ComponentTarget> Optional<ComponentType<?, T>> getComponentType(String componentId, Class<T> targetClass) {
+        final var type = loadedComponents.get(componentId);
+        if (type == null) return Optional.empty();
+        if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
+        return Optional.of((ComponentType<?, T>) type);
+    }
+
+    /**
      * Returns the {@link ComponentType} with the given id, wrapped in an {@link Optional}.
      * If no such component is registered to this ClockworkCore, this method will return an empty optional.
      *
@@ -224,7 +239,7 @@ public class ClockworkCore implements ComponentTarget {
     // ### Internal ###
 
     void setState(State state) {
-        Preconditions.notNull(state, "state");
+        Arguments.notNull(state, "state");
         state.requireOrAfter(this.state);
         this.state = state;
     }

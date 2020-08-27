@@ -44,7 +44,7 @@ public class EventTypeBenchmark {
         }
 
         for (final var eventType : eventTypes) {
-            CWLAnnotationsExtension.fetchListeners(ClockworkBenchmarks.annotationProcessor, eventType);
+            CWLAnnotationsExtension.buildListeners(ClockworkBenchmarks.annotationProcessor, eventType);
         }
 
         for (final var eventType : eventTypes) {
