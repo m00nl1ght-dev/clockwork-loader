@@ -2,12 +2,14 @@ package dev.m00nl1ght.clockwork.events;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public abstract class EventType<E extends Event, T extends ComponentTarget> {
@@ -55,13 +57,35 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
         return list;
     }
 
-    public void addListener(EventListener<E, ? extends T, ?> listener) {
+    public final <C> EventListener<E, T, C> addListener(Class<C> componentClass, BiConsumer<C, E> consumer) {
+        return addListener(componentClass, EventListenerPriority.NORMAL, consumer);
+    }
+
+    public final <C> EventListener<E, T, C> addListener(Class<C> componentClass, EventListenerPriority priority, BiConsumer<C, E> consumer) {
+        if (targetType == null) throw FormatUtil.illStateExc("EventType [] not registered yet", this);
+        final var core = targetType.getClockworkCore();
+        final var component = core.getComponentType(componentClass, targetType.getTargetClass());
+        if (component.isEmpty()) throw FormatUtil.illArgExc("No component type for class [] found", componentClass);
+        return this.addListener(component.get(), EventListenerPriority.NORMAL, consumer);
+    }
+
+    public final <C> EventListener<E, T, C> addListener(ComponentType<C, T> componentType, BiConsumer<C, E> consumer) {
+        return this.addListener(componentType, EventListenerPriority.NORMAL, consumer);
+    }
+
+    public final <C> EventListener<E, T, C> addListener(ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
+        final var listener = new EventListener<>(eventClassType, componentType, priority, consumer);
+        this.addListener(listener);
+        return listener;
+    }
+
+    public final void addListener(EventListener<E, ? extends T, ?> listener) {
         this.addListeners(List.of(listener));
     }
 
     public abstract void addListeners(Iterable<EventListener<E, ? extends T, ?>> listeners);
 
-    public void removeListener(EventListener<E, ? extends T, ?> listener) {
+    public final void removeListener(EventListener<E, ? extends T, ?> listener) {
         this.removeListeners(List.of(listener));
     }
 
@@ -83,6 +107,8 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
     public String toString() {
         return targetType == null ? eventClassType + "@?" : eventClassType + "@" + targetType;
     }
+
+    // ### Internal ###
 
     protected void forTargetAndParents(TargetType<? extends T> origin, Consumer<TargetType<? extends T>> consumer) {
         TargetType<? extends T> type = origin;

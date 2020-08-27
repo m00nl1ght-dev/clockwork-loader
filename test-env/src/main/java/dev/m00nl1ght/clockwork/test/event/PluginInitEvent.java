@@ -3,12 +3,13 @@ package dev.m00nl1ght.clockwork.test.event;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventType;
+import dev.m00nl1ght.clockwork.events.EventTypeTemporaryImpl;
 
 import java.io.File;
 
 public class PluginInitEvent implements Event {
 
-    public static final EventType<PluginInitEvent, ClockworkCore> TYPE = null; // TODO
+    public static final EventType<PluginInitEvent, ClockworkCore> TYPE = new EventTypeTemporaryImpl<>(PluginInitEvent.class, ClockworkCore.class);
 
     private final ClockworkCore cwc;
     private final File dataDir;

@@ -12,6 +12,7 @@ public class TestTarget_A implements ComponentTarget {
 
     protected TestTarget_A() {
         this.container = buildContainer();
+        this.container.initComponents();
     }
 
     protected ComponentContainer<?> buildContainer() {

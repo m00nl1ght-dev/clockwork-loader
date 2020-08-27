@@ -13,6 +13,7 @@ public class TestTarget implements ComponentTarget {
 
     public TestTarget() {
         this.container = new ComponentContainer<>(TARGET_TYPE, this);
+        this.container.initComponents();
     }
 
     @Override

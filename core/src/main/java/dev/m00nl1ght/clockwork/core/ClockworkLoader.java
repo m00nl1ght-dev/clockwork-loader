@@ -2,13 +2,17 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
+import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
+import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.processor.ReflectiveAccess;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Preconditions;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -16,6 +20,8 @@ import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
 import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 /**
  * The entry point of the plugin loading framework.
@@ -44,6 +50,13 @@ public final class ClockworkLoader {
         return new ClockworkLoader(parent, Preconditions.notNull(config, "config"));
     }
 
+    public static ClockworkLoader buildBootLayerDefault() {
+        final var configBuilder = ClockworkConfig.builder();
+        configBuilder.addPluginLocator(new BootLayerLocator(), true);
+        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
+        return build(configBuilder.build());
+    }
+
     private final ClockworkCore parent;
     private final ClockworkConfig config;
 
@@ -59,7 +72,15 @@ public final class ClockworkLoader {
 
     public void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
         final var existing = registeredProcessors.putIfAbsent(id, pluginProcessor);
-        if (existing != null) throw new IllegalArgumentException("Plugin processor with id [" + id + "] is already present");
+        if (existing != null) throw FormatUtil.illArgExc("Plugin processor with id [] is already present", id);
+    }
+
+    public void collectExtensionsFromParent() {
+        if (parent == null) return;
+        parent.getState().requireOrAfter(State.INITIALISED);
+        final var cwlPluginComp = parent.getComponentType(CWLPlugin.class, ClockworkCore.class).orElseThrow();
+        final var cwlPlugin = Objects.requireNonNull(cwlPluginComp.get(parent));
+        cwlPlugin.getCollectExtensionsEventType().post(parent, new CollectClockworkExtensionsEvent(this));
     }
 
     public List<PluginLoadingProblem> getFatalProblems() {
@@ -83,8 +104,19 @@ public final class ClockworkLoader {
             for (final var t : parent.getLoadedTargetTypes()) targetSorter.add(t.getDescriptor());
         }
 
-        // Now try to find all the plugins that are wanted by the config.
-        for (final var wanted : config.getWantedPlugins()) {
+        // Compile a map of all plugins wanted by the config.
+        final var wantedPlugins = config.getWantedPlugins().stream()
+                .collect(Collectors.toMap(DependencyDescriptor::getPlugin, Function.identity(), (a, b) -> b, HashMap::new));
+
+        // Also add the plugins found by wildcard locators.
+        for (final var wildcardLocator : config.getWantedWildcard()) {
+            for (final var located : wildcardLocator.findAll()) {
+                wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
+            }
+        }
+
+        // Now try to find all those plugins.
+        for (final var wanted : wantedPlugins.values()) {
 
             // If the parent has it and the version matches, it doesn't have to be located again.
             if (parent != null) {
@@ -225,7 +257,7 @@ public final class ClockworkLoader {
             final var reflectiveAccess = new ReflectiveAccess(plugin, INTERNAL_REFLECTIVE_ACCESS);
             for (var name : processors) {
                 final var processor = registeredProcessors.get(name);
-                if (processor == null) throw PluginLoadingException.missingProcessor("plugin", plugin.getId(), name);
+                if (processor == null) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
                 try {
                     processor.process(plugin, reflectiveAccess);
                 } catch (Throwable t) {

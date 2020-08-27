@@ -22,11 +22,11 @@ public class PluginLoadingException extends RuntimeException {
     }
 
     public static PluginLoadingException generic(String msg, Object... objects) {
-        return new PluginLoadingException(FormatUtil.format(msg, "[]", objects));
+        return new PluginLoadingException(FormatUtil.format(msg, objects));
     }
 
     public static PluginLoadingException generic(String msg, Throwable cause, Object... objects) {
-        return new PluginLoadingException(FormatUtil.format(msg, "[]", objects), cause);
+        return new PluginLoadingException(FormatUtil.format(msg, objects), cause);
     }
 
     public static PluginLoadingException coreTargetMissing(String id) {
@@ -97,8 +97,8 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Component id [] does not match the plugin [] that defines it", id, plugin.getId());
     }
 
-    public static PluginLoadingException missingProcessor(String text, String id, String name) {
-        return generic("PluginProcessor [] defined for " + text + " [] is missing", name, id);
+    public static PluginLoadingException missingProcessor(String id, String name) {
+        return generic("PluginProcessor [] needed by plugin [] is missing", name, id);
     }
 
     public static PluginLoadingException inProcessor(String text, String id, String name, Throwable cause) {

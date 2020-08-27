@@ -12,6 +12,7 @@ public class TestTarget_C implements ComponentTarget {
 
     protected TestTarget_C() {
         this.container = new ComponentContainer<>(TARGET_TYPE, this);
+        this.container.initComponents();
     }
 
     @Override

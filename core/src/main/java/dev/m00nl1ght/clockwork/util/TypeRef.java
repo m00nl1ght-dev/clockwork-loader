@@ -54,7 +54,7 @@ public abstract class TypeRef<T> {
 
     @Override
     public final String toString() {
-        return type.toString();
+        return type.getTypeName();
     }
 
     @Override

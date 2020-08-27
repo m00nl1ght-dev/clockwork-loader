@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.locator.PluginLocator;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 public abstract class PluginLoadingProblem {
 
@@ -36,7 +37,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return "Could not locate plugin [" + missing.toString() + "]";
+            return FormatUtil.format("Could not locate plugin []", missing);
         }
 
         public DependencyDescriptor getMissing() {
@@ -62,7 +63,8 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return "Version [" + inherited.getVersion() + "] of inherited plugin clashes with wanted version [" + wanted + "]";
+            return FormatUtil.format("Version [] of inherited plugin clashes with wanted version []",
+                    inherited.getVersion(), wanted);
         }
 
         public DependencyDescriptor getWanted() {
@@ -92,8 +94,8 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            final String locA = actualLocator.getName(), locB = plugin.getLocator().getName();
-            return "Locator [" + locA + "] returned this definition, but it was actually located by [" + locB + "]";
+            return FormatUtil.format("Locator [] returned this definition, but it was actually located by []",
+                    actualLocator.getName(), plugin.getLocator().getName());
         }
 
         public PluginLocator getActualLocator() {
@@ -130,11 +132,11 @@ public abstract class PluginLoadingProblem {
         @Override
         public String getMessage() {
             if (required == null) {
-                return "Required dependency [" + present + "] was skipped";
+                return FormatUtil.format("Required dependency [] was skipped", present);
             } else if (present == null) {
-                return "Missing required dependency [" + required.toString() + "]";
+                return FormatUtil.format("Missing required dependency []", required);
             } else {
-                return "Found incorrect version [" + present.getVersion() + "] of dependency [" + required.toString() + "]";
+                return FormatUtil.format("Found incorrect version [] of dependency []", present.getVersion(), required);
             }
         }
 
@@ -172,7 +174,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return "Parent [" + target.getParent() + "] for target [" + target.getId() + "] not found";
+            return FormatUtil.format("Parent [] for target [] not found", target.getParent(), target);
         }
 
         public TargetDescriptor getTarget() {
@@ -205,7 +207,8 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return "Registered " + current + " but a " + current.getClass().getSimpleName() + " with the same id is already present: " + present;
+            return FormatUtil.format("Registered [] but a [] with the same id is already present: []",
+                    current, current.getClass().getSimpleName(), present);
         }
 
     }
@@ -225,7 +228,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return "Dependency cycle found, [" + tail + "] has a (transient) dependency on itself";
+            return FormatUtil.format("Dependency cycle found, [] has a (transient) dependency on itself", tail);
         }
 
     }

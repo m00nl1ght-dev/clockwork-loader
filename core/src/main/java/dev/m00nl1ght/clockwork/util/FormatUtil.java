@@ -2,6 +2,12 @@ package dev.m00nl1ght.clockwork.util;
 
 public class FormatUtil {
 
+    private FormatUtil() {}
+
+    public static String format(String str, Object... objects) {
+        return format(str, "[]", objects);
+    }
+
     public static String format(String str, String tok, Object... objects) {
         var p = 0;
         for (var object : objects) {
@@ -13,6 +19,22 @@ public class FormatUtil {
             p += os.length() + 2;
         }
         return str;
+    }
+
+    public static RuntimeException rtExc(String msg, Object... objects) {
+        return new RuntimeException(format(msg, objects));
+    }
+
+    public static RuntimeException rtExc(Throwable t, String msg, Object... objects) {
+        return new RuntimeException(format(msg, objects), t);
+    }
+
+    public static IllegalArgumentException illArgExc(String msg, Object... objects) {
+        return new IllegalArgumentException(format(msg, objects));
+    }
+
+    public static IllegalStateException illStateExc(String msg, Object... objects) {
+        return new IllegalStateException(format(msg, objects));
     }
 
 }

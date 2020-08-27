@@ -14,10 +14,9 @@ public class ComponentContainer<T extends ComponentTarget> {
         Preconditions.verifyType(Preconditions.notNull(object, "object").getClass(), targetType.getTargetClass(), "object");
         this.components = new Object[targetType.getAllComponentTypes().size()];
         this.object = object;
-        this.initComponents();
     }
 
-    protected void initComponents() {
+    public void initComponents() { // TODO restrict access (controller?)
         for (var comp : targetType.getAllComponentTypes()) {
             try {
                 final var factory = comp.getFactory();

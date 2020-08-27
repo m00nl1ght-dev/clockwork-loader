@@ -43,4 +43,9 @@ public final class EventListener<E extends Event, T extends ComponentTarget, C> 
         return consumer;
     }
 
+    @Override
+    public String toString() {
+        return eventClassType + "@" + componentType;
+    }
+
 }

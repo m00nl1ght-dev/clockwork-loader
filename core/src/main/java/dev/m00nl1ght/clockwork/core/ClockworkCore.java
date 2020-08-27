@@ -58,6 +58,7 @@ public class ClockworkCore implements ComponentTarget {
     public void init(ComponentContainer<ClockworkCore> coreContainer) {
         state.require(State.POPULATED);
         this.coreContainer = coreContainer;
+        this.coreContainer.initComponents();
         this.state = State.INITIALISED;
     }
 
@@ -157,7 +158,7 @@ public class ClockworkCore implements ComponentTarget {
      */
     @Override
     public ComponentContainer<ClockworkCore> getComponentContainer() {
-        state.require(State.INITIALISED);
+        state.requireOrAfter(State.POPULATED);
         return coreContainer;
     }
 

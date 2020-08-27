@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
+import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
@@ -10,10 +10,13 @@ import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.NetworkPermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.PropertyPermissionEntry;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
+import dev.m00nl1ght.clockwork.test.event.TestEvent_A;
+import dev.m00nl1ght.clockwork.test.event.TestEvent_B;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.util.List;
 
 public class TestLauncher {
 
@@ -36,18 +39,29 @@ public class TestLauncher {
         ClockworkSecurityPolicy.install(securityConfig);
 
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginLocator(new BootLayerLocator());
         configBuilder.addPluginLocator(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
-        final var loader = ClockworkLoader.build(configBuilder.build());
+        final var bootLayerCore = ClockworkLoader.buildBootLayerDefault().load();
+        bootLayerCore.init();
+
+        final var loader = ClockworkLoader.build(bootLayerCore, configBuilder.build());
+        loader.collectExtensionsFromParent();
+
         clockworkCore = loader.load();
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
 
-        clockworkCore.init(new ComponentContainer<>(coreTargetType, clockworkCore));
+        clockworkCore.init();
+
+        PluginInitEvent.TYPE.register(coreTargetType);
+        TestEvent_A.TYPE.register(TestTarget_A.TARGET_TYPE);
+        TestEvent_B.TYPE.register(TestTarget_B.TARGET_TYPE);
+
+        CWLAnnotationsExtension.fetchListeners(clockworkCore, List.of(PluginInitEvent.TYPE, TestEvent_A.TYPE, TestEvent_B.TYPE));
+
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
     }
 
