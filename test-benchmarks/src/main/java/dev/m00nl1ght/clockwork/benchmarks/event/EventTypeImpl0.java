@@ -105,7 +105,7 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
         private SingleEventDispatcher(EventListener<E, ? extends T, ?> eventListener) {
             this.listener = eventListener;
             this.consumer = eventListener.getConsumer();
-            this.cIdx = eventListener.getComponentType().getInternalID();
+            this.cIdx = eventListener.getComponentType().getInternalIdx();
         }
 
         @Override
@@ -138,7 +138,7 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
             this.cIdxs = new int[listeners.size()];
             for (int i = 0; i < listeners.size(); i++) {
                 this.consumers[i] = listeners.get(i).getConsumer();
-                this.cIdxs[i] = listeners.get(i).getComponentType().getInternalID();
+                this.cIdxs[i] = listeners.get(i).getComponentType().getInternalIdx();
             }
         }
 

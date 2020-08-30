@@ -8,8 +8,6 @@ import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 public class ClockworkBenchmarks {
 
     public static final ClockworkCore clockworkCore;
-    public static final TargetType<ClockworkCore> coreTargetType;
-    public static final EventHandlerAnnotationProcessor annotationProcessor = new EventHandlerAnnotationProcessor();
 
     static {
         final var configBuilder = ClockworkConfig.builder();
@@ -18,10 +16,8 @@ public class ClockworkBenchmarks {
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork-benchmarks"));
         final var loader = ClockworkLoader.build(configBuilder.build());
-        loader.registerPluginProcessor(EventHandlerAnnotationProcessor.NAME, annotationProcessor);
-        clockworkCore = loader.load();
-        coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
-        clockworkCore.init();
+        EventHandlerAnnotationProcessor.registerTo(loader);
+        clockworkCore = loader.loadAndInit();
     }
 
 }

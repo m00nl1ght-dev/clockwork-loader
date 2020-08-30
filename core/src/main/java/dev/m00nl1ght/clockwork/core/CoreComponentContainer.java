@@ -14,7 +14,7 @@ public class CoreComponentContainer extends ComponentContainer<ClockworkCore> {
         object.getState().require(ClockworkCore.State.POPULATED);
         for (var comp : targetType.getOwnComponentTypes()) {
             try {
-                components[comp.getInternalID()] = buildComponent(comp);
+                components[comp.getInternalIdx()] = buildComponent(comp);
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inComponentInit(comp, t);
             }

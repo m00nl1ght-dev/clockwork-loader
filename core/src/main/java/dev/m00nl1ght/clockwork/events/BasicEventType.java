@@ -63,7 +63,7 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
             @SuppressWarnings("unchecked") final var list = (List<EventListener<E, ? extends T, ?>>) listeners[idx];
             if (!list.contains(listener)) {
                 list.add(listener);
-                forTargetAndParents(type, modified::add);
+                modified.addAll(type.getAllSubtargets());
             }
         }
         for (final var type : modified) {
@@ -81,7 +81,7 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
             if (listeners[idx] == null) continue;
             final var list = listeners[idx];
             if (list.remove(listener)) {
-                forTargetAndParents(type, modified::add);
+                modified.addAll(type.getAllSubtargets());
             }
         }
         for (final var type : modified) {

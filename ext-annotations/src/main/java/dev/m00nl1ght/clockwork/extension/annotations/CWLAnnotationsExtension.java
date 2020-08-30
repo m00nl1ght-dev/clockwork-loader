@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.events.Event;
@@ -31,7 +32,7 @@ public final class CWLAnnotationsExtension {
         buildListeners(target.getClockworkCore(), List.of(eventType));
     }
 
-    public static void buildListeners(ClockworkCore core, Iterable<EventType<?, ?>> eventTypes) {
+    public static void buildListeners(ClockworkCore core, Iterable<? extends EventType<?, ?>> eventTypes) {
         final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class);
         if (componentType.isEmpty()) throw new IllegalStateException("component type does not exist");
         final var ehc = componentType.get().get(core);
@@ -50,11 +51,12 @@ public final class CWLAnnotationsExtension {
     private static <E extends Event, T extends ComponentTarget, C>
     void buildListener(EventType<E, T> eventType, EventHandlerMethod<E, C> method) {
         final var core = eventType.getTargetType().getClockworkCore();
-        final var component = core.getComponentType(method.getComponentClass(), eventType.getTargetClass());
+        final var component = core.getComponentType(method.getComponentClass());
         if (component.isPresent()) {
-            final var target = component.get().getTargetType();
-            if (target.isEquivalentTo(eventType.getTargetType())) {
-                eventType.addListener(method.buildListener(component.get()));
+            @SuppressWarnings("unchecked")
+            final var comp = (ComponentType<C, ? extends T>) component.get();
+            if (comp.getTargetType().isEquivalentTo(eventType.getTargetType())) {
+                eventType.addListener(method.buildListener(comp));
             }
         }
     }

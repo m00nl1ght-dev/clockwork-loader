@@ -39,7 +39,7 @@ public final class EventHandlerMethod<E extends Event, C> {
             if (!Event.class.isAssignableFrom(eventClass)) return null;
             @SuppressWarnings("unchecked") final var castedClass = (Class<? extends Event>) eventClass;
             return new EventHandlerMethod<>(lookup, method, handlerClass, TypeRef.of(castedClass), priority);
-        } else if (params[0] instanceof ParameterizedType) { // TODO test
+        } else if (params[0] instanceof ParameterizedType) {
             final var type = (ParameterizedType) params[0];
             if (!(type.getRawType() instanceof Class)) return null;
             final var rawType = (Class<?>) type.getRawType();

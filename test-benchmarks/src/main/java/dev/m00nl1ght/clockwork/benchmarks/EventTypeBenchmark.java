@@ -34,23 +34,21 @@ public class EventTypeBenchmark {
         profiler.addGroup(profilerGroupA);
 
         for (final var eventType : eventTypes) {
-            final var profilerEntry = new SimpleCyclicProfilerEntry(eventType.getClass().getSimpleName(), 100);
+            final var profilerEntry = new SimpleCyclicProfilerEntry(eventType.getClass().getSimpleName(), 5000);
             profilerGroupE.addEntry(profilerEntry);
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 10000; i++) {
                 final var t = System.nanoTime();
                 eventType.post(testTarget, new TestEvent());
                 profilerEntry.put(System.nanoTime() - t);
             }
         }
 
-        for (final var eventType : eventTypes) {
-            CWLAnnotationsExtension.buildListeners(ClockworkBenchmarks.annotationProcessor, eventType);
-        }
+        CWLAnnotationsExtension.buildListeners(ClockworkBenchmarks.clockworkCore, eventTypes);
 
         for (final var eventType : eventTypes) {
-            final var profilerEntry = new SimpleCyclicProfilerEntry(eventType.getClass().getSimpleName(), 100);
+            final var profilerEntry = new SimpleCyclicProfilerEntry(eventType.getClass().getSimpleName(), 5000);
             profilerGroupA.addEntry(profilerEntry);
-            for (int i = 0; i < 100; i++) {
+            for (int i = 0; i < 10000; i++) {
                 final var t = System.nanoTime();
                 eventType.post(testTarget, new TestEvent());
                 profilerEntry.put(System.nanoTime() - t);

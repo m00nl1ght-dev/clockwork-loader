@@ -62,6 +62,7 @@ public class TestLauncher {
         SimpleTestEvent.TYPE.register(TestTarget_A.TARGET_TYPE);
         GenericTestEvent.TYPE_STRING.register(TestTarget_B.TARGET_TYPE);
         GenericTestEvent.TYPE_RAW.register(TestTarget_B.TARGET_TYPE);
+        TestInterface.TYPE.register(TestTarget_A.TARGET_TYPE, true);
 
         CWLAnnotationsExtension.buildListeners(clockworkCore, List.of(PluginInitEvent.TYPE, SimpleTestEvent.TYPE, GenericTestEvent.TYPE_STRING, GenericTestEvent.TYPE_RAW));
 

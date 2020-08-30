@@ -55,8 +55,8 @@ public class EventTypeTemporaryImpl<E extends Event, T extends ComponentTarget> 
     public E post(T object, E event) {
         final var target = object.getComponentContainer().getTargetType();
         if (target.getRoot() != rootTarget) checkCompatibility(target);
-        final var dispatcher = dispatchers[target.getSubtargetIdxFirst() - idxOffset];
         try {
+            final var dispatcher = dispatchers[target.getSubtargetIdxFirst() - idxOffset];
             dispatcher.dispatch(object.getComponentContainer(), event);
             return event;
         } catch (Throwable t) {
@@ -100,7 +100,7 @@ public class EventTypeTemporaryImpl<E extends Event, T extends ComponentTarget> 
         private SingleEventDispatcher(EventListener<E, ? extends T, ?> eventListener) {
             this.listener = eventListener;
             this.consumer = eventListener.getConsumer();
-            this.cIdx = eventListener.getComponentType().getInternalID();
+            this.cIdx = eventListener.getComponentType().getInternalIdx();
         }
 
         @Override
@@ -131,7 +131,7 @@ public class EventTypeTemporaryImpl<E extends Event, T extends ComponentTarget> 
             this.cIdxs = new int[listeners.size()];
             for (int i = 0; i < listeners.size(); i++) {
                 this.consumers[i] = listeners.get(i).getConsumer();
-                this.cIdxs[i] = listeners.get(i).getComponentType().getInternalID();
+                this.cIdxs[i] = listeners.get(i).getComponentType().getInternalIdx();
             }
         }
 

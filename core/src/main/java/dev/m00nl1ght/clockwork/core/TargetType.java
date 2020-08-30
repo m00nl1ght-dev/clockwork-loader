@@ -117,11 +117,11 @@ public final class TargetType<T extends ComponentTarget> {
     void init() {
         getClockworkCore().getState().require(ClockworkCore.State.POPULATING);
         if (parent == null) {
-            for (int i = 0; i < ownComponents.size(); i++) ownComponents.get(i).setInternalID(i);
+            for (int i = 0; i < ownComponents.size(); i++) ownComponents.get(i).setInternalIdx(i);
             this.populateSubtargets();
         } else {
             final var offset = parent.allComponents.size();
-            for (int i = 0; i < ownComponents.size(); i++) ownComponents.get(i).setInternalID(i + offset);
+            for (int i = 0; i < ownComponents.size(); i++) ownComponents.get(i).setInternalIdx(i + offset);
         }
     }
 

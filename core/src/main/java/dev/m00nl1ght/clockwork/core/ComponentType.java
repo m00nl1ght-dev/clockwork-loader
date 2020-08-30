@@ -11,7 +11,7 @@ public final class ComponentType<C, T extends ComponentTarget> {
     private final Class<C> componentClass;
     private final TargetType<T> targetType;
 
-    private int internalID = -1;
+    private int internalIdx = -1;
     private ComponentFactory<T, C> factory;
 
     ComponentType(LoadedPlugin plugin, ComponentDescriptor descriptor, Class<C> componentClass, TargetType<T> targetType) {
@@ -51,16 +51,16 @@ public final class ComponentType<C, T extends ComponentTarget> {
         return descriptor.toString();
     }
 
-    public int getInternalID() {
+    public int getInternalIdx() {
         getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
-        return internalID;
+        return internalIdx;
     }
 
     @SuppressWarnings("unchecked")
     public C get(T object) {
         final var container = (ComponentContainer<T>) object.getComponentContainer();
         try {
-            return (C) container.getComponent(internalID);
+            return (C) container.getComponent(internalIdx);
         } catch (Exception e) {
             checkCompatibility(container.getTargetType());
             throw e;
@@ -87,9 +87,9 @@ public final class ComponentType<C, T extends ComponentTarget> {
         }
     }
 
-    void setInternalID(int internalID) {
+    void setInternalIdx(int internalIdx) {
         getClockworkCore().getState().require(ClockworkCore.State.POPULATING);
-        this.internalID = internalID;
+        this.internalIdx = internalIdx;
     }
 
     ComponentFactory<T, C> getFactoryInternal() {

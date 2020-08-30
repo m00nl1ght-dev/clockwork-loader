@@ -13,7 +13,7 @@ public class SimpleComponentContainer<T extends ComponentTarget> extends Compone
     public void initComponents() { // TODO restrict access (controller?)
         for (var comp : targetType.getAllComponentTypes()) {
             try {
-                components[comp.getInternalID()] = buildComponent(comp);
+                components[comp.getInternalIdx()] = buildComponent(comp);
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inComponentInit(comp, t);
             }
