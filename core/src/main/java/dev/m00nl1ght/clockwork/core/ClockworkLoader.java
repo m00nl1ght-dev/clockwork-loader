@@ -44,7 +44,7 @@ public final class ClockworkLoader {
     }
 
     public static ClockworkLoader build(ClockworkCore parent, ClockworkConfig config) {
-        Arguments.notNull(parent, "parent").getState().requireOrAfter(State.POPULATED);
+        Arguments.notNull(parent, "parent").getState().requireOrAfter(State.INITIALISED);
         return new ClockworkLoader(parent, Arguments.notNull(config, "config"));
     }
 
@@ -57,6 +57,7 @@ public final class ClockworkLoader {
 
     private final ClockworkCore parent;
     private final ClockworkConfig config;
+    private ClockworkCore core;
 
     private final Map<String, PluginProcessor> registeredProcessors = new HashMap<>();
 
@@ -68,14 +69,13 @@ public final class ClockworkLoader {
         this.config = config;
     }
 
-    public void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
+    public synchronized void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
         final var existing = registeredProcessors.putIfAbsent(id, pluginProcessor);
         if (existing != null) throw FormatUtil.illArgExc("Plugin processor with id [] is already present", id);
     }
 
-    public void collectExtensionsFromParent() {
+    public synchronized void collectExtensionsFromParent() {
         if (parent == null) return;
-        parent.getState().requireOrAfter(State.INITIALISED);
         final var cwlPluginComp = parent.getComponentType(CWLPlugin.class, ClockworkCore.class).orElseThrow();
         final var cwlPlugin = Objects.requireNonNull(cwlPluginComp.get(parent));
         cwlPlugin.getCollectExtensionsEventType().post(parent, new CollectClockworkExtensionsEvent(this));
@@ -89,7 +89,15 @@ public final class ClockworkLoader {
         return Collections.unmodifiableList(skippedProblems);
     }
 
-    public ClockworkCore load() {
+    public ClockworkCore loadAndInit() {
+        this.load();
+        this.init();
+        return core;
+    }
+
+    public synchronized ClockworkCore load() {
+
+        if (core != null) throw new IllegalStateException("Already loaded");
 
         final var pluginReferences = new LinkedList<PluginReference>();
         final var versionSorter = Comparator.comparing(PluginReference::getVersion).reversed();
@@ -174,7 +182,7 @@ public final class ClockworkLoader {
         // Create the new ModuleLayer and the ClockworkCore instance.
         final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
         final var moduleManager = new ModuleManager(pluginReferences, parentLayer);
-        final var core = new ClockworkCore(moduleManager);
+        core = new ClockworkCore(moduleManager);
 
         // First add the plugins inherited from the parent.
         if (parent != null) {
@@ -243,20 +251,19 @@ public final class ClockworkLoader {
         for (var targetType : core.getLoadedTargetTypes()) targetType.init();
         core.setState(State.PROCESSING);
 
-        // Init all registered plugin processors.
+        // Notify all registered plugin processors.
         for (final var pluginProcessor : registeredProcessors.values()) {
-            pluginProcessor.init(core);
+            pluginProcessor.onLoadingStart(core, parent);
         }
 
         // Apply the plugin processors defined to each plugin respectively.
-        for (final var pluginReference : pluginReferences) {
+        for (final var plugin : core.getLoadedPlugins()) {
 
             // Get the processors, and skip the plugin if there are none.
-            final var processors = pluginReference.getProcessors();
+            final var processors = plugin.getDescriptor().getProcessors();
             if (processors.isEmpty()) continue;
 
-            // Get the corresponding LoadedPlugin instance and apply the processors.
-            final var plugin = core.getLoadedPlugin(pluginReference.getId()).orElseThrow();
+            // Now apply the processors.
             final var reflectiveAccess = new PluginProcessorContext(plugin, INTERNAL_REFLECTIVE_ACCESS);
             for (var name : processors) {
                 final var optional = name.startsWith("?");
@@ -325,6 +332,37 @@ public final class ClockworkLoader {
         plugin.getClockworkCore().addLoadedComponentType(component);
         plugin.addLoadedComponentType(component);
         targetType.addComponent(component);
+
+    }
+
+    /**
+     * Initialises this ClockworkCore with a core container.
+     * The core container is created for target id {@code clockwork:core}.
+     * The core container is a special {@link ComponentContainer} that is attached to the ClockworkCore itself.
+     * It will store all plugin components which exist in a static context
+     * and are not attached to individual objects within the application.
+     * For example, this includes the main component of each plugin.
+     */
+    public synchronized void init() {
+
+        core.getState().require(State.POPULATED);
+
+        // Get the core target.
+        final var coreTarget = core.getTargetType(ClockworkCore.class);
+        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
+
+        // Build the component container and set it.
+        final var container = new CoreComponentContainer(coreTarget.get(), core);
+        core.setCoreContainer(container);
+
+        // Init the components and update the state of the core.
+        container.initComponents();
+        core.setState(State.INITIALISED);
+
+        // Notify all registered plugin processors.
+        for (final var pluginProcessor : registeredProcessors.values()) {
+            pluginProcessor.onLoadingComplete(core);
+        }
 
     }
 

@@ -62,6 +62,8 @@ public class PluginInfoFile {
         authors.ifPresent(l -> l.forEach(descriptorBuilder::author));
         final Optional<List<UnmodifiableConfig>> perms = config.getOptional("permission");
         perms.ifPresent(l -> l.forEach(p -> descriptorBuilder.permission(buildPerm(p))));
+        final Optional<List<String>> processors = config.getOptional("processors");
+        processors.ifPresent(l -> l.forEach(descriptorBuilder::markForProcessor));
         final var descriptor = descriptorBuilder.build();
 
         final var mainCompBuilder = ComponentDescriptor.builder(descriptor);
@@ -98,9 +100,6 @@ public class PluginInfoFile {
             builder.parent(conf.getOrElse("parent", () -> null));
             referenceBuilder.target(builder.build());
         }
-
-        final Optional<List<String>> processors = config.getOptional("processors");
-        processors.ifPresent(l -> l.forEach(referenceBuilder::markForProcessor));
 
         return referenceBuilder;
     }

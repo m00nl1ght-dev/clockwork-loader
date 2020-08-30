@@ -101,6 +101,11 @@ public final class TargetType<T extends ComponentTarget> {
         return allComponents;
     }
 
+    @Override
+    public String toString() {
+        return descriptor.toString();
+    }
+
     // ### Internal ###
 
     <C> void addComponent(ComponentType<?, T> componentType) {

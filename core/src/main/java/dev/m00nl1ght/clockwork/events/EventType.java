@@ -114,6 +114,7 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
         TargetType<? extends T> type = origin;
         while (type != null) {
             consumer.accept(type);
+            if (type == this.targetType) break;
             @SuppressWarnings("unchecked")
             final var castedType = (TargetType<? extends T>) type.getParent();
             type = castedType;

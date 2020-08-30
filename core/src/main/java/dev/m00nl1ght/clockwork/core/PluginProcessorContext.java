@@ -46,6 +46,11 @@ public class PluginProcessorContext {
         return plugin;
     }
 
+    @Override
+    public String toString() {
+        return plugin.toString();
+    }
+
     private void checkPluginAccess(ComponentType<?, ?> componentType) {
         if (componentType.getPlugin() != plugin)
             throw FormatUtil.illArgExc("Context of [] can not access component []", plugin, componentType);

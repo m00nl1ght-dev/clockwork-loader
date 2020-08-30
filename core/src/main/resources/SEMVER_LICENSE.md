@@ -1,7 +1,7 @@
 
 The package `dev.m00nl1ght.clockwork.version` contains a modified version of vdurmont's Semver4j library.
 
-The oroginal version is available here: https://github.com/vdurmont/semver4j
+The original version is available here: https://github.com/vdurmont/semver4j
 
 The license for it is included below:
 

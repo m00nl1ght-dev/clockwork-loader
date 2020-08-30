@@ -22,6 +22,11 @@ public abstract class PluginLoadingProblem {
         return true;
     }
 
+    @Override
+    public String toString() {
+        return getMessage();
+    }
+
     public static PluginNotFound pluginNotFound(DependencyDescriptor target) {
         return new PluginNotFound(target);
     }

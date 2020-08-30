@@ -15,7 +15,6 @@ public final class PluginReference {
     private final ComponentDescriptor mainComponent;
     private final List<ComponentDescriptor> components;
     private final List<TargetDescriptor> targets;
-    private final List<String> processors;
     private final PluginLocator locator;
     private final String mainModule;
     private final ModuleFinder moduleFinder;
@@ -25,7 +24,6 @@ public final class PluginReference {
         this.mainComponent = Arguments.notNull(builder.mainComponent, "mainComponent");
         this.components = List.copyOf(Arguments.notNull(builder.components, "components"));
         this.targets = List.copyOf(Arguments.notNull(builder.targets, "targets"));
-        this.processors = List.copyOf(Arguments.notNull(builder.processors, "processors"));
         this.locator = Arguments.notNull(builder.locator, "locator");
         this.mainModule = Arguments.notNullOrBlank(builder.mainModule, "mainModule");
         this.moduleFinder = builder.moduleFinder;
@@ -53,10 +51,6 @@ public final class PluginReference {
 
     public List<TargetDescriptor> getTargetDescriptors() {
         return targets;
-    }
-
-    public List<String> getProcessors() {
-        return processors;
     }
 
     public PluginLocator getLocator() {
@@ -93,7 +87,6 @@ public final class PluginReference {
         private ComponentDescriptor mainComponent;
         private final LinkedList<ComponentDescriptor> components = new LinkedList<>();
         private final LinkedList<TargetDescriptor> targets = new LinkedList<>();
-        private final LinkedList<String> processors = new LinkedList<>();
         private PluginLocator locator;
         private String mainModule;
         private ModuleFinder moduleFinder;
@@ -132,12 +125,6 @@ public final class PluginReference {
             if (target.getPlugin() != descriptor)
                 throw new IllegalArgumentException("target is from different plugin");
             if (!targets.contains(target)) this.targets.add(target);
-            return this;
-        }
-
-        public Builder markForProcessor(String processor) {
-            if (processor == null || processor.isBlank()) return this;
-            if (!processors.contains(processor)) this.processors.add(processor);
             return this;
         }
 

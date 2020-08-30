@@ -15,6 +15,7 @@ public final class PluginDescriptor {
     private final String description;
     private final List<String> authors;
     private final List<String> permissions;
+    private final List<String> processors;
 
     PluginDescriptor(Builder builder) {
         this.id = Arguments.notNullOrBlank(builder.id, "id");
@@ -23,6 +24,7 @@ public final class PluginDescriptor {
         this.description = Arguments.notNull(builder.description, "description");
         this.authors = List.copyOf(Arguments.notNull(builder.authors, "authors"));
         this.permissions = List.copyOf(Arguments.notNull(builder.permissions, "permissions"));
+        this.processors = List.copyOf(Arguments.notNull(builder.processors, "processors"));
     }
 
     public String getId() {
@@ -49,6 +51,10 @@ public final class PluginDescriptor {
         return permissions;
     }
 
+    public List<String> getProcessors() {
+        return processors;
+    }
+
     @Override
     public String toString() {
         return getId() + ":" + getVersion();
@@ -66,6 +72,7 @@ public final class PluginDescriptor {
         private String description = "";
         private final LinkedList<String> authors = new LinkedList<>();
         private final LinkedList<String> permissions = new LinkedList<>();
+        private final LinkedList<String> processors = new LinkedList<>();
 
         private Builder() {}
 
@@ -105,6 +112,12 @@ public final class PluginDescriptor {
         public Builder permission(String permission) {
             if (permission == null || permission.isBlank()) return this;
             if (!permissions.contains(permission)) this.permissions.add(permission);
+            return this;
+        }
+
+        public Builder markForProcessor(String processor) {
+            if (processor == null || processor.isBlank()) return this;
+            if (!processors.contains(processor)) this.processors.add(processor);
             return this;
         }
 

@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.extension.annotations.eventhandler;
+package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
@@ -29,22 +29,22 @@ public final class EventHandlerMethod<E extends Event, C> {
 
     private BiConsumer<C, E> cachedLambda;
 
-    public static EventHandlerMethod<?, ?> build(MethodHandles.Lookup lookup, Method method, EventListenerPriority priority) {
+    public static <C> EventHandlerMethod<?, C> build(MethodHandles.Lookup lookup, Class<C> handlerClass, Method method, EventListenerPriority priority) {
+        if (method.getDeclaringClass() != handlerClass) throw new IllegalArgumentException();
         if (Modifier.isStatic(method.getModifiers())) return null;
-        final var componentClass = method.getDeclaringClass();
         final var params = method.getGenericParameterTypes();
         if (params.length != 1) return null;
         if (params[0] instanceof Class) {
             final var eventClass = (Class<?>) params[0];
             if (!Event.class.isAssignableFrom(eventClass)) return null;
             @SuppressWarnings("unchecked") final var castedClass = (Class<? extends Event>) eventClass;
-            return new EventHandlerMethod<>(lookup, method, componentClass, TypeRef.of(castedClass), priority);
+            return new EventHandlerMethod<>(lookup, method, handlerClass, TypeRef.of(castedClass), priority);
         } else if (params[0] instanceof ParameterizedType) { // TODO test
             final var type = (ParameterizedType) params[0];
             if (!(type.getRawType() instanceof Class)) return null;
             final var rawType = (Class<?>) type.getRawType();
             if (!Event.class.isAssignableFrom(rawType)) return null;
-            return new EventHandlerMethod<>(lookup, method, componentClass, TypeRef.of(type), priority);
+            return new EventHandlerMethod<>(lookup, method, handlerClass, TypeRef.of(type), priority);
         } else {
             return null;
         }

@@ -1,10 +1,10 @@
 package dev.m00nl1ght.clockwork.test.plugin;
 
-import dev.m00nl1ght.clockwork.extension.annotations.eventhandler.EventHandler;
+import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.TestInterface;
 import dev.m00nl1ght.clockwork.test.TestTarget_B;
-import dev.m00nl1ght.clockwork.test.event.TestEvent_A;
-import dev.m00nl1ght.clockwork.test.event.TestEvent_B;
+import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
+import dev.m00nl1ght.clockwork.test.event.GenericTestEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,13 +19,18 @@ public class TestComponent_B implements TestInterface {
     }
 
     @EventHandler
-    protected void onTestEventA(TestEvent_A event) {
-        LOGGER.info("TestEvent_A received for " + target.getClass().getSimpleName() + ".");
+    private void onSimpleTestEvent(SimpleTestEvent event) {
+        LOGGER.info("SimpleTestEvent received for " + target.getClass().getSimpleName() + ".");
     }
 
     @EventHandler
-    protected void onTestEventB(TestEvent_B event) {
-        LOGGER.info("TestEvent_B received for " + target.getClass().getSimpleName() + ".");
+    private void onGenericTestEvent(GenericTestEvent<String> event) {
+        LOGGER.info("GenericTestEvent<String> received for " + target.getClass().getSimpleName() + ".");
+    }
+
+    @EventHandler
+    private void onGenericTestEventRaw(GenericTestEvent event) {
+        LOGGER.info("Raw GenericTestEvent received for " + target.getClass().getSimpleName() + ".");
     }
 
     @Override

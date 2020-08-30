@@ -6,21 +6,19 @@ import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventType;
-import dev.m00nl1ght.clockwork.extension.annotations.eventhandler.EventHandlerAnnotationProcessor;
-import dev.m00nl1ght.clockwork.extension.annotations.eventhandler.EventHandlerMethod;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.util.List;
 
-public class CWLAnnotationsExtension {
+public final class CWLAnnotationsExtension {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
     private final ClockworkCore core;
-    private final InternalPluginProcessor internalProcessor = new InternalPluginProcessor(this);
-    private final EventHandlerAnnotationProcessor eventHandlerProcessor = new EventHandlerAnnotationProcessor();
+
+    private EventHandlerRegistry collectedHandlers;
 
     private CWLAnnotationsExtension(ClockworkCore core) {
         this.core = core;
@@ -38,17 +36,13 @@ public class CWLAnnotationsExtension {
         if (componentType.isEmpty()) throw new IllegalStateException("component type does not exist");
         final var ehc = componentType.get().get(core);
         if (ehc == null) throw new IllegalStateException("component missing");
-        eventTypes.forEach(e -> buildListeners(ehc.eventHandlerProcessor, e));
+        eventTypes.forEach(e -> buildListeners(ehc.collectedHandlers, e));
     }
 
     public static <E extends Event, T extends ComponentTarget>
-    void buildListeners(EventHandlerAnnotationProcessor processor, EventType<E, T> eventType) {
-        final var methods = processor.getCollectedMethods(eventType.getEventClassType());
-        for (final var method : methods) {
-            @SuppressWarnings("unchecked")
-            final var casted = (EventHandlerMethod<E, ?>) method;
-            buildListener(eventType, casted);
-        }
+    void buildListeners(EventHandlerRegistry collectedHandlers, EventType<E, T> eventType) {
+        final var methods = collectedHandlers.getForEventType(eventType.getEventClassType());
+        if (methods != null) for (final var method : methods) buildListener(eventType, method);
     }
 
     // ### Internal ###
@@ -74,14 +68,15 @@ public class CWLAnnotationsExtension {
     }
 
     private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {
-        event.registerPluginProcessor(InternalPluginProcessor.NAME, internalProcessor);
-        event.registerPluginProcessor(EventHandlerAnnotationProcessor.NAME, eventHandlerProcessor);
+        EventHandlerAnnotationProcessor.registerTo(event);
     }
 
-    CWLAnnotationsExtension buildChild(ClockworkCore core) {
-        final var child = new CWLAnnotationsExtension(core);
-        child.eventHandlerProcessor.inheritMethodsFrom(this.eventHandlerProcessor);
-        return child;
+    EventHandlerRegistry getCollectedHandlers() {
+        return collectedHandlers;
+    }
+
+    void setCollectedHandlers(EventHandlerRegistry collectedHandlers) {
+        this.collectedHandlers = collectedHandlers;
     }
 
 }

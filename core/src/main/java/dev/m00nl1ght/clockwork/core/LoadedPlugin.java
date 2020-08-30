@@ -50,6 +50,11 @@ public final class LoadedPlugin {
         return mainModule;
     }
 
+    @Override
+    public String toString() {
+        return descriptor.toString();
+    }
+
     // ### Internal ###
 
     void addLoadedTargetType(TargetType<?> targetType) {

@@ -2,8 +2,6 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.util.Arguments;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.util.*;
 
@@ -12,8 +10,6 @@ import java.util.*;
  * and the {@link ComponentType}s and {@link TargetType}s they provide.
  */
 public class ClockworkCore implements ComponentTarget {
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String CORE_PLUGIN_ID = "clockwork";
     public static final String CORE_TARGET_ID = CORE_PLUGIN_ID + ":core";
@@ -31,35 +27,6 @@ public class ClockworkCore implements ComponentTarget {
 
     ClockworkCore(ModuleManager moduleManager) {
         this.moduleManager = moduleManager;
-    }
-
-    /**
-     * Initialises this ClockworkCore with a default core container.
-     * The default core container is created for target id {@code clockwork:core}
-     *
-     * @see ClockworkCore#init(ComponentContainer)
-     * @throws PluginLoadingException if no definition for the default target is present
-     */
-    public void init() {
-        final var coreTarget = getTargetType(ClockworkCore.class);
-        if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(CORE_TARGET_ID);
-        this.init(new CoreComponentContainer(coreTarget.get(), this));
-    }
-
-    /**
-     * Initialises this ClockworkCore with the given core container.
-     * The core container is a special {@link ComponentContainer} that is attached to the ClockworkCore itself.
-     * It will store all plugin components which exist in a static context
-     * and are not attached to individual objects within the application.
-     * For example, this includes the main component of each plugin.
-     *
-     * @param coreContainer the core container for this ClockworkCore
-     */
-    public void init(ComponentContainer<ClockworkCore> coreContainer) {
-        state.require(State.POPULATED);
-        this.coreContainer = coreContainer;
-        this.coreContainer.initComponents();
-        this.state = State.INITIALISED;
     }
 
     /**
@@ -81,10 +48,12 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     /**
-     * Returns an unmodifiable collection of all loaded {@link ComponentType}s.
+     * Returns the {@link TargetType} for the core target of this clockwork core.
+     *
+     * @see ClockworkCore#getComponentContainer()
      */
-    public Collection<ComponentType<?, ?>> getLoadedComponentTypes() {
-        return Collections.unmodifiableCollection(loadedComponents.values());
+    public TargetType<ClockworkCore> getCoreTargetType() {
+        return getTargetType(ClockworkCore.class).orElseThrow();
     }
 
     /**
@@ -108,6 +77,13 @@ public class ClockworkCore implements ComponentTarget {
      */
     public Optional<TargetType<?>> getTargetType(String targetId) {
         return Optional.ofNullable(loadedTargets.get(targetId));
+    }
+
+    /**
+     * Returns an unmodifiable collection of all loaded {@link ComponentType}s.
+     */
+    public Collection<ComponentType<?, ?>> getLoadedComponentTypes() {
+        return Collections.unmodifiableCollection(loadedComponents.values());
     }
 
     /**
@@ -168,8 +144,6 @@ public class ClockworkCore implements ComponentTarget {
      * It contains all plugin components which exist in a static context
      * and are not attached to individual objects within the application.
      * For example, this includes the main component of each plugin.
-     *
-     * @see ClockworkCore#init()
      */
     @Override
     public ComponentContainer<ClockworkCore> getComponentContainer() {
@@ -200,7 +174,7 @@ public class ClockworkCore implements ComponentTarget {
         /**
          * All plugins have been located and dependencies have been resolved.
          * Component and target types are now available, and the core components
-         * can be initialised by calling {@link ClockworkCore#init()}.
+         * can be initialised by calling {@link ClockworkLoader#init()}.
          */
         POPULATED,
 
@@ -244,6 +218,12 @@ public class ClockworkCore implements ComponentTarget {
         this.state = state;
     }
 
+    void setCoreContainer(ComponentContainer<ClockworkCore> container) {
+        Arguments.notNull(container, "container");
+        if (this.coreContainer != null) throw new IllegalStateException();
+        this.coreContainer = container;
+    }
+
     Optional<TargetType<?>> getTargetTypeUncasted(Class<?> targetClass) {
         final var type = classToTargetMap.get(targetClass);
         if (type == null) return Optional.empty();
@@ -276,6 +256,11 @@ public class ClockworkCore implements ComponentTarget {
         if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());
         final var existingByClass = classToComponentMap.putIfAbsent(componentType.getComponentClass(), componentType);
         if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(componentType.getDescriptor(), existingByClass.getId());
+    }
+
+    @Override
+    public String toString() {
+        return "ClockworkCore{state=" + state + '}';
     }
 
 }

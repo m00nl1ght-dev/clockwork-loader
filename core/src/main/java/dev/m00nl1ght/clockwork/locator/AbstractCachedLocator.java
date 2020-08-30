@@ -42,4 +42,9 @@ public abstract class AbstractCachedLocator implements PluginLocator {
 
     protected abstract void scan(Consumer<PluginReference> pluginConsumer);
 
+    @Override
+    public String toString() {
+        return getName();
+    }
+
 }
