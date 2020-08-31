@@ -4,6 +4,11 @@ import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
 
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
+import java.util.stream.Collectors;
+
 public class DebugUtils {
 
     public static String printProfilerInfo(DebugProfiler profiler) {
@@ -22,6 +27,24 @@ public class DebugUtils {
 
     private static void printProfilerInfo(StringBuilder builder, ProfilerEntry entry, int ind) {
         builder.append("  ".repeat(ind)).append(entry.toString()).append('\n');
+    }
+
+    public static void writeProfilerInfoToCSV(ProfilerGroup profilerGroup, File file) {
+        final var header = !file.exists();
+        try (final var writer = new BufferedWriter(new FileWriter(file, true))) {
+            if (header) {
+                writer.append(profilerGroup.getEntries().stream()
+                        .map(ProfilerEntry::getName)
+                        .collect(Collectors.joining(",")));
+                writer.newLine();
+            }
+            writer.append(profilerGroup.getEntries().stream()
+                    .map(p -> String.valueOf(p.getAverage()))
+                    .collect(Collectors.joining(",")));
+            writer.newLine();
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to write CSV", e);
+        }
     }
 
 }

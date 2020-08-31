@@ -13,18 +13,14 @@ allprojects {
         log4jVersion = "2.13.3"
     }
 
-}
-
-evaluationDependsOnChildren()
-
-subprojects {
-
     repositories {
         mavenCentral()
         maven { url "https://m00nl1ght.dev/maven/" }
     }
 
 }
+
+evaluationDependsOnChildren()
 
 publishing {
 

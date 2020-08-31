@@ -3,14 +3,14 @@ package dev.m00nl1ght.clockwork.debug.profiler.generic;
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class SimpleProfilerGroup extends ProfilerGroup {
 
-    protected final Map<String, ProfilerEntry> entries = new HashMap<>();
-    protected final Map<String, ProfilerGroup> groups = new HashMap<>();
+    protected final Map<String, ProfilerEntry> entries = new LinkedHashMap<>();
+    protected final Map<String, ProfilerGroup> groups = new LinkedHashMap<>();
 
     public SimpleProfilerGroup(String name) {
         super(name);

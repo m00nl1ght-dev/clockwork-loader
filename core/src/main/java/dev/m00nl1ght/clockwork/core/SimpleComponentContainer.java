@@ -10,7 +10,7 @@ public class SimpleComponentContainer<T extends ComponentTarget> extends Compone
     }
 
     @Override
-    public void initComponents() { // TODO restrict access (controller?)
+    public void initComponents() {
         for (var comp : targetType.getAllComponentTypes()) {
             try {
                 components[comp.getInternalIdx()] = buildComponent(comp);

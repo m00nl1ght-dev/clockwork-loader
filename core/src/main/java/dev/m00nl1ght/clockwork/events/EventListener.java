@@ -15,12 +15,14 @@ public final class EventListener<E extends Event, T extends ComponentTarget, C> 
     private final EventListenerPriority priority;
     private final TypeRef<E> eventClassType;
     private final BiConsumer<C, E> consumer;
+    private final int componentIdx;
 
     public EventListener(TypeRef<E> eventClassType, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
         this.componentType = componentType;
         this.priority = priority;
         this.eventClassType = eventClassType;
         this.consumer = consumer;
+        this.componentIdx = componentType.getInternalIdx();
     }
 
     public EventListener(Class<E> eventClass, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
@@ -41,6 +43,10 @@ public final class EventListener<E extends Event, T extends ComponentTarget, C> 
 
     public BiConsumer<C, E> getConsumer() {
         return consumer;
+    }
+
+    public int getComponentIdx() {
+        return componentIdx;
     }
 
     @Override

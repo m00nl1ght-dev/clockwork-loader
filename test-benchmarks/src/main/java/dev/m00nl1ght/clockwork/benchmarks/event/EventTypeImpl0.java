@@ -59,9 +59,9 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
     public E post(T object, E event) {
         final var target = object.getComponentContainer().getTargetType();
         if (target.getRoot() != rootTarget) checkCompatibility(target);
-        final var dispatcher = dispatchers[target.getSubtargetIdxFirst() - idxOffset];
-        event.dispatcher = dispatcher;
         try {
+            final var dispatcher = dispatchers[target.getSubtargetIdxFirst() - idxOffset];
+            event.dispatcher = dispatcher;
             dispatcher.dispatch(object.getComponentContainer(), event);
             return event;
         } catch (Throwable t) {

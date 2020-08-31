@@ -14,7 +14,7 @@ public abstract class ComponentContainer<T extends ComponentTarget> {
         Arguments.verifyType(object.getClass(), targetType.getTargetClass(), "object");
     }
 
-    public abstract void initComponents();
+    public abstract void initComponents(); // TODO restrict access (controller?)
 
     public abstract Object getComponent(int internalID);
 

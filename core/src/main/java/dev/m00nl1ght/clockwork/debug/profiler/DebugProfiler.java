@@ -1,12 +1,12 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
 public class DebugProfiler {
 
-    protected final Map<String, ProfilerGroup> groups = new HashMap<>();
+    protected final Map<String, ProfilerGroup> groups = new LinkedHashMap<>();
 
     public void addGroup(ProfilerGroup group) {
         final var existing = groups.putIfAbsent(group.getName(), group);

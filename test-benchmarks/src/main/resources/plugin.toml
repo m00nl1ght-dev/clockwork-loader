@@ -16,51 +16,6 @@ id = "test-target"
 class = "dev.m00nl1ght.clockwork.benchmarks.TestTarget"
 
 [[component]]
-id = "component-0"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component0"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-1"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component1"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-2"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component2"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-3"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component3"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-4"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component4"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-5"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component5"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-6"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component6"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-7"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component7"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-8"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component8"
-target = "clockwork-benchmarks:test-target"
-
-[[component]]
-id = "component-9"
-class = "dev.m00nl1ght.clockwork.benchmarks.components.Component9"
+id = "test-component"
+class = "dev.m00nl1ght.clockwork.benchmarks.TestComponent"
 target = "clockwork-benchmarks:test-target"

@@ -1,62 +1,112 @@
 package dev.m00nl1ght.clockwork.benchmarks;
 
 import dev.m00nl1ght.clockwork.benchmarks.event.EventTypeImpl0;
+import dev.m00nl1ght.clockwork.benchmarks.event.EventTypeImpl1;
+import dev.m00nl1ght.clockwork.benchmarks.event.EventTypeImpl2;
+import dev.m00nl1ght.clockwork.benchmarks.event.EventTypeImpl3;
 import dev.m00nl1ght.clockwork.debug.DebugUtils;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
-import dev.m00nl1ght.clockwork.debug.profiler.SimpleCyclicProfilerEntry;
+import dev.m00nl1ght.clockwork.debug.profiler.SimpleProfilerEntry;
 import dev.m00nl1ght.clockwork.debug.profiler.generic.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.events.EventType;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
 public class EventTypeBenchmark {
 
+    private static final int ITERATIONS = 100000;
+
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final TestTarget testTarget = new TestTarget();
 
-    public static final List<EventType<TestEvent, TestTarget>> eventTypes = new ArrayList<>();
+    public static final List<EventType<TestEvent, TestTarget>> eventTypesAnn = new ArrayList<>();
+    public static final List<EventType<TestEvent, TestTarget>> eventTypesLam = new ArrayList<>();
 
     public static void main(String[] args) {
 
-        eventTypes.add(new EventTypeImpl0<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesAnn.add(new EventTypeImpl0<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesAnn.add(new EventTypeImpl1<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesAnn.add(new EventTypeImpl2<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesAnn.add(new EventTypeImpl3<>(TestEvent.class, TestTarget.TARGET_TYPE));
+
+        eventTypesLam.add(new EventTypeImpl0<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesLam.add(new EventTypeImpl1<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesLam.add(new EventTypeImpl2<>(TestEvent.class, TestTarget.TARGET_TYPE));
+        eventTypesLam.add(new EventTypeImpl3<>(TestEvent.class, TestTarget.TARGET_TYPE));
 
         final var profiler = new DebugProfiler();
 
-        final var profilerGroupE = new SimpleProfilerGroup("Empty");
-        profiler.addGroup(profilerGroupE);
+        final var profilerGroup0 = new SimpleProfilerGroup("Empty");
+        profiler.addGroup(profilerGroup0);
 
-        final var profilerGroupA = new SimpleProfilerGroup("All");
-        profiler.addGroup(profilerGroupA);
+        final var profilerGroup5 = new SimpleProfilerGroup("5 Listeners");
+        profiler.addGroup(profilerGroup5);
 
-        for (final var eventType : eventTypes) {
-            final var profilerEntry = new SimpleCyclicProfilerEntry(eventType.getClass().getSimpleName(), 5000);
-            profilerGroupE.addEntry(profilerEntry);
-            for (int i = 0; i < 10000; i++) {
-                final var t = System.nanoTime();
-                eventType.post(testTarget, new TestEvent());
-                profilerEntry.put(System.nanoTime() - t);
-            }
-        }
+        final var profilerGroup15 = new SimpleProfilerGroup("15 Listeners");
+        profiler.addGroup(profilerGroup15);
 
-        CWLAnnotationsExtension.buildListeners(ClockworkBenchmarks.clockworkCore, eventTypes);
+        final var profilerGroup50 = new SimpleProfilerGroup("50 Listeners");
+        profiler.addGroup(profilerGroup50);
 
-        for (final var eventType : eventTypes) {
-            final var profilerEntry = new SimpleCyclicProfilerEntry(eventType.getClass().getSimpleName(), 5000);
-            profilerGroupA.addEntry(profilerEntry);
-            for (int i = 0; i < 10000; i++) {
-                final var t = System.nanoTime();
-                eventType.post(testTarget, new TestEvent());
-                profilerEntry.put(System.nanoTime() - t);
-            }
-        }
+        final var profilerGroup250 = new SimpleProfilerGroup("250 Listeners");
+        profiler.addGroup(profilerGroup250);
+
+        run(profilerGroup0);
+
+        add(5);
+        run(profilerGroup5);
+
+        add(10);
+        run(profilerGroup15);
+
+        add(35);
+        run(profilerGroup50);
+
+        add(200);
+        run(profilerGroup250);
 
         System.out.println(DebugUtils.printProfilerInfo(profiler));
+        for (final var group : profiler.getGroups()) {
+            DebugUtils.writeProfilerInfoToCSV(group, new File("test-benchmarks/results/", group.getName() + ".csv"));
+        }
 
+    }
+
+    private static void run(SimpleProfilerGroup profilerGroup) {
+
+        for (final var eventType : eventTypesAnn) {
+            final var profilerEntry = new SimpleProfilerEntry(eventType.getClass().getSimpleName() + "-ANN");
+            profilerGroup.addEntry(profilerEntry);
+            for (int i = 0; i < ITERATIONS; i++) {
+                final var t = System.nanoTime();
+                eventType.post(testTarget, new TestEvent());
+                profilerEntry.put(System.nanoTime() - t);
+            }
+        }
+
+        for (final var eventType : eventTypesLam) {
+            final var profilerEntry = new SimpleProfilerEntry(eventType.getClass().getSimpleName() + "-LAM");
+            profilerGroup.addEntry(profilerEntry);
+            for (int i = 0; i < ITERATIONS; i++) {
+                final var t = System.nanoTime();
+                eventType.post(testTarget, new TestEvent());
+                profilerEntry.put(System.nanoTime() - t);
+            }
+        }
+
+    }
+
+    private static void add(int its) {
+        for (int i = 0; i < its; i++) {
+            CWLAnnotationsExtension.buildListeners(ClockworkBenchmarks.clockworkCore, eventTypesAnn);
+            eventTypesLam.forEach(TestComponent::registerLambda);
+        }
     }
 
 }
