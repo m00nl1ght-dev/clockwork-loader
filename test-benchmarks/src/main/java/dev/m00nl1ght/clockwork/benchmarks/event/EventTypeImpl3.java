@@ -3,14 +3,13 @@ package dev.m00nl1ght.clockwork.benchmarks.event;
 import dev.m00nl1ght.clockwork.benchmarks.TestEvent;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.BasicEventType;
 import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Arrays;
 import java.util.function.BiConsumer;
 
-public class EventTypeImpl3<E extends TestEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventTypeImpl3<E extends TestEvent, T extends ComponentTarget> extends TestEventType<E, T> {
 
     private static final int[] EMPTY_IDX_ARRAY = new int[0];
     private static final BiConsumer[] EMPTY_CONSUMER_ARRAY = new BiConsumer[0];
@@ -65,6 +64,27 @@ public class EventTypeImpl3<E extends TestEvent, T extends ComponentTarget> exte
             final var idxs = cIdxs[idx];
             for (int i = 0; i < cons.length; i++) {
                 event.lIdx = i;
+                final var component = container.getComponent(idxs[i]);
+                if (component != null) cons[i].accept(component, event);
+            }
+            return event;
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public E postContextless(T object, E event) {
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            final var idx = target.getSubtargetIdxFirst() - idxOffset;
+            final var cons = consumers[idx];
+            final var idxs = cIdxs[idx];
+            for (int i = 0; i < cons.length; i++) {
                 final var component = container.getComponent(idxs[i]);
                 if (component != null) cons[i].accept(component, event);
             }

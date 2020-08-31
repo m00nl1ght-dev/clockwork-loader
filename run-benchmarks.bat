@@ -1,0 +1,1 @@
+for /l %%N in (1 1 100) do gradlew test-benchmarks:run

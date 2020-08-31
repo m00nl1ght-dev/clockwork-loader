@@ -1,0 +1,11 @@
+100 its @ 100000 events / it,EventTypeImpl0,EventTypeImpl1,EventTypeImpl2,EventTypeImpl3
+ns/op (0 ANN listeners),179.11,116.85,152.09,92.31
+ns/op (0 LAM listeners),98.24,123.33,114.19,71.18
+ns/op (5 ANN listeners),224.73,233.39,172.07,162.95
+ns/op (5 LAM listeners),171.41,196.28,164.54,194.02
+ns/op (15 ANN listeners),147.92,183.10,85.98,82.89
+ns/op (15 LAM listeners),97.17,183.68,90.09,99.09
+ns/op (50 ANN listeners),203.79,525.96,176.12,177.72
+ns/op (50 LAM listeners),217.79,536.24,185.93,194.71
+ns/op (250 ANN listeners),816.84,2727.91,734.70,724.92
+ns/op (250 LAM listeners),897.87,2543.83,727.54,740.87

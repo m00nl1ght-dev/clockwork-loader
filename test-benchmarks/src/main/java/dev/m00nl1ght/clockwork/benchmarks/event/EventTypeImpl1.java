@@ -3,13 +3,12 @@ package dev.m00nl1ght.clockwork.benchmarks.event;
 import dev.m00nl1ght.clockwork.benchmarks.TestEvent;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.BasicEventType;
 import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Arrays;
 
-public class EventTypeImpl1<E extends TestEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventTypeImpl1<E extends TestEvent, T extends ComponentTarget> extends TestEventType<E, T> {
 
     private static final EventListener[] EMPTY_ARRAY = new EventListener[0];
 
@@ -56,6 +55,26 @@ public class EventTypeImpl1<E extends TestEvent, T extends ComponentTarget> exte
             final var listeners = compiledListeners[target.getSubtargetIdxFirst() - idxOffset];
             for (int i = 0; i < listeners.length; i++) {
                 event.listener = listeners[i];
+                final var listener = listeners[i];
+                final var component = container.getComponent(listener.getComponentIdx());
+                if (component != null) listener.getConsumer().accept(component, event);
+            }
+            return event;
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public E postContextless(T object, E event) {
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            final var listeners = compiledListeners[target.getSubtargetIdxFirst() - idxOffset];
+            for (int i = 0; i < listeners.length; i++) {
                 final var listener = listeners[i];
                 final var component = container.getComponent(listener.getComponentIdx());
                 if (component != null) listener.getConsumer().accept(component, event);

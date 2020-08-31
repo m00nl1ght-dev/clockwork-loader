@@ -4,7 +4,6 @@ import dev.m00nl1ght.clockwork.benchmarks.TestEvent;
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.BasicEventType;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
@@ -13,7 +12,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> extends TestEventType<E, T> {
 
     private EventDispatcher[] dispatchers;
 
@@ -70,9 +69,25 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
         }
     }
 
+    @Override
+    @SuppressWarnings("unchecked")
+    public E postContextless(T object, E event) {
+        final var target = object.getComponentContainer().getTargetType();
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            dispatchers[target.getSubtargetIdxFirst() - idxOffset].dispatchContextless(object.getComponentContainer(), event);
+            return event;
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
     public interface EventDispatcher<T extends ComponentTarget, E extends Event> {
 
         void dispatch(ComponentContainer<?> container, E event);
+
+        void dispatchContextless(ComponentContainer<?> container, E event);
 
         List<EventListener<E, ? extends T, ?>> getListeners();
 
@@ -86,6 +101,11 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
 
         @Override
         public void dispatch(ComponentContainer container, Event event) {
+            // NO-OP
+        }
+
+        @Override
+        public void dispatchContextless(ComponentContainer container, Event event) {
             // NO-OP
         }
 
@@ -116,6 +136,15 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
                 event.lIdx = 0;
                 consumer.accept(component, event);
                 event.lIdx = -1;
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void dispatchContextless(ComponentContainer<?> container, E event) {
+            final var component = container.getComponent(cIdx);
+            if (component != null) {
+                consumer.accept(component, event);
             }
         }
 
@@ -151,6 +180,17 @@ public class EventTypeImpl0<E extends TestEvent, T extends ComponentTarget> exte
                     event.lIdx = i;
                     consumers[i].accept(component, event);
                 } event.lIdx = -1;
+            }
+        }
+
+        @Override
+        @SuppressWarnings("unchecked")
+        public void dispatchContextless(ComponentContainer<?> container, E event) {
+            for (int i = 0; i < consumers.length; i++) {
+                final var component = container.getComponent(cIdxs[i]);
+                if (component != null) {
+                    consumers[i].accept(component, event);
+                }
             }
         }
 

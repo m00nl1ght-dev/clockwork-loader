@@ -4,14 +4,13 @@ import dev.m00nl1ght.clockwork.benchmarks.TestEvent;
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.BasicEventType;
 import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.List;
 import java.util.function.BiConsumer;
 
-public class EventTypeImpl2<E extends TestEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventTypeImpl2<E extends TestEvent, T extends ComponentTarget> extends TestEventType<E, T> {
 
     private DispatchGroup[] groups;
 
@@ -61,6 +60,28 @@ public class EventTypeImpl2<E extends TestEvent, T extends ComponentTarget> exte
                     event.lIdx = i;
                     group.consumers[i].accept(component, event);
                 } event.lIdx = -1;
+            }
+            return event;
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public E postContextless(T object, E event) {
+        final ComponentContainer<?> container = object.getComponentContainer();
+        final var target = container.getTargetType();
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            final var group = groups[target.getSubtargetIdxFirst() - idxOffset];
+            if (group == null) return event;
+            for (int i = 0; i < group.consumers.length; i++) {
+                final var component = container.getComponent(group.cIdxs[i]);
+                if (component != null) {
+                    group.consumers[i].accept(component, event);
+                }
             }
             return event;
         } catch (Throwable t) {
