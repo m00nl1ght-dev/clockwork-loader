@@ -4,6 +4,8 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.function.Consumer;
 
@@ -12,6 +14,7 @@ public class ComponentInterfaceTypeImplExact<I, T extends ComponentTarget> exten
     private static final int[] EMPTY_ARRAY = new int[0];
 
     private int[] compIds = EMPTY_ARRAY;
+    private ComponentInterfaceProfilerGroup<I, T> profilerGroup;
     private TargetType<T> exactType;
 
     public ComponentInterfaceTypeImplExact(Class<I> interfaceClass, Class<T> targetClass) {
@@ -37,6 +40,10 @@ public class ComponentInterfaceTypeImplExact<I, T extends ComponentTarget> exten
         final var target = object.getTargetType();
         if (target != exactType) checkCompatibility(target);
         try {
+            if (profilerGroup != null) {
+                profilerGroup.begin(consumer);
+                consumer = profilerGroup;
+            }
             for (final var idx : compIds) {
                 @SuppressWarnings("unchecked")
                 final var comp = (I) object.getComponent(idx);
@@ -53,6 +60,28 @@ public class ComponentInterfaceTypeImplExact<I, T extends ComponentTarget> exten
             checkCompatibility(target);
             throw t;
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public synchronized void attachProfiler(ComponentInterfaceProfilerGroup<I, ? extends T> profilerGroup) {
+        Arguments.notNull(profilerGroup, "profilerGroup");
+        if (profilerGroup.getInterfaceType() != this) throw new IllegalArgumentException();
+        checkCompatibility(profilerGroup.getTargetType());
+        this.profilerGroup = (ComponentInterfaceProfilerGroup<I, T>) profilerGroup;
+        onComponentsChanged();
+    }
+
+    @Override
+    public synchronized void detachAllProfilers() {
+        if (this.profilerGroup == null) return;
+        this.profilerGroup = null;
+        onComponentsChanged();
+    }
+
+    @Override
+    public boolean supportsProfilers() {
+        return true;
     }
 
 }

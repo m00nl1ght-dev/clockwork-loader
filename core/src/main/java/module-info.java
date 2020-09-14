@@ -10,8 +10,6 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.interfaces;
     exports dev.m00nl1ght.clockwork.debug;
     exports dev.m00nl1ght.clockwork.debug.profiler;
-    exports dev.m00nl1ght.clockwork.debug.profiler.core;
-    exports dev.m00nl1ght.clockwork.debug.profiler.generic;
     exports dev.m00nl1ght.clockwork.security;
     exports dev.m00nl1ght.clockwork.security.permissions;
     exports dev.m00nl1ght.clockwork.util;

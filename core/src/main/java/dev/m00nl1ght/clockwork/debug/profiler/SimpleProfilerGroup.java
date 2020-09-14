@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.debug.profiler.generic;
+package dev.m00nl1ght.clockwork.debug.profiler;
 
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
 import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;

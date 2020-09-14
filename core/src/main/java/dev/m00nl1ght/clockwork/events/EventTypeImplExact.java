@@ -3,11 +3,14 @@ package dev.m00nl1ght.clockwork.events;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 public class EventTypeImplExact<E extends Event, T extends ComponentTarget> extends BasicEventTypeExact<E, T> {
 
     private ListenerList groupedListeners = ListenerList.EMPTY;
+    private EventProfilerGroup<E, T> profilerGroup;
     private TargetType<T> exactType;
 
     public EventTypeImplExact(TypeRef<E> eventClassType, Class<T> targetClass) {
@@ -33,7 +36,7 @@ public class EventTypeImplExact<E extends Event, T extends ComponentTarget> exte
 
     @Override
     protected void onListenersChanged() {
-        groupedListeners = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(getListeners());
+        groupedListeners = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(getListeners(), profilerGroup);
     }
 
     @Override
@@ -63,6 +66,28 @@ public class EventTypeImplExact<E extends Event, T extends ComponentTarget> exte
             checkCompatibility(target);
             throw t;
         }
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public synchronized void attachProfiler(EventProfilerGroup<E, ? extends T> profilerGroup) {
+        Arguments.notNull(profilerGroup, "profilerGroup");
+        if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
+        checkCompatibility(profilerGroup.getTargetType());
+        this.profilerGroup = (EventProfilerGroup<E, T>) profilerGroup;
+        onListenersChanged();
+    }
+
+    @Override
+    public synchronized void detachAllProfilers() {
+        if (this.profilerGroup == null) return;
+        this.profilerGroup = null;
+        onListenersChanged();
+    }
+
+    @Override
+    public boolean supportsProfilers() {
+        return true;
     }
 
 }

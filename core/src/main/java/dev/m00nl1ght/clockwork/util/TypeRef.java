@@ -2,6 +2,8 @@ package dev.m00nl1ght.clockwork.util;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Arrays;
+import java.util.stream.Collectors;
 
 /**
  * A minimalistic implemetation of the 'Super Type Token' concept from
@@ -43,6 +45,24 @@ public abstract class TypeRef<T> {
         return type;
     }
 
+    public String getSimpleName() {
+        return getSimpleName(type);
+    }
+
+    public static String getSimpleName(Type type) {
+        if (type instanceof Class) {
+            return ((Class) type).getSimpleName();
+        } else if (type instanceof ParameterizedType) {
+            final var pType = (ParameterizedType) type;
+            return getSimpleName(pType.getRawType()) +
+                    Arrays.stream(pType.getActualTypeArguments())
+                            .map(TypeRef::getSimpleName)
+                            .collect(Collectors.joining(", ", "<",  ">"));
+        } else {
+            return type.toString();
+        }
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;
@@ -58,7 +78,7 @@ public abstract class TypeRef<T> {
 
     @Override
     public final String toString() {
-        return type.getTypeName();
+        return getSimpleName();
     }
 
     @Override

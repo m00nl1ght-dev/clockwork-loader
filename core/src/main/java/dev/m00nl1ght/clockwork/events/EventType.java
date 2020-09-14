@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -101,6 +102,16 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
 
     public final TargetType<T> getTargetType() {
         return targetType;
+    }
+
+    public void attachProfiler(EventProfilerGroup<E, ? extends T> profilerGroup) {
+        throw FormatUtil.unspExc("This EventType implementation does not support profilers");
+    }
+
+    public void detachAllProfilers() {}
+
+    public boolean supportsProfilers() {
+        return false;
     }
 
     @Override

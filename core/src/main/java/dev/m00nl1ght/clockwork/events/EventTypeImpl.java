@@ -3,6 +3,8 @@ package dev.m00nl1ght.clockwork.events;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Arrays;
@@ -14,6 +16,7 @@ public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends B
     private static final ListenerList EMPTY_LIST = new ListenerList(Collections.emptyList());
 
     private ListenerList[] groupedListeners;
+    private EventProfilerGroup[] profilerGroups;
 
     public EventTypeImpl(TypeRef<E> eventClassType, Class<T> targetClass) {
         super(eventClassType, targetClass);
@@ -43,7 +46,8 @@ public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends B
     protected void onListenersChanged(TargetType<? extends T> targetType) {
         final List<EventListener<E, ? extends T, ?>> listeners = getEffectiveListeners(targetType);
         final int idx = targetType.getSubtargetIdxFirst() - idxOffset;
-        groupedListeners[idx] = listeners.isEmpty() ? EMPTY_LIST : new ListenerList(listeners);
+        final var profiler = profilerGroups == null ? null : profilerGroups[idx];
+        groupedListeners[idx] = listeners.isEmpty() ? EMPTY_LIST : new ListenerList(listeners, profiler);
     }
 
     @Override
@@ -74,6 +78,30 @@ public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends B
             checkCompatibility(target);
             throw t;
         }
+    }
+
+    @Override
+    public synchronized void attachProfiler(EventProfilerGroup<E, ? extends T> profilerGroup) {
+        Arguments.notNull(profilerGroup, "profilerGroup");
+        if (this.profilerGroups == null) this.profilerGroups = new EventProfilerGroup[groupedListeners.length];
+        if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
+        checkCompatibility(profilerGroup.getTargetType());
+        this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;
+        onListenersChanged(profilerGroup.getTargetType());
+    }
+
+    @Override
+    public synchronized void detachAllProfilers() {
+        if (this.profilerGroups == null) return;
+        this.profilerGroups = null;
+        for (final var type : getTargetType().getAllSubtargets()) {
+            onListenersChanged(type);
+        }
+    }
+
+    @Override
+    public boolean supportsProfilers() {
+        return true;
     }
 
 }

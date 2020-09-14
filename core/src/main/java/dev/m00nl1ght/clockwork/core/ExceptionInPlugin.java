@@ -21,11 +21,11 @@ public class ExceptionInPlugin extends RuntimeException {
     }
 
     public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Object... objects) {
-        return new ExceptionInPlugin(plugin, FormatUtil.format(msg, "[]", objects));
+        return new ExceptionInPlugin(plugin, FormatUtil.format(msg, objects));
     }
 
     public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Throwable cause, Object... objects) {
-        return new ExceptionInPlugin(plugin, FormatUtil.format(msg, "[]", objects), cause);
+        return new ExceptionInPlugin(plugin, FormatUtil.format(msg, objects), cause);
     }
 
     public static ExceptionInPlugin inEventListener(EventListener<?, ?, ?> listener, Object event, Object target, Throwable cause) {

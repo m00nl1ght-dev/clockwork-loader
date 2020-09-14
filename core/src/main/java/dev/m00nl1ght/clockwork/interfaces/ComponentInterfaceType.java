@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.ArrayList;
@@ -79,6 +80,16 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
 
     public final TargetType<T> getTargetType() {
         return targetType;
+    }
+
+    public void attachProfiler(ComponentInterfaceProfilerGroup<I, ? extends T> profilerGroup) {
+        throw FormatUtil.unspExc("This ComponentInterfaceType implementation does not support profilers");
+    }
+
+    public void detachAllProfilers() {}
+
+    public boolean supportsProfilers() {
+        return false;
     }
 
     @Override

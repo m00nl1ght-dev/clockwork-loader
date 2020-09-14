@@ -33,4 +33,8 @@ public class FormatUtil {
         return new IllegalStateException(format(msg, objects));
     }
 
+    public static UnsupportedOperationException unspExc(String msg, Object... objects) {
+        return new UnsupportedOperationException(format(msg, objects));
+    }
+
 }

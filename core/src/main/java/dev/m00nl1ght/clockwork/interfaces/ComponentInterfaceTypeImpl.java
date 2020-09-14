@@ -4,6 +4,8 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
@@ -13,6 +15,7 @@ public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends Ba
     private static final int[] EMPTY_ARRAY = new int[0];
 
     private int[][] compIds;
+    private ComponentInterfaceProfilerGroup[] profilerGroups;
 
     public ComponentInterfaceTypeImpl(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
@@ -43,6 +46,15 @@ public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends Ba
         if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
+            if (profilerGroups != null) {
+                @SuppressWarnings("unchecked")
+                final var profilerGroup = (ComponentInterfaceProfilerGroup<I, T>)
+                        profilerGroups[target.getSubtargetIdxFirst() - idxOffset];
+                if (profilerGroup != null) {
+                    profilerGroup.begin(consumer);
+                    consumer = profilerGroup;
+                }
+            }
             for (final var idx : comps) {
                 @SuppressWarnings("unchecked")
                 final var comp = (I) object.getComponent(idx);
@@ -59,6 +71,30 @@ public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends Ba
             checkCompatibility(target);
             throw t;
         }
+    }
+
+    @Override
+    public synchronized void attachProfiler(ComponentInterfaceProfilerGroup<I, ? extends T> profilerGroup) {
+        Arguments.notNull(profilerGroup, "profilerGroup");
+        if (this.profilerGroups == null) this.profilerGroups = new ComponentInterfaceProfilerGroup[compIds.length];
+        if (profilerGroup.getInterfaceType() != this) throw new IllegalArgumentException();
+        checkCompatibility(profilerGroup.getTargetType());
+        this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;
+        onComponentsChanged(profilerGroup.getTargetType());
+    }
+
+    @Override
+    public synchronized void detachAllProfilers() {
+        if (this.profilerGroups == null) return;
+        this.profilerGroups = null;
+        for (final var type : getTargetType().getAllSubtargets()) {
+            onComponentsChanged(type);
+        }
+    }
+
+    @Override
+    public boolean supportsProfilers() {
+        return true;
     }
 
 }
