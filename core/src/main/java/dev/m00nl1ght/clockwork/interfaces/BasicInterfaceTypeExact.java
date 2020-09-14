@@ -8,15 +8,15 @@ import dev.m00nl1ght.clockwork.util.FormatUtil;
 import java.util.ArrayList;
 import java.util.List;
 
-public abstract class BasicComponentInterfaceTypeExact<I, T extends ComponentTarget> extends ComponentInterfaceType<I, T> {
+public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> extends InterfaceType<I, T> {
 
     protected List components;
 
-    protected BasicComponentInterfaceTypeExact(Class<I> interfaceClass, Class<T> targetClass) {
+    protected BasicInterfaceTypeExact(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
     }
 
-    protected BasicComponentInterfaceTypeExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    protected BasicInterfaceTypeExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         super(interfaceClass, targetType, autoCollect);
     }
 

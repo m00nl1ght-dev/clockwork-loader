@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.ArrayList;
@@ -12,19 +12,19 @@ import java.util.List;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
+public abstract class InterfaceType<I, T extends ComponentTarget> {
 
     protected final Class<I> interfaceClass;
     protected final Class<T> targetClass;
 
     private TargetType<T> targetType;
 
-    protected ComponentInterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
+    protected InterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
         this.targetClass = targetClass;
         this.interfaceClass = interfaceClass;
     }
 
-    protected ComponentInterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    protected InterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         this(interfaceClass, targetType.getTargetClass());
         this.register(targetType, autoCollect);
     }
@@ -82,8 +82,8 @@ public abstract class ComponentInterfaceType<I, T extends ComponentTarget> {
         return targetType;
     }
 
-    public void attachProfiler(ComponentInterfaceProfilerGroup<I, ? extends T> profilerGroup) {
-        throw FormatUtil.unspExc("This ComponentInterfaceType implementation does not support profilers");
+    public void attachProfiler(InterfaceProfilerGroup<I, ? extends T> profilerGroup) {
+        throw FormatUtil.unspExc("This InterfaceType implementation does not support profilers");
     }
 
     public void detachAllProfilers() {}

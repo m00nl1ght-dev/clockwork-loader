@@ -8,17 +8,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public abstract class BasicComponentInterfaceType<I, T extends ComponentTarget> extends ComponentInterfaceType<I, T> {
+public abstract class BasicInterfaceType<I, T extends ComponentTarget> extends InterfaceType<I, T> {
 
     protected List[] components;
     protected TargetType<? super T> rootTarget;
     protected int idxOffset;
 
-    protected BasicComponentInterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
+    protected BasicInterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
     }
 
-    protected BasicComponentInterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    protected BasicInterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         super(interfaceClass, targetType, autoCollect);
     }
 

@@ -4,24 +4,24 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends BasicComponentInterfaceType<I, T> {
+public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterfaceType<I, T> {
 
     private static final int[] EMPTY_ARRAY = new int[0];
 
     private int[][] compIds;
-    private ComponentInterfaceProfilerGroup[] profilerGroups;
+    private InterfaceProfilerGroup[] profilerGroups;
 
-    public ComponentInterfaceTypeImpl(Class<I> interfaceClass, Class<T> targetClass) {
+    public InterfaceTypeImpl(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
     }
 
-    public ComponentInterfaceTypeImpl(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    public InterfaceTypeImpl(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         super(interfaceClass, targetType, autoCollect);
     }
 
@@ -48,7 +48,7 @@ public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends Ba
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
             if (profilerGroups != null) {
                 @SuppressWarnings("unchecked")
-                final var profilerGroup = (ComponentInterfaceProfilerGroup<I, T>)
+                final var profilerGroup = (InterfaceProfilerGroup<I, T>)
                         profilerGroups[target.getSubtargetIdxFirst() - idxOffset];
                 if (profilerGroup != null) {
                     profilerGroup.begin(consumer);
@@ -74,9 +74,9 @@ public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends Ba
     }
 
     @Override
-    public synchronized void attachProfiler(ComponentInterfaceProfilerGroup<I, ? extends T> profilerGroup) {
+    public synchronized void attachProfiler(InterfaceProfilerGroup<I, ? extends T> profilerGroup) {
         Arguments.notNull(profilerGroup, "profilerGroup");
-        if (this.profilerGroups == null) this.profilerGroups = new ComponentInterfaceProfilerGroup[compIds.length];
+        if (this.profilerGroups == null) this.profilerGroups = new InterfaceProfilerGroup[compIds.length];
         if (profilerGroup.getInterfaceType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());
         this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;

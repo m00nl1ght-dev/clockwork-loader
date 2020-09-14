@@ -4,24 +4,24 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.function.Consumer;
 
-public class ComponentInterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicComponentInterfaceTypeExact<I, T> {
+public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicInterfaceTypeExact<I, T> {
 
     private static final int[] EMPTY_ARRAY = new int[0];
 
     private int[] compIds = EMPTY_ARRAY;
-    private ComponentInterfaceProfilerGroup<I, T> profilerGroup;
+    private InterfaceProfilerGroup<I, T> profilerGroup;
     private TargetType<T> exactType;
 
-    public ComponentInterfaceTypeImplExact(Class<I> interfaceClass, Class<T> targetClass) {
+    public InterfaceTypeImplExact(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
     }
 
-    public ComponentInterfaceTypeImplExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    public InterfaceTypeImplExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         super(interfaceClass, targetType, autoCollect);
     }
 
@@ -64,11 +64,11 @@ public class ComponentInterfaceTypeImplExact<I, T extends ComponentTarget> exten
 
     @Override
     @SuppressWarnings("unchecked")
-    public synchronized void attachProfiler(ComponentInterfaceProfilerGroup<I, ? extends T> profilerGroup) {
+    public synchronized void attachProfiler(InterfaceProfilerGroup<I, ? extends T> profilerGroup) {
         Arguments.notNull(profilerGroup, "profilerGroup");
         if (profilerGroup.getInterfaceType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());
-        this.profilerGroup = (ComponentInterfaceProfilerGroup<I, T>) profilerGroup;
+        this.profilerGroup = (InterfaceProfilerGroup<I, T>) profilerGroup;
         onComponentsChanged();
     }
 

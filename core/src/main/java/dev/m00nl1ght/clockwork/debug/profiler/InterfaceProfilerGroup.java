@@ -2,25 +2,25 @@ package dev.m00nl1ght.clockwork.debug.profiler;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.interfaces.ComponentInterfaceType;
+import dev.m00nl1ght.clockwork.interfaces.InterfaceType;
 
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ComponentInterfaceProfilerGroup<I, T extends ComponentTarget> extends ProfilerGroup implements Consumer<I> {
+public class InterfaceProfilerGroup<I, T extends ComponentTarget> extends ProfilerGroup implements Consumer<I> {
 
     protected final TargetType<T> targetType;
-    protected final ComponentInterfaceType<I, ? super T> interfaceType;
+    protected final InterfaceType<I, ? super T> interfaceType;
     protected ProfilerEntry[] compEntries;
 
     private Consumer<? super I> consumer;
     private int idx = -1;
 
-    public ComponentInterfaceProfilerGroup(ComponentInterfaceType<I, ? super T> interfaceType, TargetType<T> targetType) {
+    public InterfaceProfilerGroup(InterfaceType<I, ? super T> interfaceType, TargetType<T> targetType) {
         this(interfaceType, targetType, 100);
     }
 
-    public ComponentInterfaceProfilerGroup(ComponentInterfaceType<I, ? super T> interfaceType, TargetType<T> targetType, int bufferSize) {
+    public InterfaceProfilerGroup(InterfaceType<I, ? super T> interfaceType, TargetType<T> targetType, int bufferSize) {
         super(interfaceType.getInterfaceClass().getSimpleName() + "@" + targetType.getId());
         this.targetType = targetType;
         this.interfaceType = interfaceType;
@@ -44,7 +44,7 @@ public class ComponentInterfaceProfilerGroup<I, T extends ComponentTarget> exten
         return targetType;
     }
 
-    public ComponentInterfaceType<I, ? super T> getInterfaceType() {
+    public InterfaceType<I, ? super T> getInterfaceType() {
         return interfaceType;
     }
 
@@ -61,7 +61,7 @@ public class ComponentInterfaceProfilerGroup<I, T extends ComponentTarget> exten
         idx++;
     }
 
-    public ComponentInterfaceProfilerGroup<I, T> attach() {
+    public InterfaceProfilerGroup<I, T> attach() {
         interfaceType.attachProfiler(this);
         return this;
     }

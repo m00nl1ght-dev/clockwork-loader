@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.debug.DebugUtils;
-import dev.m00nl1ght.clockwork.debug.profiler.ComponentInterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
@@ -76,8 +76,8 @@ public class TestLauncher {
         profiler.addGroup(new EventProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_B.TARGET_TYPE).attach());
         profiler.addGroup(new EventProfilerGroup<>(GenericTestEvent.TYPE_STRING, TestTarget_B.TARGET_TYPE).attach());
         profiler.addGroup(new EventProfilerGroup<>(GenericTestEvent.TYPE_RAW, TestTarget_B.TARGET_TYPE).attach());
-        profiler.addGroup(new ComponentInterfaceProfilerGroup<>(TestInterface.TYPE, TestTarget_A.TARGET_TYPE).attach());
-        profiler.addGroup(new ComponentInterfaceProfilerGroup<>(TestInterface.TYPE, TestTarget_B.TARGET_TYPE).attach());
+        profiler.addGroup(new InterfaceProfilerGroup<>(TestInterface.TYPE, TestTarget_A.TARGET_TYPE).attach());
+        profiler.addGroup(new InterfaceProfilerGroup<>(TestInterface.TYPE, TestTarget_B.TARGET_TYPE).attach());
 
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
 
