@@ -2,10 +2,10 @@ package dev.m00nl1ght.clockwork.events;
 
 import java.util.Objects;
 
-public abstract class EventWithResult<R> implements Event {
+public abstract class EventWithResult<R> extends Event {
 
-    private R result;
-    private final R initialResult;
+    protected R result;
+    protected final R initialResult;
 
     protected EventWithResult(R initialResult) {
         this.initialResult = Objects.requireNonNull(initialResult);
@@ -20,7 +20,7 @@ public abstract class EventWithResult<R> implements Event {
     }
 
     public void setResult(R result) {
-        // TODO check event dispatch stage
+        checkModificationAllowed();
         this.result = Objects.requireNonNull(result);
     }
 

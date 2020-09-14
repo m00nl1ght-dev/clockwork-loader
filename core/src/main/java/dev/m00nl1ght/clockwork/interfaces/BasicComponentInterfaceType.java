@@ -8,17 +8,17 @@ import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 
-public abstract class BasicComponentInterface<I, T extends ComponentTarget> extends ComponentInterfaceType<I, T> {
+public abstract class BasicComponentInterfaceType<I, T extends ComponentTarget> extends ComponentInterfaceType<I, T> {
 
     protected List[] components;
     protected TargetType<? super T> rootTarget;
     protected int idxOffset;
 
-    protected BasicComponentInterface(Class<I> interfaceClass, Class<T> targetClass) {
+    protected BasicComponentInterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
     }
 
-    protected BasicComponentInterface(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    protected BasicComponentInterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         super(interfaceClass, targetType, autoCollect);
     }
 
@@ -59,7 +59,7 @@ public abstract class BasicComponentInterface<I, T extends ComponentTarget> exte
             }
         }
         for (final var type : modified) {
-            onListenersChanged(type);
+            onComponentsChanged(type);
         }
     }
 
@@ -77,10 +77,10 @@ public abstract class BasicComponentInterface<I, T extends ComponentTarget> exte
             }
         }
         for (final var type : modified) {
-            onListenersChanged(type);
+            onComponentsChanged(type);
         }
     }
 
-    protected abstract void onListenersChanged(TargetType<? extends T> targetType);
+    protected abstract void onComponentsChanged(TargetType<? extends T> targetType);
 
 }

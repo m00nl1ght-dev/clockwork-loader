@@ -76,6 +76,7 @@ public final class TargetType<T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     public List<TargetType<? extends T>> getAllSubtargets() {
+        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         return IntStream.rangeClosed(subtargetIdxFirst, subtargetIdxLast)
                 .mapToObj(i -> (TargetType<? extends T>) allSubtargets.get(i))
                 .collect(Collectors.toUnmodifiableList());
@@ -94,10 +95,12 @@ public final class TargetType<T extends ComponentTarget> {
     }
 
     public List<ComponentType<?, T>> getOwnComponentTypes() {
+        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         return Collections.unmodifiableList(ownComponents);
     }
 
     public List<ComponentType<?, ? super T>> getAllComponentTypes() {
+        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         return allComponents;
     }
 

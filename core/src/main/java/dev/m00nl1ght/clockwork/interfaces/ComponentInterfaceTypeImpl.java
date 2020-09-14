@@ -8,17 +8,17 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import java.util.Arrays;
 import java.util.function.Consumer;
 
-public class SimpleComponentInterface<I, T extends ComponentTarget> extends BasicComponentInterface<I, T> {
+public class ComponentInterfaceTypeImpl<I, T extends ComponentTarget> extends BasicComponentInterfaceType<I, T> {
 
     private static final int[] EMPTY_ARRAY = new int[0];
 
     private int[][] compIds;
 
-    public SimpleComponentInterface(Class<I> interfaceClass, Class<T> targetClass) {
+    public ComponentInterfaceTypeImpl(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);
     }
 
-    public SimpleComponentInterface(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+    public ComponentInterfaceTypeImpl(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
         super(interfaceClass, targetType, autoCollect);
     }
 
@@ -31,7 +31,7 @@ public class SimpleComponentInterface<I, T extends ComponentTarget> extends Basi
     }
 
     @Override
-    protected void onListenersChanged(TargetType<? extends T> targetType) {
+    protected void onComponentsChanged(TargetType<? extends T> targetType) {
         final var listeners = getEffectiveComponents(targetType);
         final var idx = targetType.getSubtargetIdxFirst() - idxOffset;
         this.compIds[idx] = listeners.stream().mapToInt(ComponentType::getInternalIdx).toArray();
@@ -39,14 +39,14 @@ public class SimpleComponentInterface<I, T extends ComponentTarget> extends Basi
 
     @Override
     public void apply(T object, Consumer<? super I> consumer) {
-        final var container = object.getComponentContainer();
-        final var target = container.getTargetType();
+        final var target = object.getTargetType();
         if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
             for (final var idx : comps) {
+                @SuppressWarnings("unchecked")
+                final var comp = (I) object.getComponent(idx);
                 try {
-                    @SuppressWarnings("unchecked") final var comp = (I) container.getComponent(idx);
                     if (comp != null) consumer.accept(comp);
                 } catch (ExceptionInPlugin e) {
                     throw e;

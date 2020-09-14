@@ -1,9 +1,12 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
 public class ExceptionInPlugin extends RuntimeException {
+
+    // TODO add trace list for other plugins that were in the stack
 
     private final LoadedPlugin plugin;
 
@@ -25,9 +28,8 @@ public class ExceptionInPlugin extends RuntimeException {
         return new ExceptionInPlugin(plugin, FormatUtil.format(msg, "[]", objects), cause);
     }
 
-    public static ExceptionInPlugin inEventHandler(ComponentType component, Object event, Object target, Throwable cause) {
-        final var evt = event.getClass().getSimpleName();
-        return generic(component.getPlugin(), "Exception thrown while handling event [] in component []", cause, evt, component);
+    public static ExceptionInPlugin inEventListener(EventListener<?, ?, ?> listener, Object event, Object target, Throwable cause) {
+        return generic(listener.getComponentType().getPlugin(), "Exception thrown in event listener [] while handling event []", cause, listener, event);
     }
 
     public static ExceptionInPlugin inComponentInit(ComponentType component, Throwable cause) {
@@ -36,6 +38,10 @@ public class ExceptionInPlugin extends RuntimeException {
 
     public static ExceptionInPlugin inComponentInterface(ComponentType component, Class<?> interfaceType, Throwable cause) {
         return generic(component.getPlugin(), "Exception thrown while applying interface [] for component []", cause, interfaceType.getSimpleName(), component);
+    }
+
+    public LoadedPlugin getPlugin() {
+        return plugin;
     }
 
 }

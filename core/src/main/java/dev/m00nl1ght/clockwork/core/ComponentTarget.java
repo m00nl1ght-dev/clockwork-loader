@@ -2,6 +2,8 @@ package dev.m00nl1ght.clockwork.core;
 
 public interface ComponentTarget {
 
-    ComponentContainer<?> getComponentContainer();
+    TargetType<?> getTargetType();
+
+    Object getComponent(int internalID);
 
 }

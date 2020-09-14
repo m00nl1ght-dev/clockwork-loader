@@ -50,9 +50,12 @@ public class ClockworkCore implements ComponentTarget {
     /**
      * Returns the {@link TargetType} for the core target of this clockwork core.
      *
-     * @see ClockworkCore#getComponentContainer()
+     * The core target contains all plugin components which exist in a static context
+     * and are not attached to individual objects within the application.
+     * For example, this includes the main component of each plugin.
      */
-    public TargetType<ClockworkCore> getCoreTargetType() {
+    @Override
+    public TargetType<ClockworkCore> getTargetType() {
         return getTargetType(ClockworkCore.class).orElseThrow();
     }
 
@@ -139,16 +142,14 @@ public class ClockworkCore implements ComponentTarget {
         return Optional.ofNullable(loadedComponents.get(componentId));
     }
 
-    /**
-     * Returns the main {@link ComponentContainer} attached to this ClockworkCore.
-     * It contains all plugin components which exist in a static context
-     * and are not attached to individual objects within the application.
-     * For example, this includes the main component of each plugin.
-     */
     @Override
-    public ComponentContainer<ClockworkCore> getComponentContainer() {
-        state.requireOrAfter(State.POPULATED);
-        return coreContainer;
+    public Object getComponent(int internalID) {
+        try {
+            return coreContainer.getComponent(internalID);
+        } catch (Exception e) {
+            state.requireOrAfter(State.POPULATED);
+            throw e;
+        }
     }
 
     public ModuleLayer getModuleLayer() {
@@ -169,6 +170,9 @@ public class ClockworkCore implements ComponentTarget {
          */
         POPULATING,
 
+        /**
+         *
+         */
         PROCESSING,
 
         /**

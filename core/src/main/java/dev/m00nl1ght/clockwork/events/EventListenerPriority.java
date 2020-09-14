@@ -8,14 +8,14 @@ public enum EventListenerPriority {
     LATE(true),
     POST(false);
 
-    private final boolean changeAllowed;
+    private final boolean modificationAllowed;
 
-    EventListenerPriority(boolean changeAllowed) {
-        this.changeAllowed = changeAllowed;
+    EventListenerPriority(boolean modificationAllowed) {
+        this.modificationAllowed = modificationAllowed;
     }
 
-    public boolean isChangeAllowed() {
-        return changeAllowed;
+    public boolean isModificationAllowed() {
+        return modificationAllowed;
     }
 
 }

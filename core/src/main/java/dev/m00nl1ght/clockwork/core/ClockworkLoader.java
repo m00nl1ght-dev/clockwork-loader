@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.classloading.ModuleManager;
+import dev.m00nl1ght.clockwork.container.ImmutableComponentContainer;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
@@ -352,7 +353,7 @@ public final class ClockworkLoader {
         if (coreTarget.isEmpty()) throw PluginLoadingException.coreTargetMissing(ClockworkCore.CORE_TARGET_ID);
 
         // Build the component container and set it.
-        final var container = new CoreComponentContainer(coreTarget.get(), core);
+        final var container = new ImmutableComponentContainer<>(coreTarget.get(), core);
         core.setCoreContainer(container);
 
         // Init the components and update the state of the core.

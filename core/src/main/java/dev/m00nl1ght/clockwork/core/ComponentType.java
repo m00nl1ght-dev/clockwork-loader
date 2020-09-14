@@ -10,6 +10,7 @@ public final class ComponentType<C, T extends ComponentTarget> {
     private final ComponentDescriptor descriptor;
     private final Class<C> componentClass;
     private final TargetType<T> targetType;
+    private final TargetType<? super T> rootType;
 
     private int internalIdx = -1;
     private ComponentFactory<T, C> factory;
@@ -20,6 +21,7 @@ public final class ComponentType<C, T extends ComponentTarget> {
         this.targetType = Arguments.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
         this.componentClass = Arguments.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
         this.factory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalReflectiveAccess(), componentClass, targetType.getTargetClass());
+        this.rootType = targetType.getRoot();
     }
 
     public LoadedPlugin getPlugin() {
@@ -56,13 +58,18 @@ public final class ComponentType<C, T extends ComponentTarget> {
         return internalIdx;
     }
 
+    public int getInternalIdx(TargetType<?> forType) {
+        if (forType.getRoot() != rootType) checkCompatibility(forType);
+        return internalIdx;
+    }
+
     @SuppressWarnings("unchecked")
     public C get(T object) {
-        final var container = (ComponentContainer<T>) object.getComponentContainer();
+        if (object.getTargetType().getRoot() != rootType) checkCompatibility(object.getTargetType());
         try {
-            return (C) container.getComponent(internalIdx);
+            return (C) object.getComponent(internalIdx);
         } catch (Exception e) {
-            checkCompatibility(container.getTargetType());
+            checkCompatibility(object.getTargetType());
             throw e;
         }
     }
@@ -82,7 +89,7 @@ public final class ComponentType<C, T extends ComponentTarget> {
     private void checkCompatibility(TargetType<?> otherTarget) {
         getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
         if (!otherTarget.isEquivalentTo(this.targetType)) {
-            final var msg = "Cannot retrieve component [] (registered to target []) from different target []";
+            final var msg = "Cannot access component [] (registered to target []) from different target []";
             throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherTarget));
         }
     }

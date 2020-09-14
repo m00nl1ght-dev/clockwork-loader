@@ -126,8 +126,8 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
             final var msg = "Event type for [] is not registered";
             throw new IllegalArgumentException(FormatUtil.format(msg, eventClassType.getType().getTypeName()));
         } else if (!otherType.isEquivalentTo(targetType)) {
-            final var msg = "Cannot post event [] (created for target []) to different target []";
-            throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherType));
+            final var msg = "Cannot post event [] to different target []";
+            throw new IllegalArgumentException(FormatUtil.format(msg, this, otherType));
         }
     }
 
