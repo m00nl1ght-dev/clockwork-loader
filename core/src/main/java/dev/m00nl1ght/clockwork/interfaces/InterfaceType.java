@@ -8,9 +8,13 @@ import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
+import java.util.stream.Stream;
+import java.util.stream.StreamSupport;
 
 public abstract class InterfaceType<I, T extends ComponentTarget> {
 
@@ -49,6 +53,14 @@ public abstract class InterfaceType<I, T extends ComponentTarget> {
     protected abstract void init();
 
     public abstract void apply(T object, Consumer<? super I> consumer);
+
+    public abstract Iterator<I> iterator(T object);
+
+    public abstract Spliterator<I> spliterator(T object);
+
+    public Stream<I> stream(T object) {
+        return StreamSupport.stream(spliterator(object), false);
+    }
 
     public abstract <S extends T> List<ComponentType<? extends I, S>> getComponents(TargetType<S> target);
 

@@ -8,6 +8,8 @@ import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Arrays;
+import java.util.Iterator;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 
 public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterfaceType<I, T> {
@@ -67,6 +69,32 @@ public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterf
                     throw ExceptionInPlugin.inComponentInterface(compType, interfaceClass, e);
                 }
             }
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    public Iterator<I> iterator(T object) {
+        final var target = object.getTargetType();
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
+            return new InterfaceIterator<>(object, comps);
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    public Spliterator<I> spliterator(T object) {
+        final var target = object.getTargetType();
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
+            return new InterfaceSpliterator<>(object, comps);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;

@@ -27,6 +27,8 @@ public class TestEnvPlugin {
         GenericTestEvent.TYPE_RAW.post(TEST_TARGET_B, new GenericTestEvent());
         TestInterface.TYPE.apply(TEST_TARGET_A, TestInterface::tick);
         TestInterface.TYPE.apply(TEST_TARGET_B, TestInterface::tick);
+        LOGGER.info("TEST_TARGET_A CI count:" + TestInterface.TYPE.stream(TEST_TARGET_A).count());
+        LOGGER.info("TEST_TARGET_B CI count:" + TestInterface.TYPE.stream(TEST_TARGET_B).count());
     }
 
 }

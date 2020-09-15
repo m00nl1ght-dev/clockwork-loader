@@ -7,6 +7,8 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
+import java.util.Iterator;
+import java.util.Spliterator;
 import java.util.function.Consumer;
 
 public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicInterfaceTypeExact<I, T> {
@@ -56,6 +58,30 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
                     throw ExceptionInPlugin.inComponentInterface(compType, interfaceClass, e);
                 }
             }
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    public Iterator<I> iterator(T object) {
+        final var target = object.getTargetType();
+        if (target != exactType) checkCompatibility(target);
+        try {
+            return new InterfaceIterator<>(object, compIds);
+        } catch (Throwable t) {
+            checkCompatibility(target);
+            throw t;
+        }
+    }
+
+    @Override
+    public Spliterator<I> spliterator(T object) {
+        final var target = object.getTargetType();
+        if (target != exactType) checkCompatibility(target);
+        try {
+            return new InterfaceSpliterator<>(object, compIds);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;
