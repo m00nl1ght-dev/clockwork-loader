@@ -45,7 +45,7 @@ public abstract class TypeRef<T> {
         return type;
     }
 
-    public String getSimpleName() {
+    public final String getSimpleName() {
         return getSimpleName(type);
     }
 

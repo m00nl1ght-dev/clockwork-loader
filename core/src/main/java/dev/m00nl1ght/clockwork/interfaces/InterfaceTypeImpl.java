@@ -14,10 +14,10 @@ import java.util.function.Consumer;
 
 public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterfaceType<I, T> {
 
-    private static final int[] EMPTY_ARRAY = new int[0];
+    protected static final int[] EMPTY_ARRAY = new int[0];
 
-    private int[][] compIds;
-    private InterfaceProfilerGroup[] profilerGroups;
+    protected int[][] compIds;
+    protected InterfaceProfilerGroup[] profilerGroups;
 
     public InterfaceTypeImpl(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);

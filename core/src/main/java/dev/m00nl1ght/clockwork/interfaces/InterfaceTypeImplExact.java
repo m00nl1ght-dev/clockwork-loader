@@ -13,11 +13,11 @@ import java.util.function.Consumer;
 
 public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicInterfaceTypeExact<I, T> {
 
-    private static final int[] EMPTY_ARRAY = new int[0];
+    protected static final int[] EMPTY_ARRAY = new int[0];
 
-    private int[] compIds = EMPTY_ARRAY;
-    private InterfaceProfilerGroup<I, T> profilerGroup;
-    private TargetType<T> exactType;
+    protected int[] compIds = EMPTY_ARRAY;
+    protected InterfaceProfilerGroup<I, T> profilerGroup;
+    protected TargetType<T> exactType;
 
     public InterfaceTypeImplExact(Class<I> interfaceClass, Class<T> targetClass) {
         super(interfaceClass, targetClass);

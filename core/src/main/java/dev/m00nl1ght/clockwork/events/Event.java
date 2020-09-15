@@ -4,8 +4,8 @@ import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 public abstract class Event {
 
-    ListenerList currentContext;
-    int currentListenerIdx = -1;
+    protected ListenerList currentContext;
+    protected int currentListenerIdx = -1;
 
     protected EventListener<?, ?, ?> getCurrentListener() {
         try {

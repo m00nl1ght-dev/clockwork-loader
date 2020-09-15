@@ -9,9 +9,9 @@ import dev.m00nl1ght.clockwork.util.TypeRef;
 
 public class EventTypeImplExact<E extends Event, T extends ComponentTarget> extends BasicEventTypeExact<E, T> {
 
-    private ListenerList groupedListeners = ListenerList.EMPTY;
-    private EventProfilerGroup<E, T> profilerGroup;
-    private TargetType<T> exactType;
+    protected ListenerList groupedListeners = ListenerList.EMPTY;
+    protected EventProfilerGroup<E, T> profilerGroup;
+    protected TargetType<T> exactType;
 
     public EventTypeImplExact(TypeRef<E> eventClassType, Class<T> targetClass) {
         super(eventClassType, targetClass);

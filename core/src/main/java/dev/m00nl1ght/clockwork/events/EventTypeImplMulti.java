@@ -10,24 +10,24 @@ import dev.m00nl1ght.clockwork.util.TypeRef;
 import java.util.Arrays;
 import java.util.List;
 
-public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventTypeImplMulti<E extends Event, T extends ComponentTarget> extends BasicEventTypeMulti<E, T> {
 
-    protected ListenerList[] groupedListeners;
+    protected ListenerListMulti[] groupedListeners;
     protected EventProfilerGroup[] profilerGroups;
 
-    public EventTypeImpl(TypeRef<E> eventClassType, Class<T> targetClass) {
+    public EventTypeImplMulti(TypeRef<E> eventClassType, Class<T> targetClass) {
         super(eventClassType, targetClass);
     }
 
-    public EventTypeImpl(Class<E> eventClass, Class<T> targetClass) {
+    public EventTypeImplMulti(Class<E> eventClass, Class<T> targetClass) {
         super(eventClass, targetClass);
     }
 
-    public EventTypeImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
+    public EventTypeImplMulti(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
     }
 
-    public EventTypeImpl(Class<E> eventClass, TargetType<T> targetType) {
+    public EventTypeImplMulti(Class<E> eventClass, TargetType<T> targetType) {
         super(eventClass, targetType);
     }
 
@@ -35,8 +35,8 @@ public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends B
     protected void init() {
         super.init();
         final int cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
-        this.groupedListeners = new ListenerList[cnt];
-        Arrays.fill(groupedListeners, ListenerList.EMPTY);
+        this.groupedListeners = new ListenerListMulti[cnt];
+        Arrays.fill(groupedListeners, ListenerListMulti.EMPTY);
     }
 
     @Override
@@ -44,7 +44,12 @@ public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends B
         final List<EventListener<E, ? extends T, ?>> listeners = getEffectiveListeners(targetType);
         final int idx = targetType.getSubtargetIdxFirst() - idxOffset;
         final var profiler = profilerGroups == null ? null : profilerGroups[idx];
-        groupedListeners[idx] = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(listeners, profiler);
+        groupedListeners[idx] = listeners.isEmpty() ? ListenerListMulti.EMPTY : new ListenerListMulti(listeners, profiler);
+    }
+
+    @Override
+    protected void onLinkedListenersChanged(LinkedEventType<E, ?, T> linked) {
+
     }
 
     @Override
