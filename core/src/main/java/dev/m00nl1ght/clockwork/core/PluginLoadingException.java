@@ -105,11 +105,11 @@ public class PluginLoadingException extends RuntimeException {
         return generic("PluginProcessor [] threw an exception while processing " + text + " []", cause, name, id);
     }
 
-    public static PluginLoadingException invalidParentForTarget(TargetDescriptor target, TargetType<?> parent) {
+    public static PluginLoadingException invalidParentForTarget(TargetDescriptor target, RegisteredTargetType<?> parent) {
         return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), target.getId());
     }
 
-    public static PluginLoadingException illegalTargetSubclass(TargetDescriptor target, Class<?> targetClass, TargetType<?> sub) {
+    public static PluginLoadingException illegalTargetSubclass(TargetDescriptor target, Class<?> targetClass, RegisteredTargetType<?> sub) {
         return generic("[] is a subclass of class [], but target [] is not a parent of target []", sub.getTargetClass().getSimpleName(), targetClass.getSimpleName(), target.getId(), sub.getId());
     }
 

@@ -5,6 +5,8 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.events.listener.SimpleEventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -40,7 +42,7 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType) {
         if (this.targetType != null) throw new IllegalStateException();
-        targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        targetType.requireInitialised();
         this.targetType = targetType;
         init();
     }
@@ -58,13 +60,12 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
         return list;
     }
 
-    public final <C> EventListener<E, T, C> addListener(Class<C> componentClass, BiConsumer<C, E> consumer) {
-        return addListener(componentClass, EventListenerPriority.NORMAL, consumer);
+    public final <C> EventListener<E, T, C> addListener(ClockworkCore core, Class<C> componentClass, BiConsumer<C, E> consumer) {
+        return addListener(core, componentClass, EventListenerPriority.NORMAL, consumer);
     }
 
-    public final <C> EventListener<E, T, C> addListener(Class<C> componentClass, EventListenerPriority priority, BiConsumer<C, E> consumer) {
+    public final <C> EventListener<E, T, C> addListener(ClockworkCore core, Class<C> componentClass, EventListenerPriority priority, BiConsumer<C, E> consumer) {
         if (targetType == null) throw FormatUtil.illStateExc("EventType [] not registered yet", this);
-        final var core = targetType.getClockworkCore();
         final var component = core.getComponentType(componentClass, targetType.getTargetClass());
         if (component.isEmpty()) throw FormatUtil.illArgExc("No component type for class [] found", componentClass);
         return this.addListener(component.get(), EventListenerPriority.NORMAL, consumer);
@@ -75,7 +76,7 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
     }
 
     public final <C> EventListener<E, T, C> addListener(ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
-        final var listener = new EventListener<>(eventClassType, componentType, priority, consumer);
+        final var listener = new SimpleEventListener<>(eventClassType, componentType, priority, consumer);
         this.addListener(listener);
         return listener;
     }

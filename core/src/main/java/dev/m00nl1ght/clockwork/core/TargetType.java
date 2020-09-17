@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.util.CollectionUtil;
+import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -9,64 +9,44 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
-public final class TargetType<T extends ComponentTarget> {
+public class TargetType<T extends ComponentTarget> {
 
-    private final LoadedPlugin plugin;
-    private final TargetDescriptor descriptor;
-    private final Class<T> targetClass;
-    private final TargetType<? super T> root;
-    private final TargetType<? super T> parent;
-
-    private final List<ComponentType<?, T>> ownComponents = new LinkedList<>();
-    private final List<ComponentType<?, ? super T>> allComponents;
+    protected final Class<T> targetClass;
+    protected final TargetType<? super T> root;
+    protected final TargetType<? super T> parent;
 
     private final List<TargetType<? extends T>> directSubtargets = new LinkedList<>();
     private final List<TargetType<?>> allSubtargets;
 
+    private List<ComponentType<?, ? super T>> componentTypes;
     private int subtargetIdxFirst = -1, subtargetIdxLast = -1;
 
-    TargetType(LoadedPlugin plugin, TargetType<? super T> parent, TargetDescriptor descriptor, Class<T> targetClass) {
-        this.plugin = plugin;
-        this.descriptor = descriptor;
-        this.targetClass = targetClass;
+    public TargetType(TargetType<? super T> parent, Class<T> targetClass) {
+        this.targetClass = Arguments.notNull(targetClass, "targetClass");
         this.parent = parent;
-        if (parent == null) {
+        if (this.parent == null) {
             this.root = this;
-            this.allComponents = Collections.unmodifiableList(ownComponents);
             this.allSubtargets = new LinkedList<>();
         } else {
-            this.root = parent.root;
-            this.allComponents = CollectionUtil.compoundList(parent.allComponents, ownComponents);
-            this.parent.directSubtargets.add(this);
-            this.allSubtargets = parent.allSubtargets;
+            synchronized (this.parent) {
+                this.root = this.parent.root;
+                if (this.parent.isInitialised())
+                    throw FormatUtil.illStateExc("Parent TargetType [] is already initialised", this.parent);
+                this.parent.directSubtargets.add(this);
+                this.allSubtargets = this.parent.allSubtargets;
+            }
         }
     }
 
-    public LoadedPlugin getPlugin() {
-        return plugin;
-    }
-
-    public ClockworkCore getClockworkCore() {
-        return plugin.getClockworkCore();
-    }
-
-    public TargetDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    public String getId() {
-        return descriptor.getId();
-    }
-
-    public Class<T> getTargetClass() {
+    public final Class<T> getTargetClass() {
         return targetClass;
     }
 
-    public TargetType<? super T> getParent() {
+    public final TargetType<? super T> getParent() {
         return parent;
     }
 
-    public TargetType<? super T> getRoot() {
+    public final TargetType<? super T> getRoot() {
         return root;
     }
 
@@ -74,58 +54,86 @@ public final class TargetType<T extends ComponentTarget> {
         return other == this || (getParent() != null && getParent().isEquivalentTo(other));
     }
 
+    public final List<ComponentType<?, ? super T>> getComponentTypes() {
+        return componentTypes;
+    }
+
     @SuppressWarnings("unchecked")
-    public List<TargetType<? extends T>> getAllSubtargets() {
-        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+    public final ComponentType<T, T> getIdentityComponentType() {
+        if (componentTypes == null) return null;
+        return (ComponentType<T, T>) componentTypes.get(0);
+    }
+
+    @SuppressWarnings("unchecked")
+    public final List<TargetType<? extends T>> getAllSubtargets() {
+        requireInitialised();
         return IntStream.rangeClosed(subtargetIdxFirst, subtargetIdxLast)
                 .mapToObj(i -> (TargetType<? extends T>) allSubtargets.get(i))
                 .collect(Collectors.toUnmodifiableList());
     }
 
-    public List<TargetType<? extends T>> getDirectSubtargets() {
+    public final List<TargetType<? extends T>> getDirectSubtargets() {
+        requireInitialised();
         return Collections.unmodifiableList(directSubtargets);
     }
 
-    public int getSubtargetIdxFirst() {
+    public final int getSubtargetIdxFirst() {
         return subtargetIdxFirst;
     }
 
-    public int getSubtargetIdxLast() {
+    public final int getSubtargetIdxLast() {
         return subtargetIdxLast;
     }
 
-    public List<ComponentType<?, T>> getOwnComponentTypes() {
-        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
-        return Collections.unmodifiableList(ownComponents);
+    public final boolean isInitialised() {
+        return componentTypes != null;
     }
 
-    public List<ComponentType<?, ? super T>> getAllComponentTypes() {
-        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
-        return allComponents;
+    public final void requireInitialised() {
+        if (componentTypes == null) throw FormatUtil.illStateExc("TargetType [] is not initialised", this);
     }
 
-    @Override
-    public String toString() {
-        return descriptor.toString();
+    public final void requireNotInitialised() {
+        if (componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is initialised", this);
     }
 
     // ### Internal ###
 
-    <C> void addComponent(ComponentType<?, T> componentType) {
-        getClockworkCore().getState().require(ClockworkCore.State.POPULATING);
-        if (componentType.getTargetType() != this) throw new IllegalArgumentException();
-        ownComponents.add(componentType);
-    }
+    protected final synchronized void init(List<? extends ComponentType<?, ?>> components) {
+        if (this.componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
+        components = Arguments.verifiedListSnapshot(components, t -> t.targetType == this, "components");
+        final var componentList = new LinkedList<ComponentType<?, ? super T>>();
 
-    void init() {
-        getClockworkCore().getState().require(ClockworkCore.State.POPULATING);
         if (parent == null) {
-            for (int i = 0; i < ownComponents.size(); i++) ownComponents.get(i).setInternalIdx(i);
             this.populateSubtargets();
+            componentList.add(new IdentityComponentType<>(this));
         } else {
-            final var offset = parent.allComponents.size();
-            for (int i = 0; i < ownComponents.size(); i++) ownComponents.get(i).setInternalIdx(i + offset);
+            if (parent.componentTypes == null) throw FormatUtil.illStateExc("Parent TargetType [] is not initialised", parent);
+            componentList.addAll(parent.componentTypes);
+            componentList.set(0, new IdentityComponentType<>(this));
         }
+
+        for (final var component : components) {
+            @SuppressWarnings("unchecked")
+            final var castedComponent = (ComponentType<?, T>) component;
+            if (component.parent != null) {
+                componentList.set(component.parent.getInternalIdx(), castedComponent);
+            } else {
+                componentList.add(castedComponent);
+            }
+        }
+
+        for (int i = 0; i < componentList.size(); i++) {
+            final var component = componentList.get(i);
+            final var idx = component.getInternalIdx();
+            if (idx < 0) {
+                component.setInternalIdx(i);
+            } else {
+                if (idx != i) throw new IllegalStateException();
+            }
+        }
+
+        this.componentTypes = List.copyOf(componentList);
     }
 
     private void populateSubtargets() {

@@ -13,13 +13,14 @@ public class ReflectionUtil {
 
     public static MethodHandle tryFindConstructor(MethodHandles.Lookup lookup, Class<?> targetClass, Class<?>... params) {
         try {
-            ReflectionUtil.class.getModule().addReads(targetClass.getModule());
+            Arguments.notNullAnd(lookup, MethodHandles.Lookup::hasFullPrivilegeAccess, "lookup");
+            ReflectionUtil.class.getModule().addReads(Arguments.notNull(targetClass, "targetClass").getModule());
             final var privateLookup = MethodHandles.privateLookupIn(targetClass, lookup);
             return privateLookup.findConstructor(targetClass, MethodType.methodType(void.class, params));
         } catch (NoSuchMethodException e) {
             return null;
         } catch (Throwable t) {
-            throw new RuntimeException("Failed to extract constructor from [" + targetClass.getSimpleName() + "]", t);
+            throw FormatUtil.rtExc(t, "Failed to extract constructor from []", targetClass.getSimpleName());
         }
     }
 

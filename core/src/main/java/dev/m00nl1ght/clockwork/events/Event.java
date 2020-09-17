@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.events;
 
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 public abstract class Event {

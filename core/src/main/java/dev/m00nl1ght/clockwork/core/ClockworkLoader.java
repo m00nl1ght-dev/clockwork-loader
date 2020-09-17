@@ -237,7 +237,8 @@ public final class ClockworkLoader {
             if (parent != null) {
                 final var inherited = parent.getComponentType(componentDescriptor.getId());
                 if (inherited.isPresent()) {
-                    buildComponent(plugin, componentDescriptor, target.get(), inherited.get().getComponentClass());
+                    final var componentClass = inherited.get().getComponentClass();
+                    buildComponent(plugin, componentDescriptor, target.get(), componentClass);
                     continue;
                 }
             }
@@ -248,8 +249,15 @@ public final class ClockworkLoader {
 
         }
 
-        // Init and lock the target types.
-        for (var targetType : core.getLoadedTargetTypes()) targetType.init();
+        // Group registered components by target.
+        final var componentsByTarget = core.getLoadedComponentTypes().stream()
+                .collect(Collectors.groupingBy(ComponentType::getTargetType));
+
+        // Initialise the target types.
+        for (var targetType : core.getLoadedTargetTypes()) {
+            targetType.init(componentsByTarget.getOrDefault(targetType, List.of()));
+        }
+
         core.setState(State.PROCESSING);
 
         // Notify all registered plugin processors.
@@ -315,7 +323,7 @@ public final class ClockworkLoader {
         }
 
         // Construct the new TargetType.
-        final var target = new TargetType<>(plugin, parentType, descriptor, targetClass);
+        final var target = new RegisteredTargetType<>(plugin, parentType, descriptor, targetClass);
 
         // Then add it to the core and plugin.
         plugin.getClockworkCore().addLoadedTargetType(target);
@@ -324,15 +332,14 @@ public final class ClockworkLoader {
     }
 
     private <C, T extends ComponentTarget> void
-    buildComponent(LoadedPlugin plugin, ComponentDescriptor descriptor, TargetType<T> targetType, Class<C> componentClass) {
+    buildComponent(LoadedPlugin plugin, ComponentDescriptor descriptor, RegisteredTargetType<T> targetType, Class<C> componentClass) {
 
         // Construct the new ComponentType.
-        final var component = new ComponentType<>(plugin, descriptor, componentClass, targetType);
+        final var component = new RegisteredComponentType<>(null, plugin, descriptor, componentClass, targetType);
 
         // Then add it to the core, plugin and target.
         plugin.getClockworkCore().addLoadedComponentType(component);
         plugin.addLoadedComponentType(component);
-        targetType.addComponent(component);
 
     }
 

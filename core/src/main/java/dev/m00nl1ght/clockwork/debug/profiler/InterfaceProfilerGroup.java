@@ -21,13 +21,13 @@ public class InterfaceProfilerGroup<I, T extends ComponentTarget> extends Profil
     }
 
     public InterfaceProfilerGroup(InterfaceType<I, ? super T> interfaceType, TargetType<T> targetType, int bufferSize) {
-        super(interfaceType.getInterfaceClass().getSimpleName() + "@" + targetType.getId());
+        super(interfaceType.getInterfaceClass().getSimpleName() + "@" + targetType.toString());
         this.targetType = targetType;
         this.interfaceType = interfaceType;
         final var components = interfaceType.getEffectiveComponents(targetType);
         this.compEntries = new ProfilerEntry[components.size()];
         for (int i = 0; i < components.size(); i++) {
-            compEntries[i] = new SimpleCyclicProfilerEntry(components.get(i).getId(), bufferSize);
+            compEntries[i] = new SimpleCyclicProfilerEntry(components.get(i).toString(), bufferSize);
         }
     }
 

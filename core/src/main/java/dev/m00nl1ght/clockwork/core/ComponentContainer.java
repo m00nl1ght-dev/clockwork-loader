@@ -8,18 +8,22 @@ public abstract class ComponentContainer<T extends ComponentTarget> {
 
     protected ComponentContainer(TargetType<T> targetType) {
         this.targetType = Arguments.notNull(targetType, "targetType");
-        targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        targetType.requireInitialised();
     }
 
     public abstract Object getComponent(int internalID);
+
+    @SuppressWarnings("unchecked")
+    public T getTarget() {
+        return (T) getComponent(0);
+    }
 
     public final TargetType<T> getTargetType() {
         return targetType;
     }
 
-    protected <C> C buildComponent(ComponentType<C, ? super T> componentType, T object) throws Throwable {
-        final var factory = componentType.getFactoryInternal();
-        return factory == null ? null : factory.create(object);
+    protected <C> C buildComponent(ComponentType<C, ? super T> componentType) throws Throwable {
+        return componentType.factory.create(getTarget());
     }
 
 }

@@ -5,7 +5,7 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import java.util.Iterator;
 import java.util.NoSuchElementException;
 
-public class InterfaceIterator<T> implements Iterator<T> { // TODO test
+public class InterfaceIterator<T> implements Iterator<T> {
 
     private final ComponentTarget object;
     private final int[] componentIdxs;

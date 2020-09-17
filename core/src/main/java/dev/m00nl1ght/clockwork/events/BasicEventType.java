@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.events;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;

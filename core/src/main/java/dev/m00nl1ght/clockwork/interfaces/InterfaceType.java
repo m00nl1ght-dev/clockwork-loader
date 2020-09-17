@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.interfaces;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
@@ -35,7 +34,7 @@ public abstract class InterfaceType<I, T extends ComponentTarget> {
 
     public final synchronized void register(TargetType<T> targetType, boolean autoCollect) {
         if (this.targetType != null) throw new IllegalStateException();
-        targetType.getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        targetType.requireInitialised();
         this.targetType = targetType;
         init();
         if (autoCollect) autoCollectComponents();
@@ -44,8 +43,8 @@ public abstract class InterfaceType<I, T extends ComponentTarget> {
     @SuppressWarnings("unchecked")
     private void autoCollectComponents() {
         addComponents(targetType.getAllSubtargets().stream()
-                .flatMap(subtarget -> subtarget.getOwnComponentTypes().stream())
-                .filter(comp -> interfaceClass.isAssignableFrom(comp.getComponentClass()))
+                .flatMap(subtarget -> subtarget.getComponentTypes().stream())
+                .filter(comp -> comp.getParent() == null && interfaceClass.isAssignableFrom(comp.getComponentClass()))
                 .map(comp -> (ComponentType<? extends I, ? extends T>) comp)
                 .collect(Collectors.toList()));
     }

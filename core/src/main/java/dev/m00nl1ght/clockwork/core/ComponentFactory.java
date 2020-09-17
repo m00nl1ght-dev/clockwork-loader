@@ -18,4 +18,8 @@ public interface ComponentFactory<T extends ComponentTarget, C> {
         return null;
     }
 
+    static <T extends ComponentTarget, C> ComponentFactory<T, C> emptyFactory() {
+        return t -> null;
+    }
+
 }

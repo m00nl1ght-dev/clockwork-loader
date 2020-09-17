@@ -1,7 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
@@ -13,9 +12,8 @@ public class PluginProcessorContext {
 
     PluginProcessorContext(LoadedPlugin plugin, Lookup rootLookup) {
         this.plugin = Arguments.notNull(plugin, "plugin");
-        this.rootLookup = Arguments.notNull(rootLookup, "rootLookup");
+        this.rootLookup = Arguments.notNullAnd(rootLookup, Lookup::hasFullPrivilegeAccess, "rootLookup");
         plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
-        if (!rootLookup.hasFullPrivilegeAccess()) throw new IllegalArgumentException();
         if (rootLookup.lookupClass() != ClockworkLoader.class) throw new IllegalArgumentException();
     }
 
@@ -28,20 +26,6 @@ public class PluginProcessorContext {
         return MethodHandles.privateLookupIn(targetClass, rootLookup);
     }
 
-    public <C, T extends ComponentTarget> void
-    setComponentFactory(ComponentType<C, T> componentType, ComponentFactory<T, C> factory) {
-        plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
-        this.checkPluginAccess(componentType);
-        componentType.setFactoryInternal(factory);
-    }
-
-    public <C, T extends ComponentTarget> ComponentFactory<T, C>
-    getComponentFactory(ComponentType<C, T> componentType) {
-        plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
-        this.checkPluginAccess(componentType);
-        return componentType.getFactoryInternal();
-    }
-
     public LoadedPlugin getPlugin() {
         return plugin;
     }
@@ -49,11 +33,6 @@ public class PluginProcessorContext {
     @Override
     public String toString() {
         return plugin.toString();
-    }
-
-    private void checkPluginAccess(ComponentType<?, ?> componentType) {
-        if (componentType.getPlugin() != plugin)
-            throw FormatUtil.illArgExc("Context of [] can not access component []", plugin, componentType);
     }
 
 }

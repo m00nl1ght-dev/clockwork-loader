@@ -1,64 +1,42 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
-public final class ComponentType<C, T extends ComponentTarget> {
+public class ComponentType<C, T extends ComponentTarget> {
 
-    private final LoadedPlugin plugin;
-    private final ComponentDescriptor descriptor;
-    private final Class<C> componentClass;
-    private final TargetType<T> targetType;
-    private final TargetType<? super T> rootType;
+    protected final Class<C> componentClass;
+    protected final TargetType<T> targetType;
+    protected final TargetType<? super T> rootType;
+    protected final ComponentType<? super C, ? super T> parent;
 
     private int internalIdx = -1;
-    private ComponentFactory<T, C> factory;
+    ComponentFactory<T, C> factory = ComponentFactory.emptyFactory();
 
-    ComponentType(LoadedPlugin plugin, ComponentDescriptor descriptor, Class<C> componentClass, TargetType<T> targetType) {
-        this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
-        this.targetType = Arguments.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
-        this.componentClass = Arguments.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
-        this.factory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalReflectiveAccess(), componentClass, targetType.getTargetClass());
+    public ComponentType(ComponentType<? super C, ? super T> parent, Class<C> componentClass, TargetType<T> targetType) {
+        this.parent = Arguments.nullOr(parent, p -> targetType.isEquivalentTo(p.targetType) && targetType != p.targetType,"parent");
+        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.componentClass = Arguments.notNull(componentClass, "componentClass");
         this.rootType = targetType.getRoot();
     }
 
-    public LoadedPlugin getPlugin() {
-        return plugin;
-    }
-
-    public ClockworkCore getClockworkCore() {
-        return plugin.getClockworkCore();
-    }
-
-    public ComponentDescriptor getDescriptor() {
-        return descriptor;
-    }
-
-    public String getId() {
-        return descriptor.getId();
-    }
-
-    public TargetType<T> getTargetType() {
+    public final TargetType<T> getTargetType() {
         return targetType;
     }
 
-    public Class<C> getComponentClass() {
+    public final Class<C> getComponentClass() {
         return componentClass;
     }
 
-    @Override
-    public String toString() {
-        return descriptor.toString();
+    public ComponentType<? super C, ? super T> getParent() {
+        return parent;
     }
 
-    public int getInternalIdx() {
-        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+    public final int getInternalIdx() {
         return internalIdx;
     }
 
-    public int getInternalIdx(TargetType<?> forType) {
+    public final int getInternalIdx(TargetType<?> forType) {
         if (forType.getRoot() != rootType) checkCompatibility(forType);
         return internalIdx;
     }
@@ -75,36 +53,26 @@ public final class ComponentType<C, T extends ComponentTarget> {
     }
 
     public ComponentFactory<T, C> getFactory() {
-        if (!descriptor.isFactoryAccessEnabled()) throw new UnsupportedOperationException();
-        return this.getFactoryInternal();
+        return factory;
     }
 
     public void setFactory(ComponentFactory<T, C> factory) {
-        if (!descriptor.isFactoryAccessEnabled()) throw new UnsupportedOperationException();
-        this.setFactoryInternal(factory);
+        this.factory = Arguments.notNull(factory, "factory");
     }
 
     // ### Internal ###
 
-    private void checkCompatibility(TargetType<?> otherTarget) {
-        getClockworkCore().getState().requireOrAfter(ClockworkCore.State.POPULATED);
+    protected void checkCompatibility(TargetType<?> otherTarget) {
+        targetType.requireInitialised();
         if (!otherTarget.isEquivalentTo(this.targetType)) {
             final var msg = "Cannot access component [] (registered to target []) from different target []";
             throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherTarget));
         }
     }
 
-    void setInternalIdx(int internalIdx) {
-        getClockworkCore().getState().require(ClockworkCore.State.POPULATING);
+    protected final void setInternalIdx(int internalIdx) {
+        targetType.requireNotInitialised();
         this.internalIdx = internalIdx;
-    }
-
-    ComponentFactory<T, C> getFactoryInternal() {
-        return factory;
-    }
-
-    void setFactoryInternal(ComponentFactory<T, C> factory) {
-        this.factory = factory;
     }
 
 }

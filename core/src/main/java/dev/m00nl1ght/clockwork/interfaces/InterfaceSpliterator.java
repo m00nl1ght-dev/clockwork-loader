@@ -8,7 +8,7 @@ import java.util.function.Consumer;
 /**
  * Modified version of java.util.Spliterators.ArraySpliterator.
  */
-public class InterfaceSpliterator<T> implements Spliterator<T> { // TODO test
+public class InterfaceSpliterator<T> implements Spliterator<T> {
 
     private final ComponentTarget object;
     private final int[] componentIdxs;

@@ -39,7 +39,7 @@ public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterf
     protected void onComponentsChanged(TargetType<? extends T> targetType) {
         final var listeners = getEffectiveComponents(targetType);
         final var idx = targetType.getSubtargetIdxFirst() - idxOffset;
-        this.compIds[idx] = listeners.stream().mapToInt(ComponentType::getInternalIdx).toArray();
+        this.compIds[idx] = listeners.stream().mapToInt(ComponentType::getInternalIdx).distinct().toArray();
     }
 
     @Override
@@ -65,7 +65,7 @@ public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterf
                 } catch (ExceptionInPlugin e) {
                     throw e;
                 } catch (Throwable e) {
-                    final var compType = target.getAllComponentTypes().get(idx);
+                    final var compType = target.getComponentTypes().get(idx);
                     throw ExceptionInPlugin.inComponentInterface(compType, interfaceClass, e);
                 }
             }

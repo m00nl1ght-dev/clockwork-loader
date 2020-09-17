@@ -34,7 +34,7 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
 
     @Override
     protected void onComponentsChanged() {
-        this.compIds = getComponents().stream().mapToInt(ComponentType::getInternalIdx).toArray();
+        this.compIds = getComponents().stream().mapToInt(ComponentType::getInternalIdx).distinct().toArray();
     }
 
     @Override
@@ -54,7 +54,7 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
                 } catch (ExceptionInPlugin e) {
                     throw e;
                 } catch (Throwable e) {
-                    final var compType = target.getAllComponentTypes().get(idx);
+                    final var compType = target.getComponentTypes().get(idx);
                     throw ExceptionInPlugin.inComponentInterface(compType, interfaceClass, e);
                 }
             }

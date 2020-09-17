@@ -3,8 +3,9 @@ package dev.m00nl1ght.clockwork.extension.annotations;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListener;
 import dev.m00nl1ght.clockwork.events.EventListenerPriority;
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.events.listener.SimpleEventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -60,7 +61,7 @@ public final class EventHandlerMethod<E extends Event, C> {
 
     public <T extends ComponentTarget> EventListener<E, T, C> buildListener(ComponentType<C, T> componentType) {
         if (cachedLambda == null) cachedLambda = buildConsumer();
-        return new EventListener<>(eventClassType, componentType, priority, cachedLambda);
+        return new SimpleEventListener<>(eventClassType, componentType, priority, cachedLambda);
     }
 
     private BiConsumer<C, E> buildConsumer() {

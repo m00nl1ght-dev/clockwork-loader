@@ -9,21 +9,20 @@ import dev.m00nl1ght.clockwork.util.Arguments;
 public class ImmutableComponentContainer<T extends ComponentTarget> extends ComponentContainer<T> {
 
     protected final Object[] components;
-    protected final T object;
 
     public ImmutableComponentContainer(TargetType<T> targetType, T object) {
         super(targetType);
-        this.components = new Object[targetType.getAllComponentTypes().size()];
-        this.object = Arguments.notNull(object, "object");
+        this.components = new Object[targetType.getComponentTypes().size()];
+        this.components[0] = Arguments.notNull(object, "object");
         Arguments.verifyType(object.getClass(), targetType.getTargetClass(), "object");
     }
 
     public void initComponents() {
-        for (var comp : targetType.getAllComponentTypes()) {
+        for (var comp : targetType.getComponentTypes()) {
             try {
                 final var idx = comp.getInternalIdx(targetType);
                 if (components[idx] == null) {
-                    components[idx] = buildComponent(comp, object);
+                    components[idx] = buildComponent(comp);
                 }
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inComponentInit(comp, t);

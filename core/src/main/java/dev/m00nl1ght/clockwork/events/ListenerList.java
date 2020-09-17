@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.events;
 
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
 
 import java.util.Collections;
 import java.util.List;

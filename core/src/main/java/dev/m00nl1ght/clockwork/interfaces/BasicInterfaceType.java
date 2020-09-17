@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.interfaces;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.ArrayList;
 import java.util.HashSet;
@@ -47,12 +48,14 @@ public abstract class BasicInterfaceType<I, T extends ComponentTarget> extends I
     @Override
     public <C> void addComponents(Iterable<ComponentType<? extends I, ? extends T>> components) {
         final var modified = new HashSet<TargetType<? extends T>>();
-        for (final var component : components) {
+        for (final var component : Arguments.notNull(components, "components")) {
             final var type = component.getTargetType();
+            type.requireInitialised();
             if (type.getRoot() != rootTarget) checkCompatibility(type);
             final var idx = type.getSubtargetIdxFirst() - idxOffset;
             if (this.components[idx] == null) this.components[idx] = new ArrayList(5);
-            @SuppressWarnings("unchecked") final List<ComponentType<? extends I, ? extends T>> list = this.components[idx];
+            @SuppressWarnings("unchecked")
+            final List<ComponentType<? extends I, ? extends T>> list = this.components[idx];
             if (!list.contains(component)) {
                 list.add(component);
                 modified.addAll(type.getAllSubtargets());

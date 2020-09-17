@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.interfaces;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.ArrayList;
@@ -47,8 +48,9 @@ public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> exte
     @Override
     public <C> void addComponents(Iterable<ComponentType<? extends I, ? extends T>> components) {
         boolean modified = false;
-        for (final var component : components) {
+        for (final var component : Arguments.notNull(components, "components")) {
             final var type = component.getTargetType();
+            type.requireInitialised();
             if (type != getTargetType()) checkCompatibility(type);
             if (this.components == null) this.components = new ArrayList(5);
             @SuppressWarnings("unchecked")

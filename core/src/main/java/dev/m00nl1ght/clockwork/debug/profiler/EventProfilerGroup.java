@@ -18,7 +18,7 @@ public class EventProfilerGroup<E extends Event, T extends ComponentTarget> exte
     }
 
     public EventProfilerGroup(EventType<E, ? super T> eventType, TargetType<T> targetType, int bufferSize) {
-        super(eventType.getEventClassType() + "@" + targetType.getId());
+        super(eventType.getEventClassType() + "@" + targetType.toString());
         this.eventType = eventType;
         this.targetType = targetType;
         final var listeners = eventType.getEffectiveListeners(targetType);
