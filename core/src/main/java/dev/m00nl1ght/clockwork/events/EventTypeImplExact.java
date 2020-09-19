@@ -7,7 +7,7 @@ import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
-public class EventTypeImplExact<E extends Event, T extends ComponentTarget> extends BasicEventTypeExact<E, T> {
+public class EventTypeImplExact<E extends ContextAwareEvent, T extends ComponentTarget> extends BasicEventTypeExact<E, T> {
 
     protected ListenerList groupedListeners = ListenerList.EMPTY;
     protected EventProfilerGroup<E, T> profilerGroup;

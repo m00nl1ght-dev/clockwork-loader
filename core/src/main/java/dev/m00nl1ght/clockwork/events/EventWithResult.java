@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.events;
 
 import java.util.Objects;
 
-public abstract class EventWithResult<R> extends Event {
+public abstract class EventWithResult<R> extends ContextAwareEvent {
 
     protected R result;
     protected final R initialResult;

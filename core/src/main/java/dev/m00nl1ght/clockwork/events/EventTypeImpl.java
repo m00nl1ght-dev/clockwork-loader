@@ -11,7 +11,7 @@ import dev.m00nl1ght.clockwork.util.TypeRef;
 import java.util.Arrays;
 import java.util.List;
 
-public class EventTypeImpl<E extends Event, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventTypeImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
 
     protected ListenerList[] groupedListeners;
     protected EventProfilerGroup[] profilerGroups;
