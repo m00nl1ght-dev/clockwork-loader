@@ -12,11 +12,13 @@ import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.invoke.MethodHandles;
 import java.util.List;
 
 public final class CWLAnnotationsExtension {
 
     private static final Logger LOGGER = LogManager.getLogger();
+    static final MethodHandles.Lookup LOCAL_LOOKUP = MethodHandles.lookup();
 
     private final ClockworkCore core;
 

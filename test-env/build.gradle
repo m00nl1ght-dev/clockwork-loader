@@ -6,8 +6,8 @@ plugins {
 
 mainClassName = "dev.m00nl1ght.clockwork.test.TestLauncher"
 
-sourceCompatibility = 14
-targetCompatibility = 14
+sourceCompatibility = targetJDK
+targetCompatibility = targetJDK
 
 java {
     modularity.getInferModulePath() set true

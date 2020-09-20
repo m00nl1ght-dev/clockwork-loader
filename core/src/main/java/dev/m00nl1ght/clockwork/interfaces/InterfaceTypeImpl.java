@@ -4,8 +4,6 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
-import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Arrays;
 import java.util.Iterator;
@@ -16,23 +14,18 @@ public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterf
 
     protected static final int[] EMPTY_ARRAY = new int[0];
 
-    protected int[][] compIds;
-    protected InterfaceProfilerGroup[] profilerGroups;
+    protected final int[][] compIds;
 
-    public InterfaceTypeImpl(Class<I> interfaceClass, Class<T> targetClass) {
-        super(interfaceClass, targetClass);
-    }
-
-    public InterfaceTypeImpl(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
-        super(interfaceClass, targetType, autoCollect);
-    }
-
-    @Override
-    protected void init() {
-        super.init();
+    public InterfaceTypeImpl(Class<I> interfaceClass, TargetType<T> targetType) {
+        super(interfaceClass, targetType);
         final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
         this.compIds = new int[cnt][];
         Arrays.fill(compIds, EMPTY_ARRAY);
+    }
+
+    public InterfaceTypeImpl(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
+        this(interfaceClass, targetType);
+        if (autoCollect) autoCollectComponents();
     }
 
     @Override
@@ -48,15 +41,6 @@ public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterf
         if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
-            if (profilerGroups != null) {
-                @SuppressWarnings("unchecked")
-                final var profilerGroup = (InterfaceProfilerGroup<I, T>)
-                        profilerGroups[target.getSubtargetIdxFirst() - idxOffset];
-                if (profilerGroup != null) {
-                    profilerGroup.begin(consumer);
-                    consumer = profilerGroup;
-                }
-            }
             for (final var idx : comps) {
                 @SuppressWarnings("unchecked")
                 final var comp = (I) object.getComponent(idx);
@@ -99,30 +83,6 @@ public class InterfaceTypeImpl<I, T extends ComponentTarget> extends BasicInterf
             checkCompatibility(target);
             throw t;
         }
-    }
-
-    @Override
-    public synchronized void attachProfiler(InterfaceProfilerGroup<I, ? extends T> profilerGroup) {
-        Arguments.notNull(profilerGroup, "profilerGroup");
-        if (this.profilerGroups == null) this.profilerGroups = new InterfaceProfilerGroup[compIds.length];
-        if (profilerGroup.getInterfaceType() != this) throw new IllegalArgumentException();
-        checkCompatibility(profilerGroup.getTargetType());
-        this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;
-        onComponentsChanged(profilerGroup.getTargetType());
-    }
-
-    @Override
-    public synchronized void detachAllProfilers() {
-        if (this.profilerGroups == null) return;
-        this.profilerGroups = null;
-        for (final var type : getTargetType().getAllSubtargets()) {
-            onComponentsChanged(type);
-        }
-    }
-
-    @Override
-    public boolean supportsProfilers() {
-        return true;
     }
 
 }

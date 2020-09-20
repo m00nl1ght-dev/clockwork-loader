@@ -1,38 +1,25 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.events.Event;
+import dev.m00nl1ght.clockwork.events.EventType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
 public abstract class BasicEventType<E extends Event, T extends ComponentTarget> extends EventType<E, T> {
 
-    protected List[] listeners;
-    protected TargetType<? super T> rootTarget;
-    protected int idxOffset;
-
-    protected BasicEventType(TypeRef<E> eventClassType, Class<T> targetClass) {
-        super(eventClassType, targetClass);
-    }
-
-    protected BasicEventType(Class<E> eventClass, Class<T> targetClass) {
-        super(eventClass, targetClass);
-    }
+    protected final List[] listeners;
+    protected final TargetType<? super T> rootTarget;
+    protected final int idxOffset;
 
     protected BasicEventType(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
-    }
-
-    protected BasicEventType(Class<E> eventClass, TargetType<T> targetType) {
-        super(eventClass, targetType);
-    }
-
-    @Override
-    protected void init() {
         this.rootTarget = getTargetType().getRoot();
         this.idxOffset = getTargetType().getSubtargetIdxFirst();
         final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
@@ -54,7 +41,7 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
     }
 
     @Override
-    public void addListeners(Iterable<EventListener<E, ? extends T, ?>> eventListeners) {
+    public void addListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
         final var modified = new HashSet<TargetType<? extends T>>();
         for (final var listener : eventListeners) {
             final var type = listener.getComponentType().getTargetType();
@@ -73,7 +60,7 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
     }
 
     @Override
-    public void removeListeners(Iterable<EventListener<E, ? extends T, ?>> eventListeners) {
+    public void removeListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
         final var modified = new HashSet<TargetType<? extends T>>();
         for (final var listener : eventListeners) {
             final var type = listener.getComponentType().getTargetType();

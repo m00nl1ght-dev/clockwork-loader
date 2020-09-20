@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.interfaces;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.ArrayList;
@@ -18,38 +18,22 @@ import java.util.stream.StreamSupport;
 public abstract class InterfaceType<I, T extends ComponentTarget> {
 
     protected final Class<I> interfaceClass;
-    protected final Class<T> targetClass;
+    protected final TargetType<T> targetType;
 
-    private TargetType<T> targetType;
-
-    protected InterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
-        this.targetClass = targetClass;
-        this.interfaceClass = interfaceClass;
-    }
-
-    protected InterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
-        this(interfaceClass, targetType.getTargetClass());
-        this.register(targetType, autoCollect);
-    }
-
-    public final synchronized void register(TargetType<T> targetType, boolean autoCollect) {
-        if (this.targetType != null) throw new IllegalStateException();
+    protected InterfaceType(Class<I> interfaceClass, TargetType<T> targetType) {
+        this.interfaceClass = Arguments.notNull(interfaceClass, "interfaceClass");
+        this.targetType = Arguments.notNull(targetType, "targetType");
         targetType.requireInitialised();
-        this.targetType = targetType;
-        init();
-        if (autoCollect) autoCollectComponents();
     }
 
     @SuppressWarnings("unchecked")
-    private void autoCollectComponents() {
+    public void autoCollectComponents() {
         addComponents(targetType.getAllSubtargets().stream()
                 .flatMap(subtarget -> subtarget.getComponentTypes().stream())
                 .filter(comp -> comp.getParent() == null && interfaceClass.isAssignableFrom(comp.getComponentClass()))
                 .map(comp -> (ComponentType<? extends I, ? extends T>) comp)
                 .collect(Collectors.toList()));
     }
-
-    protected abstract void init();
 
     public abstract void apply(T object, Consumer<? super I> consumer);
 
@@ -85,22 +69,8 @@ public abstract class InterfaceType<I, T extends ComponentTarget> {
         return interfaceClass;
     }
 
-    public final Class<T> getTargetClass() {
-        return targetClass;
-    }
-
     public final TargetType<T> getTargetType() {
         return targetType;
-    }
-
-    public void attachProfiler(InterfaceProfilerGroup<I, ? extends T> profilerGroup) {
-        throw FormatUtil.unspExc("This InterfaceType implementation does not support profilers");
-    }
-
-    public void detachAllProfilers() {}
-
-    public boolean supportsProfilers() {
-        return false;
     }
 
     @Override

@@ -4,8 +4,6 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
-import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Iterator;
 import java.util.Spliterator;
@@ -16,20 +14,14 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
     protected static final int[] EMPTY_ARRAY = new int[0];
 
     protected int[] compIds = EMPTY_ARRAY;
-    protected InterfaceProfilerGroup<I, T> profilerGroup;
-    protected TargetType<T> exactType;
 
-    public InterfaceTypeImplExact(Class<I> interfaceClass, Class<T> targetClass) {
-        super(interfaceClass, targetClass);
+    public InterfaceTypeImplExact(Class<I> interfaceClass, TargetType<T> targetType) {
+        super(interfaceClass, targetType);
     }
 
     public InterfaceTypeImplExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
-        super(interfaceClass, targetType, autoCollect);
-    }
-
-    @Override
-    protected void init() {
-        this.exactType = getTargetType();
+        this(interfaceClass, targetType);
+        if (autoCollect) autoCollectComponents();
     }
 
     @Override
@@ -40,12 +32,8 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
     @Override
     public void apply(T object, Consumer<? super I> consumer) {
         final var target = object.getTargetType();
-        if (target != exactType) checkCompatibility(target);
+        if (target != targetType) checkCompatibility(target);
         try {
-            if (profilerGroup != null) {
-                profilerGroup.begin(consumer);
-                consumer = profilerGroup;
-            }
             for (final var idx : compIds) {
                 @SuppressWarnings("unchecked")
                 final var comp = (I) object.getComponent(idx);
@@ -67,7 +55,7 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
     @Override
     public Iterator<I> iterator(T object) {
         final var target = object.getTargetType();
-        if (target != exactType) checkCompatibility(target);
+        if (target != targetType) checkCompatibility(target);
         try {
             return new InterfaceIterator<>(object, compIds);
         } catch (Throwable t) {
@@ -79,35 +67,13 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
     @Override
     public Spliterator<I> spliterator(T object) {
         final var target = object.getTargetType();
-        if (target != exactType) checkCompatibility(target);
+        if (target != targetType) checkCompatibility(target);
         try {
             return new InterfaceSpliterator<>(object, compIds);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;
         }
-    }
-
-    @Override
-    @SuppressWarnings("unchecked")
-    public synchronized void attachProfiler(InterfaceProfilerGroup<I, ? extends T> profilerGroup) {
-        Arguments.notNull(profilerGroup, "profilerGroup");
-        if (profilerGroup.getInterfaceType() != this) throw new IllegalArgumentException();
-        checkCompatibility(profilerGroup.getTargetType());
-        this.profilerGroup = (InterfaceProfilerGroup<I, T>) profilerGroup;
-        onComponentsChanged();
-    }
-
-    @Override
-    public synchronized void detachAllProfilers() {
-        if (this.profilerGroup == null) return;
-        this.profilerGroup = null;
-        onComponentsChanged();
-    }
-
-    @Override
-    public boolean supportsProfilers() {
-        return true;
     }
 
 }

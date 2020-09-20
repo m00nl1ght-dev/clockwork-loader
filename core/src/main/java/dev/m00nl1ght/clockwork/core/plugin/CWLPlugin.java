@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.core.plugin;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.events.EventType;
-import dev.m00nl1ght.clockwork.events.EventTypeImplExact;
+import dev.m00nl1ght.clockwork.events.impl.EventTypeImplExact;
 
 /**
  * The main class for the internal "clockwork" plugin.

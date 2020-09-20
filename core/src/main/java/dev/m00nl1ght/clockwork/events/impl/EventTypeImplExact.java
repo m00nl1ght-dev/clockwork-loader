@@ -1,9 +1,10 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.events.ListenerList;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -11,27 +12,13 @@ public class EventTypeImplExact<E extends ContextAwareEvent, T extends Component
 
     protected ListenerList groupedListeners = ListenerList.EMPTY;
     protected EventProfilerGroup<E, T> profilerGroup;
-    protected TargetType<T> exactType;
-
-    public EventTypeImplExact(TypeRef<E> eventClassType, Class<T> targetClass) {
-        super(eventClassType, targetClass);
-    }
-
-    public EventTypeImplExact(Class<E> eventClass, Class<T> targetClass) {
-        super(eventClass, targetClass);
-    }
 
     public EventTypeImplExact(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
     }
 
     public EventTypeImplExact(Class<E> eventClass, TargetType<T> targetType) {
-        super(eventClass, targetType);
-    }
-
-    @Override
-    protected void init() {
-        this.exactType = getTargetType();
+        this(TypeRef.of(eventClass), targetType);
     }
 
     @Override
@@ -43,7 +30,7 @@ public class EventTypeImplExact<E extends ContextAwareEvent, T extends Component
     @SuppressWarnings("unchecked")
     public E post(T object, E event) {
         final TargetType<?> target = object.getTargetType();
-        if (target != exactType) checkCompatibility(target);
+        if (target != targetType) checkCompatibility(target);
         try {
             if (event.currentContext != null) throw new IllegalStateException();
             event.currentContext = groupedListeners;

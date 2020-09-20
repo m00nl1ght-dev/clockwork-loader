@@ -1,9 +1,10 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.events.ListenerList;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
@@ -13,31 +14,18 @@ import java.util.List;
 
 public class EventTypeImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
 
-    protected ListenerList[] groupedListeners;
+    protected final ListenerList[] groupedListeners;
     protected EventProfilerGroup[] profilerGroups;
-
-    public EventTypeImpl(TypeRef<E> eventClassType, Class<T> targetClass) {
-        super(eventClassType, targetClass);
-    }
-
-    public EventTypeImpl(Class<E> eventClass, Class<T> targetClass) {
-        super(eventClass, targetClass);
-    }
 
     public EventTypeImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
-    }
-
-    public EventTypeImpl(Class<E> eventClass, TargetType<T> targetType) {
-        super(eventClass, targetType);
-    }
-
-    @Override
-    protected void init() {
-        super.init();
         final int cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
         this.groupedListeners = new ListenerList[cnt];
         Arrays.fill(groupedListeners, ListenerList.EMPTY);
+    }
+
+    public EventTypeImpl(Class<E> eventClass, TargetType<T> targetType) {
+        this(TypeRef.of(eventClass), targetType);
     }
 
     @Override

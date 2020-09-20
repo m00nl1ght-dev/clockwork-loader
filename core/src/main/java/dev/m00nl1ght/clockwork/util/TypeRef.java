@@ -24,7 +24,7 @@ public abstract class TypeRef<T> {
     }
 
     private TypeRef(Type type) {
-        this.type = type;
+        this.type = Arguments.notNull(type, "type");
     }
 
     protected TypeRef() {

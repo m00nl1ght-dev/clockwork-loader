@@ -32,7 +32,7 @@ public final class EventHandlerMethod<E extends Event, C> {
 
     public static <C> EventHandlerMethod<?, C> build(MethodHandles.Lookup lookup, Class<C> handlerClass, Method method, EventListenerPriority priority) {
         if (method.getDeclaringClass() != handlerClass) throw new IllegalArgumentException();
-        if (Modifier.isStatic(method.getModifiers())) return null;
+        if (Modifier.isStatic(method.getModifiers())) return null; // TODO static methods
         final var params = method.getGenericParameterTypes();
         if (params.length != 1) return null;
         if (params[0] instanceof Class) {
@@ -67,8 +67,10 @@ public final class EventHandlerMethod<E extends Event, C> {
     private BiConsumer<C, E> buildConsumer() {
         try {
             final var handle = lookup.unreflect(method);
-            final var callsite = LambdaMetafactory.metafactory(lookup, "accept", MHBC_INVOKED_TYPE, MHBC_GENERIC_TYPE, handle, handle.type());
-            @SuppressWarnings("unchecked") final var consumer = (BiConsumer<C, E>) callsite.getTarget().invokeExact();
+            final var callsite = LambdaMetafactory.metafactory(lookup,
+                    "accept", MHBC_INVOKED_TYPE, MHBC_GENERIC_TYPE, handle, handle.type());
+            @SuppressWarnings("unchecked")
+            final var consumer = (BiConsumer<C, E>) callsite.getTarget().invokeExact();
             return consumer;
         } catch (Throwable t) {
             throw FormatUtil.rtExc(t, "Failed to build lambda for event handler [] using deep reflection", this);

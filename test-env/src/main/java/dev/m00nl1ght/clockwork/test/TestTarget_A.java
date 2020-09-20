@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 
 public class TestTarget_A implements ComponentTarget {
 
-    public static final TargetType<TestTarget_A> TARGET_TYPE = TestLauncher.getTargetType(TestTarget_A.class);
+    public static final TargetType<TestTarget_A> TARGET_TYPE = TestLauncher.targetType(TestTarget_A.class);
 
     protected final ImmutableComponentContainer<?> container;
 

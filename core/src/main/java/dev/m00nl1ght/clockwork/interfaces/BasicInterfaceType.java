@@ -11,20 +11,12 @@ import java.util.List;
 
 public abstract class BasicInterfaceType<I, T extends ComponentTarget> extends InterfaceType<I, T> {
 
-    protected List[] components;
-    protected TargetType<? super T> rootTarget;
-    protected int idxOffset;
+    protected final List[] components;
+    protected final TargetType<? super T> rootTarget;
+    protected final int idxOffset;
 
-    protected BasicInterfaceType(Class<I> interfaceClass, Class<T> targetClass) {
-        super(interfaceClass, targetClass);
-    }
-
-    protected BasicInterfaceType(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
-        super(interfaceClass, targetType, autoCollect);
-    }
-
-    @Override
-    protected void init() {
+    protected BasicInterfaceType(Class<I> interfaceClass, TargetType<T> targetType) {
+        super(interfaceClass, targetType);
         this.rootTarget = getTargetType().getRoot();
         this.idxOffset = getTargetType().getSubtargetIdxFirst();
         final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;

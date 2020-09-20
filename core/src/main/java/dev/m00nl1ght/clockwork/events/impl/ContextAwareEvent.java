@@ -1,5 +1,7 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
+import dev.m00nl1ght.clockwork.events.Event;
+import dev.m00nl1ght.clockwork.events.ListenerList;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 

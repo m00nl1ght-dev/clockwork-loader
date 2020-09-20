@@ -7,6 +7,7 @@ import dev.m00nl1ght.clockwork.events.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public class SimpleEventListener<E extends Event, T extends ComponentTarget, C> extends EventListener<E, T, C> {
@@ -25,6 +26,20 @@ public class SimpleEventListener<E extends Event, T extends ComponentTarget, C> 
     @Override
     public BiConsumer<C, E> getConsumer() {
         return consumer;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof SimpleEventListener)) return false;
+        if (!super.equals(o)) return false;
+        SimpleEventListener<?, ?, ?> that = (SimpleEventListener<?, ?, ?>) o;
+        return consumer.equals(that.consumer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), consumer);
     }
 
 }

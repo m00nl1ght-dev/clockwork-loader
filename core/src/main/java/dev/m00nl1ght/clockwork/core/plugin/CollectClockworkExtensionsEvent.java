@@ -1,11 +1,11 @@
 package dev.m00nl1ght.clockwork.core.plugin;
 
 import dev.m00nl1ght.clockwork.core.ClockworkLoader;
-import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.core.PluginProcessor;
+import dev.m00nl1ght.clockwork.events.impl.ContextAwareEvent;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
-public final class CollectClockworkExtensionsEvent extends Event {
+public final class CollectClockworkExtensionsEvent extends ContextAwareEvent {
 
     private final ClockworkLoader loader;
 

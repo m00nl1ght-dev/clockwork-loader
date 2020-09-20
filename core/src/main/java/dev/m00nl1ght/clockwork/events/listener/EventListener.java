@@ -8,6 +8,7 @@ import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Comparator;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public abstract class EventListener<E extends Event, T extends ComponentTarget, C> {
@@ -42,6 +43,20 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
     @Override
     public String toString() {
         return eventClassType + "@" + componentType.toString() + "[" + priority + "]";
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EventListener)) return false;
+        EventListener<?, ?, ?> that = (EventListener<?, ?, ?>) o;
+        return componentType.equals(that.componentType) &&
+                eventClassType.equals(that.eventClassType);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(componentType, eventClassType);
     }
 
 }

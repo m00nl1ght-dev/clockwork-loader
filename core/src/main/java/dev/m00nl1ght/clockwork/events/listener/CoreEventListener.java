@@ -7,6 +7,7 @@ import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public class CoreEventListener<E extends Event, T extends ComponentTarget, I> extends EventListener<E, T, ClockworkCore> {
@@ -38,6 +39,21 @@ public class CoreEventListener<E extends Event, T extends ComponentTarget, I> ex
 
     private void invoke(ClockworkCore core, E event) {
         innerConsumer.accept(innerComponent, event);
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof CoreEventListener)) return false;
+        if (!super.equals(o)) return false;
+        CoreEventListener<?, ?, ?> that = (CoreEventListener<?, ?, ?>) o;
+        return innerComponentType.equals(that.innerComponentType) &&
+                innerConsumer.equals(that.innerConsumer);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), innerComponentType, innerConsumer);
     }
 
 }

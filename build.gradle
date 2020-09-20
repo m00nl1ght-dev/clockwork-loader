@@ -9,6 +9,7 @@ allprojects {
     group 'dev.m00nl1ght.clockwork'
 
     ext {
+        targetJDK = "14"
         nightconfigVersion = "3.6.2-j9m"
         log4jVersion = "2.13.3"
     }

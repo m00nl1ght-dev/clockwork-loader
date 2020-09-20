@@ -13,22 +13,13 @@ public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> exte
 
     protected List components;
 
-    protected BasicInterfaceTypeExact(Class<I> interfaceClass, Class<T> targetClass) {
-        super(interfaceClass, targetClass);
-    }
-
-    protected BasicInterfaceTypeExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
-        super(interfaceClass, targetType, autoCollect);
+    protected BasicInterfaceTypeExact(Class<I> interfaceClass, TargetType<T> targetType) {
+        super(interfaceClass, targetType);
     }
 
     @SuppressWarnings("unchecked")
     public List<ComponentType<?, T>> getComponents() {
         return components;
-    }
-
-    @Override
-    protected void init() {
-        // NO-OP
     }
 
     @Override

@@ -2,7 +2,6 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.debug.DebugUtils;
-import dev.m00nl1ght.clockwork.debug.profiler.InterfaceProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
@@ -14,9 +13,9 @@ import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
 import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.NetworkPermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.PropertyPermissionEntry;
+import dev.m00nl1ght.clockwork.test.event.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
-import dev.m00nl1ght.clockwork.test.event.GenericTestEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,12 +61,6 @@ public class TestLauncher {
 
         loader.init();
 
-        PluginInitEvent.TYPE.register(coreTargetType);
-        SimpleTestEvent.TYPE.register(TestTarget_A.TARGET_TYPE);
-        GenericTestEvent.TYPE_STRING.register(TestTarget_B.TARGET_TYPE);
-        GenericTestEvent.TYPE_RAW.register(TestTarget_B.TARGET_TYPE);
-        TestInterface.TYPE.register(TestTarget_A.TARGET_TYPE, true);
-
         CWLAnnotationsExtension.buildListeners(clockworkCore, List.of(PluginInitEvent.TYPE, SimpleTestEvent.TYPE, GenericTestEvent.TYPE_STRING, GenericTestEvent.TYPE_RAW));
 
         final var profiler = new DebugProfiler();
@@ -76,27 +69,30 @@ public class TestLauncher {
         profiler.addGroup(new EventProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_B.TARGET_TYPE).attach());
         profiler.addGroup(new EventProfilerGroup<>(GenericTestEvent.TYPE_STRING, TestTarget_B.TARGET_TYPE).attach());
         profiler.addGroup(new EventProfilerGroup<>(GenericTestEvent.TYPE_RAW, TestTarget_B.TARGET_TYPE).attach());
-        profiler.addGroup(new InterfaceProfilerGroup<>(TestInterface.TYPE, TestTarget_A.TARGET_TYPE).attach());
-        profiler.addGroup(new InterfaceProfilerGroup<>(TestInterface.TYPE, TestTarget_B.TARGET_TYPE).attach());
 
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
 
         System.out.println(DebugUtils.printProfilerInfo(profiler));
     }
 
-    public static TargetType<ClockworkCore> getCoreTargetType() {
-        if (coreTargetType == null) throw new IllegalStateException("target class has been initialised before clockwork core is ready");
+    public static ClockworkCore core() {
+        if (clockworkCore == null) throw new IllegalStateException("class has been initialised before clockwork core is ready");
+        return clockworkCore;
+    }
+
+    public static TargetType<ClockworkCore> coreTargetType() {
+        if (clockworkCore == null) throw new IllegalStateException("class has been initialised before clockwork core is ready");
         return coreTargetType;
     }
 
-    public static <T extends ComponentTarget> TargetType<T> getTargetType(Class<T> targetClass) {
-        if (clockworkCore == null) throw new IllegalStateException("target class has been initialised before clockwork core is ready");
+    public static <T extends ComponentTarget> TargetType<T> targetType(Class<T> targetClass) {
+        if (clockworkCore == null) throw new IllegalStateException("class has been initialised before clockwork core is ready");
         return clockworkCore.getTargetType(targetClass)
                 .orElseThrow(() -> new IllegalArgumentException("missing target for class: " + targetClass.getSimpleName()));
     }
 
-    public static <C, T extends ComponentTarget> ComponentType<C, T> getComponentType(Class<C> componentClass, Class<T> targetClass) {
-        if (clockworkCore == null) throw new IllegalStateException("component class has been initialised before clockwork core is ready");
+    public static <C, T extends ComponentTarget> ComponentType<C, T> componentType(Class<C> componentClass, Class<T> targetClass) {
+        if (clockworkCore == null) throw new IllegalStateException("class has been initialised before clockwork core is ready");
         return clockworkCore.getComponentType(componentClass, targetClass)
                 .orElseThrow(() -> new IllegalArgumentException("missing component for class: " + componentClass.getSimpleName()));
     }

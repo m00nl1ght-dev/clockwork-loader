@@ -61,9 +61,4 @@ public class InterfaceProfilerGroup<I, T extends ComponentTarget> extends Profil
         idx++;
     }
 
-    public InterfaceProfilerGroup<I, T> attach() {
-        interfaceType.attachProfiler(this);
-        return this;
-    }
-
 }

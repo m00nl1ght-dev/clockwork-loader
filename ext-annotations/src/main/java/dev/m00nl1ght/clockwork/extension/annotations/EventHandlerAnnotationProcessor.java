@@ -80,8 +80,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
                 if (handler != null) {
                     collected.add(handler);
                 } else {
-                    final var name = handlerClass + "#" + method.getName();
-                    LOGGER.error("Invalid event handler [" + name + "]");
+                    LOGGER.error("Invalid event handler [" + handlerClass + "#" + method.getName() + "]");
                 }
             }
         }

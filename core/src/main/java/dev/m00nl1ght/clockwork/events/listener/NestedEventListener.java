@@ -3,30 +3,22 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListenerPriority;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
 public class NestedEventListener<E extends Event, T extends ComponentTarget, C extends ComponentTarget, I> extends EventListener<E, T, C> {
 
-    private final ComponentType<I, C> innerComponentType;
-    private final BiConsumer<I, E> innerConsumer;
-    private final int cIdx;
+    protected final EventListener<E, ? extends C, I> innerListener;
+    protected final BiConsumer<I, E> innerConsumer;
+    protected final int cIdx;
 
-    public NestedEventListener(TypeRef<E> eventClassType, ComponentType<C, T> outerComponentType,
-                               ComponentType<I, C> innerComponentType, BiConsumer<I, E> innerConsumer,
-                               EventListenerPriority priority) {
-        super(eventClassType, outerComponentType, priority);
-        this.innerComponentType = innerComponentType;
-        this.cIdx = innerComponentType.getInternalIdx();
-        this.innerConsumer = innerConsumer;
-    }
-
-    public NestedEventListener(Class<E> eventClass, ComponentType<C, T> outerComponentType,
-                               ComponentType<I, C> innerComponentType, BiConsumer<I, E> innerConsumer,
-                               EventListenerPriority priority) {
-        this(TypeRef.of(eventClass), outerComponentType, innerComponentType, innerConsumer, priority);
+    public NestedEventListener(EventListener<E, ? extends C, I> innerListener, ComponentType<C, T> componentType) {
+        super(Arguments.notNull(innerListener, "innerListener").getEventClassType(), componentType, innerListener.getPriority());
+        this.innerListener = innerListener;
+        this.innerConsumer = innerListener.getConsumer();
+        this.cIdx = innerListener.getComponentType().getInternalIdx();
     }
 
     @Override
@@ -40,6 +32,24 @@ public class NestedEventListener<E extends Event, T extends ComponentTarget, C e
         if (innerComponent != null) {
             innerConsumer.accept(innerComponent, event);
         }
+    }
+
+    public EventListener<E, ? extends C, I> getInnerListener() {
+        return innerListener;
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof NestedEventListener)) return false;
+        if (!super.equals(o)) return false;
+        NestedEventListener<?, ?, ?, ?> that = (NestedEventListener<?, ?, ?, ?>) o;
+        return innerListener.equals(that.innerListener);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), innerListener);
     }
 
 }

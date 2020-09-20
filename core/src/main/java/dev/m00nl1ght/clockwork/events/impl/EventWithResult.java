@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
 import java.util.Objects;
 
@@ -22,6 +22,11 @@ public abstract class EventWithResult<R> extends ContextAwareEvent {
     public void setResult(R result) {
         checkModificationAllowed();
         this.result = Objects.requireNonNull(result);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString() + "{result=" + result + "}";
     }
 
 }

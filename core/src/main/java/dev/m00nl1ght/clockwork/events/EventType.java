@@ -7,10 +7,12 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.SimpleEventListener;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
@@ -18,36 +20,13 @@ import java.util.function.Consumer;
 public abstract class EventType<E extends Event, T extends ComponentTarget> {
 
     protected final TypeRef<E> eventClassType;
-    protected final Class<T> targetClass;
-
-    private TargetType<T> targetType;
-
-    protected EventType(TypeRef<E> eventClassType, Class<T> targetClass) {
-        this.eventClassType = eventClassType;
-        this.targetClass = targetClass;
-    }
-
-    protected EventType(Class<E> eventClass, Class<T> targetClass) {
-        this(TypeRef.of(eventClass), targetClass);
-    }
+    protected final TargetType<T> targetType;
 
     protected EventType(TypeRef<E> eventClassType, TargetType<T> targetType) {
-        this(eventClassType, targetType.getTargetClass());
-        this.register(targetType);
-    }
-
-    protected EventType(Class<E> eventClass, TargetType<T> targetType) {
-        this(TypeRef.of(eventClass), targetType);
-    }
-
-    public final synchronized void register(TargetType<T> targetType) {
-        if (this.targetType != null) throw new IllegalStateException();
+        this.eventClassType = Arguments.notNull(eventClassType, "eventClassType");
+        this.targetType = Arguments.notNull(targetType, "targetType");
         targetType.requireInitialised();
-        this.targetType = targetType;
-        init();
     }
-
-    protected abstract void init();
 
     public abstract E post(T object, E event);
 
@@ -85,20 +64,16 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
         this.addListeners(List.of(listener));
     }
 
-    public abstract void addListeners(Iterable<EventListener<E, ? extends T, ?>> listeners);
+    public abstract void addListeners(Collection<EventListener<E, ? extends T, ?>> listeners);
 
     public final void removeListener(EventListener<E, ? extends T, ?> listener) {
         this.removeListeners(List.of(listener));
     }
 
-    public abstract void removeListeners(Iterable<EventListener<E, ? extends T, ?>> listeners);
+    public abstract void removeListeners(Collection<EventListener<E, ? extends T, ?>> listeners);
 
     public TypeRef<E> getEventClassType() {
         return eventClassType;
-    }
-
-    public final Class<T> getTargetClass() {
-        return targetClass;
     }
 
     public final TargetType<T> getTargetType() {
