@@ -21,14 +21,17 @@ public class TestEnvPlugin {
         TEST_TARGET_A = new TestTarget_A();
         TEST_TARGET_B = new TestTarget_B();
         TEST_TARGET_C = new TestTarget_C();
+        LOGGER.info("Posting SimpleTestEvent to TEST_TARGET_A.");
         SimpleTestEvent.TYPE.post(TEST_TARGET_A, new SimpleTestEvent());
+        LOGGER.info("Posting SimpleTestEvent to TEST_TARGET_B.");
         SimpleTestEvent.TYPE.post(TEST_TARGET_B, new SimpleTestEvent());
+        LOGGER.info("Posting GenericTestEvents to TEST_TARGET_B.");
         GenericTestEvent.TYPE_STRING.post(TEST_TARGET_B, new GenericTestEvent<>());
         GenericTestEvent.TYPE_RAW.post(TEST_TARGET_B, new GenericTestEvent());
+        LOGGER.info("Applying TestInterface to TEST_TARGET_A.");
         TestInterface.TYPE.apply(TEST_TARGET_A, TestInterface::tick);
+        LOGGER.info("Applying TestInterface to TEST_TARGET_B.");
         TestInterface.TYPE.apply(TEST_TARGET_B, TestInterface::tick);
-        LOGGER.info("TEST_TARGET_A CI count:" + TestInterface.TYPE.stream(TEST_TARGET_A).count());
-        LOGGER.info("TEST_TARGET_B CI count:" + TestInterface.TYPE.stream(TEST_TARGET_B).count());
     }
 
 }

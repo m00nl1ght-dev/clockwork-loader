@@ -80,6 +80,10 @@ public abstract class EventType<E extends Event, T extends ComponentTarget> {
         return targetType;
     }
 
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return targetType.getAllSubtargets();
+    }
+
     public void attachProfiler(EventProfilerGroup<E, ? extends T> profilerGroup) {
         throw FormatUtil.unspExc("This EventType implementation does not support profilers");
     }

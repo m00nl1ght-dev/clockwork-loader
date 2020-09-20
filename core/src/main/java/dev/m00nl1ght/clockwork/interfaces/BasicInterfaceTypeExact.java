@@ -7,6 +7,7 @@ import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> extends InterfaceType<I, T> {
@@ -15,6 +16,11 @@ public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> exte
 
     protected BasicInterfaceTypeExact(Class<I> interfaceClass, TargetType<T> targetType) {
         super(interfaceClass, targetType);
+    }
+
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return List.of(targetType);
     }
 
     @SuppressWarnings("unchecked")

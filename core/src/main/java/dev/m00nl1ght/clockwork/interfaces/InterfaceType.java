@@ -6,10 +6,7 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
-import java.util.ArrayList;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -71,6 +68,10 @@ public abstract class InterfaceType<I, T extends ComponentTarget> {
 
     public final TargetType<T> getTargetType() {
         return targetType;
+    }
+
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return targetType.getAllSubtargets();
     }
 
     @Override

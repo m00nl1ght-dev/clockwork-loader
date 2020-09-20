@@ -1,7 +1,9 @@
 package dev.m00nl1ght.clockwork.util;
 
 import java.util.Collection;
+import java.util.HashSet;
 import java.util.List;
+import java.util.function.Function;
 import java.util.function.Predicate;
 
 @SuppressWarnings("unchecked")
@@ -85,6 +87,15 @@ public class Arguments {
         for (final var e : Arguments.notNull(collection, name)) if (!test.test(e))
             throw FormatUtil.illArgExc("Argument [] collection contains invalid element []", name, e);
         return (T[]) collection.toArray();
+    }
+
+    public static <T, K> void distinct(Collection<T> collection, Function<? super T, ? extends K> function, String name) {
+        final var keys = new HashSet<K>();
+        for (final var e : collection) {
+            final var key = function.apply(e);
+            if (!keys.add(key))
+                throw FormatUtil.illArgExc("Argument [] collection contains indistinct element []", name, e);
+        }
     }
 
 }

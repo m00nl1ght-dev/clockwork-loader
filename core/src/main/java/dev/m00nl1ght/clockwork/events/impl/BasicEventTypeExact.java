@@ -20,6 +20,11 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
         super(eventClassType, targetType);
     }
 
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return List.of(targetType);
+    }
+
     @SuppressWarnings("unchecked")
     protected List<EventListener<E, T, ?>> getListeners() {
         return listeners;

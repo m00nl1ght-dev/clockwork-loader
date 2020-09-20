@@ -42,6 +42,11 @@ public class EventHandlerRegistry {
             return new EventHandlerRegistry(this);
         }
 
+        public <C> void add(EventHandlerMethod<?, C> handlerMethod) {
+            Arguments.notNull(handlerMethod, "handlerMethod");
+            this.handlers.computeIfAbsent(handlerMethod.getComponentClass(), c -> new LinkedHashSet<>()).add(handlerMethod);
+        }
+
         public <C> void put(Class<C> handlerClass, Collection<EventHandlerMethod<?, C>> handlers) {
             Arguments.notNull(handlerClass, "handlerClass");
             Arguments.notNull(handlers, "handlers");

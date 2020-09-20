@@ -50,7 +50,7 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
 
     @Override
     public String toString() {
-        return getId();
+        return getId() + "@" + targetType.toString();
     }
 
 }

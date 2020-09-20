@@ -15,6 +15,7 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.util.function.BiConsumer;
 
 public final class EventHandlerMethod<E extends Event, C> {
@@ -30,22 +31,35 @@ public final class EventHandlerMethod<E extends Event, C> {
 
     private BiConsumer<C, E> cachedLambda;
 
-    public static <C> EventHandlerMethod<?, C> build(MethodHandles.Lookup lookup, Class<C> handlerClass, Method method, EventListenerPriority priority) {
+    public static EventHandlerMethod<?, ?> build(MethodHandles.Lookup lookup, Class<?> handlerClass, Method method, EventListenerPriority priority) {
         if (method.getDeclaringClass() != handlerClass) throw new IllegalArgumentException();
-        if (Modifier.isStatic(method.getModifiers())) return null; // TODO static methods
         final var params = method.getGenericParameterTypes();
-        if (params.length != 1) return null;
-        if (params[0] instanceof Class) {
-            final var eventClass = (Class<?>) params[0];
+        if (Modifier.isStatic(method.getModifiers())) {
+            if (params.length != 2) return null;
+            final var eventType = eventTypeRef(params[1]);
+            if (!(params[0] instanceof Class) || eventType == null) return null;
+            return new EventHandlerMethod<>(lookup, method, (Class<?>) params[0], eventType, priority);
+        } else {
+            if (params.length != 1) return null;
+            final var eventType = eventTypeRef(params[0]);
+            if (eventType == null) return null;
+            return new EventHandlerMethod<>(lookup, method, handlerClass, eventType, priority);
+        }
+    }
+
+    private static TypeRef<? extends Event> eventTypeRef(Type paramType) {
+        if (paramType instanceof Class) {
+            final var eventClass = (Class<?>) paramType;
             if (!Event.class.isAssignableFrom(eventClass)) return null;
-            @SuppressWarnings("unchecked") final var castedClass = (Class<? extends Event>) eventClass;
-            return new EventHandlerMethod<>(lookup, method, handlerClass, TypeRef.of(castedClass), priority);
-        } else if (params[0] instanceof ParameterizedType) {
-            final var type = (ParameterizedType) params[0];
+            @SuppressWarnings("unchecked")
+            final var castedClass = (Class<? extends Event>) eventClass;
+            return TypeRef.of(castedClass);
+        } else if (paramType instanceof ParameterizedType) {
+            final var type = (ParameterizedType) paramType;
             if (!(type.getRawType() instanceof Class)) return null;
             final var rawType = (Class<?>) type.getRawType();
             if (!Event.class.isAssignableFrom(rawType)) return null;
-            return new EventHandlerMethod<>(lookup, method, handlerClass, TypeRef.of(type), priority);
+            return TypeRef.of(type);
         } else {
             return null;
         }

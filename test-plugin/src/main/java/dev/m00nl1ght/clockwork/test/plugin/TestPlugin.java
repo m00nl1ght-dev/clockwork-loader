@@ -2,7 +2,10 @@ package dev.m00nl1ght.clockwork.test.plugin;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
+import dev.m00nl1ght.clockwork.test.TestTarget_A;
+import dev.m00nl1ght.clockwork.test.TestTarget_B;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
+import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -30,6 +33,26 @@ public class TestPlugin {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
+    }
+
+    @EventHandler
+    public static void staticOnSimpleTestEventByComponentA(TestComponent_A component, SimpleTestEvent event) {
+        LOGGER.info("SimpleTestEvent received by static listener on Component A.");
+    }
+
+    @EventHandler
+    public static void staticOnSimpleTestEventByComponentA(TestComponent_B component, SimpleTestEvent event) {
+        LOGGER.info("SimpleTestEvent received by static listener on Component B.");
+    }
+
+    @EventHandler
+    public static void staticOnSimpleTestEventByTargetA(TestTarget_A target, SimpleTestEvent event) {
+        LOGGER.info("SimpleTestEvent received by static listener on Target A.");
+    }
+
+    @EventHandler
+    public static void staticOnSimpleTestEventByTargetB(TestTarget_B target, SimpleTestEvent event) {
+        LOGGER.info("SimpleTestEvent received by static listener on Target B.");
     }
 
 }

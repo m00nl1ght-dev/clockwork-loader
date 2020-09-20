@@ -63,7 +63,7 @@ public class CoreEventType<E extends Event, O extends ComponentTarget> extends E
     @SuppressWarnings("unchecked")
     public void removeListeners(Collection<EventListener<E, ? extends ClockworkCore, ?>> eventListeners) {
         origin.removeListeners(origin.getListeners(originIdentity.getTargetType()).stream()
-                .filter(l -> l instanceof CoreEventListener).map(l -> (CoreEventListener) l)
+                .filter(l -> l instanceof CoreEventListener).map(l -> (CoreEventListener<E, O, ?>) l)
                 .filter(l -> l.getComponentType() == originIdentity && eventListeners.contains(l.getInnerListener()))
                 .collect(Collectors.toUnmodifiableList()));
     }

@@ -8,4 +8,9 @@ public class IdentityComponentType<T extends ComponentTarget> extends ComponentT
         setFactory(t -> t);
     }
 
+    @Override
+    public String toString() {
+        return "<Identity>@" + targetType.toString();
+    }
+
 }

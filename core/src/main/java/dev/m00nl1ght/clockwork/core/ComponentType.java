@@ -60,6 +60,11 @@ public class ComponentType<C, T extends ComponentTarget> {
         this.factory = Arguments.notNull(factory, "factory");
     }
 
+    @Override
+    public String toString() {
+        return componentClass.getSimpleName() + "@" + targetType.toString();
+    }
+
     // ### Internal ###
 
     protected void checkCompatibility(TargetType<?> otherTarget) {

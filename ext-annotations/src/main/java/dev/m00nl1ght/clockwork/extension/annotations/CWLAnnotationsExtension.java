@@ -1,9 +1,6 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
+import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.events.Event;
@@ -41,26 +38,33 @@ public final class CWLAnnotationsExtension {
         if (componentType.isEmpty()) throw new IllegalStateException("component type does not exist");
         final var ehc = componentType.get().get(core);
         if (ehc == null) throw new IllegalStateException("component missing");
-        eventTypes.forEach(e -> buildListeners(core, ehc.collectedHandlers, e));
+        eventTypes.forEach(e -> buildListeners(ehc.collectedHandlers, e));
     }
 
     public static <E extends Event, T extends ComponentTarget>
-    void buildListeners(ClockworkCore core, EventHandlerRegistry collectedHandlers, EventType<E, T> eventType) {
+    void buildListeners(EventHandlerRegistry collectedHandlers, EventType<E, T> eventType) {
         final var methods = collectedHandlers.getForEventType(eventType.getEventClassType());
-        if (methods != null) for (final var method : methods) buildListener(core, eventType, method);
+        if (methods != null) for (final var method : methods) buildListener(eventType, method);
     }
 
     // ### Internal ###
 
     private static <E extends Event, T extends ComponentTarget, C>
-    void buildListener(ClockworkCore core, EventType<E, T> eventType, EventHandlerMethod<E, C> method) {
-        final var component = core.getComponentType(method.getComponentClass());
-        if (component.isPresent()) {
-            @SuppressWarnings("unchecked")
-            final var comp = (ComponentType<C, ? extends T>) component.get();
-            if (comp.getTargetType().isEquivalentTo(eventType.getTargetType())) {
-                eventType.addListener(method.buildListener(comp));
+    void buildListener(EventType<E, T> eventType, EventHandlerMethod<E, C> method) {
+        boolean found = false;
+        for (final var targetType : eventType.getCompatibleTargetTypes()) {
+            final var component = targetType.getComponentType(method.getComponentClass());
+            if (component.isPresent()) {
+                @SuppressWarnings("unchecked")
+                final var comp = (ComponentType<C, ? extends T>) component.get();
+                if (comp.getTargetType() == targetType) {
+                    eventType.addListener(method.buildListener(comp));
+                    found = true;
+                }
             }
+        }
+        if (!found) {
+            LOGGER.warn("Event handler {} is not compatible with EventType {}", method, eventType);
         }
     }
 

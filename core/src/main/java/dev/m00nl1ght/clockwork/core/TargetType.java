@@ -6,6 +6,7 @@ import dev.m00nl1ght.clockwork.util.FormatUtil;
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -58,6 +59,20 @@ public class TargetType<T extends ComponentTarget> {
         return componentTypes;
     }
 
+    /**
+     * Returns the {@link ComponentType} for the given component class, wrapped in an {@link Optional}.
+     * If no such component is registered to this TargetType, this method will return an empty optional.
+     *
+     * @param componentClass the class corresponding to the desired ComponentType
+     */
+    @SuppressWarnings("unchecked")
+    public <C> Optional<? extends ComponentType<C, ? super T>> getComponentType(Class<C> componentClass) {
+        return componentTypes.stream()
+                .filter(c -> c.getComponentClass() == componentClass)
+                .map(c -> (ComponentType<C, ? super T>) c)
+                .findFirst();
+    }
+
     @SuppressWarnings("unchecked")
     public final ComponentType<T, T> getIdentityComponentType() {
         if (componentTypes == null) return null;
@@ -97,11 +112,17 @@ public class TargetType<T extends ComponentTarget> {
         if (componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is initialised", this);
     }
 
+    @Override
+    public String toString() {
+        return targetClass.getSimpleName();
+    }
+
     // ### Internal ###
 
     protected final synchronized void init(List<? extends ComponentType<?, ?>> components) {
         if (this.componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
         components = Arguments.verifiedListSnapshot(components, t -> t.targetType == this, "components");
+        Arguments.distinct(components, ComponentType::getComponentClass, "components");
         final var componentList = new LinkedList<ComponentType<?, ? super T>>();
 
         if (parent == null) {

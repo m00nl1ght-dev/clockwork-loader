@@ -10,7 +10,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.lang.invoke.MethodHandles;
-import java.util.LinkedHashSet;
 
 public final class EventHandlerAnnotationProcessor implements PluginProcessor {
 
@@ -66,9 +65,8 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
             }
         }
 
-        // Prepare a var for the potentially needed lookup and collection.
+        // Prepare a var for the potentially needed lookup.
         MethodHandles.Lookup lookup = null;
-        final var collected = new LinkedHashSet<EventHandlerMethod<?, C>>();
 
         // Build a handler from all methods that have the annotation.
         for (var method : handlerClass.getDeclaredMethods()) {
@@ -78,15 +76,12 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
                 if (lookup == null) lookup = context.getReflectiveAccess(handlerClass);
                 final var handler = EventHandlerMethod.build(lookup, handlerClass, method, priority);
                 if (handler != null) {
-                    collected.add(handler);
+                    this.registryBuilder.add(handler);
                 } else {
                     LOGGER.error("Invalid event handler [" + handlerClass + "#" + method.getName() + "]");
                 }
             }
         }
-
-        // Add the handlers to the builder.
-        this.registryBuilder.put(handlerClass, collected);
 
     }
 

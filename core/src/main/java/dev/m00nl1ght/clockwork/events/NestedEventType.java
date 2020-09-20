@@ -59,7 +59,7 @@ public class NestedEventType<E extends Event, T extends ComponentTarget, O exten
     @SuppressWarnings("unchecked")
     public void removeListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
         origin.removeListeners(origin.getListeners(componentOrigin.getTargetType()).stream()
-                .filter(l -> l instanceof NestedEventListener).map(l -> (NestedEventListener) l)
+                .filter(l -> l instanceof NestedEventListener).map(l -> (NestedEventListener<E, O, ?, ?>) l)
                 .filter(l -> l.getComponentType() == componentOrigin && eventListeners.contains(l.getInnerListener()))
                 .collect(Collectors.toUnmodifiableList()));
     }
