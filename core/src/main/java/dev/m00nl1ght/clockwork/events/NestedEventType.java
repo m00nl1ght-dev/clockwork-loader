@@ -6,6 +6,7 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.NestedEventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Collection;
 import java.util.List;
@@ -30,20 +31,45 @@ public class NestedEventType<E extends Event, T extends ComponentTarget, O exten
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <S extends T> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
-        return null; // TODO
+        if (target != targetType) checkCompatibility(target);
+        return origin.getListeners(componentOrigin.getTargetType()).stream()
+                .filter(l -> l instanceof NestedEventListener)
+                .map(l -> (NestedEventListener) l)
+                .filter(l -> l.getComponentType() == componentOrigin)
+                .map(l -> (EventListener<E, S, ?>) l.getInnerListener())
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
     public void addListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
         origin.addListeners(eventListeners.stream()
-                .map(l -> new NestedEventListener<>(l, componentOrigin))
+                .map(this::buildNestedListener)
+                .collect(Collectors.toUnmodifiableList()));
+    }
+
+    private <I> NestedEventListener<E, O, T, I> buildNestedListener(EventListener<E, ? extends T, I> listener) {
+        final var target = listener.getComponentType().getTargetType();
+        if (target != targetType) checkCompatibility(target);
+        return new NestedEventListener<>(listener, componentOrigin);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public void removeListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
+        origin.removeListeners(origin.getListeners(componentOrigin.getTargetType()).stream()
+                .filter(l -> l instanceof NestedEventListener).map(l -> (NestedEventListener) l)
+                .filter(l -> l.getComponentType() == componentOrigin && eventListeners.contains(l.getInnerListener()))
                 .collect(Collectors.toUnmodifiableList()));
     }
 
     @Override
-    public void removeListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
-        // TODO
+    protected void checkCompatibility(TargetType<?> otherType) {
+        if (otherType != targetType) {
+            final var msg = "Cannot post event [] to different target []";
+            throw new IllegalArgumentException(FormatUtil.format(msg, this, otherType));
+        }
     }
 
 }

@@ -27,7 +27,7 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
 
     @Override
     public <S extends T> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
-        if (target != getTargetType()) checkCompatibility(target);
+        if (target != targetType) checkCompatibility(target);
         try {
             @SuppressWarnings("unchecked")
             final List<EventListener<E, S, ?>> list = listeners;
@@ -44,7 +44,7 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
         boolean modified = false;
         for (final var listener : eventListeners) {
             final var type = listener.getComponentType().getTargetType();
-            if (type != getTargetType()) checkCompatibility(type);
+            if (type != targetType) checkCompatibility(type);
             if (listeners == null) listeners = new ArrayList(5);
             @SuppressWarnings("unchecked")
             final var list = (List<EventListener<E, ? extends T, ?>>) listeners;
@@ -61,7 +61,7 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
         boolean modified = false;
         for (final var listener : eventListeners) {
             final var type = listener.getComponentType().getTargetType();
-            if (type != getTargetType()) checkCompatibility(type);
+            if (type != targetType) checkCompatibility(type);
             if (listeners == null) continue;
             if (listeners.remove(listener)) {
                 modified = true;
@@ -72,10 +72,7 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
 
     @Override
     protected void checkCompatibility(TargetType<?> otherType) {
-        if (getTargetType() == null) {
-            final var msg = "Event type for [] is not registered";
-            throw new IllegalArgumentException(FormatUtil.format(msg, eventClassType.getType().getTypeName()));
-        } else if (otherType != getTargetType()) {
+        if (otherType != targetType) {
             final var msg = "Cannot post event [] to different target []";
             throw new IllegalArgumentException(FormatUtil.format(msg, this, otherType));
         }

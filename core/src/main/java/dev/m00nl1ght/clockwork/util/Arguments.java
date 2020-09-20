@@ -1,8 +1,10 @@
 package dev.m00nl1ght.clockwork.util;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.function.Predicate;
 
+@SuppressWarnings("unchecked")
 public class Arguments {
 
     public static <T> T nullOr(T object, Predicate<T> test, String name) {
@@ -47,21 +49,42 @@ public class Arguments {
         return type;
     }
 
-    @SuppressWarnings("unchecked")
     public static <T> List<T> listSnapshot(List<? extends T> list, String name) {
         if (list == null)
             throw FormatUtil.illArgExc("Argument [] list must not be null");
         return (List<T>) List.of(list.toArray());
     }
 
+    public static <T> List<T> notNullList(List<T> list, Predicate<T> test, String name) {
+        for (final var e : Arguments.notNull(list, name)) if (e == null)
+            throw FormatUtil.illArgExc("Argument [] list contains null element", name);
+        return list;
+    }
+
     public static <T> List<T> verifiedList(List<T> list, Predicate<T> test, String name) {
-        for (final var e : list) if (!test.test(e))
+        for (final var e : Arguments.notNull(list, name)) if (!test.test(e))
             throw FormatUtil.illArgExc("Argument [] list contains invalid element []", name, e);
         return list;
     }
 
     public static <T> List<T> verifiedListSnapshot(List<? extends T> list, Predicate<T> test, String name) {
         return verifiedList(listSnapshot(list, name), test, name);
+    }
+
+    public static <T> T[] asArray(Collection<? extends T> collection, String name) {
+        return (T[]) Arguments.notNull(collection, name).toArray();
+    }
+
+    public static <T> T[] asNotNullArray(Collection<? extends T> collection, String name) {
+        for (final var e : Arguments.notNull(collection, name)) if (e == null)
+            throw FormatUtil.illArgExc("Argument [] collection contains null element", name);
+        return (T[]) collection.toArray();
+    }
+
+    public static <T> T[] asVerifiedArray(Collection<? extends T> collection, Predicate<T> test, String name) {
+        for (final var e : Arguments.notNull(collection, name)) if (!test.test(e))
+            throw FormatUtil.illArgExc("Argument [] collection contains invalid element []", name, e);
+        return (T[]) collection.toArray();
     }
 
 }

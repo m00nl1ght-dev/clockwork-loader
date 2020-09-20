@@ -19,7 +19,7 @@ public class EventTypeImpl<E extends ContextAwareEvent, T extends ComponentTarge
 
     public EventTypeImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
-        final int cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
+        final int cnt = targetType.getSubtargetIdxLast() - idxOffset + 1;
         this.groupedListeners = new ListenerList[cnt];
         Arrays.fill(groupedListeners, ListenerList.EMPTY);
     }
@@ -80,7 +80,7 @@ public class EventTypeImpl<E extends ContextAwareEvent, T extends ComponentTarge
     public synchronized void detachAllProfilers() {
         if (this.profilerGroups == null) return;
         this.profilerGroups = null;
-        for (final var type : getTargetType().getAllSubtargets()) {
+        for (final var type : targetType.getAllSubtargets()) {
             onListenersChanged(type);
         }
     }

@@ -2,43 +2,39 @@ package dev.m00nl1ght.clockwork.events.listener;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
+import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListenerPriority;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-public class CoreEventListener<E extends Event, T extends ComponentTarget, I> extends EventListener<E, T, ClockworkCore> {
+public class CoreEventListener<E extends Event, T extends ComponentTarget, I> extends EventListener<E, T, T> {
 
-    private final ComponentType<I, ClockworkCore> innerComponentType;
-    private final BiConsumer<I, E> innerConsumer;
-    private final I innerComponent;
+    protected final EventListener<E, ClockworkCore, I> innerListener;
+    protected final BiConsumer<I, E> innerConsumer;
+    protected final I innerComponent;
 
-    public CoreEventListener(TypeRef<E> eventClassType, ComponentType<ClockworkCore, T> outerComponentType,
-                             ComponentType<I, ClockworkCore> innerComponentType, BiConsumer<I, E> innerConsumer,
-                             ClockworkCore core, EventListenerPriority priority) {
-        super(eventClassType, outerComponentType, priority);
+    public CoreEventListener(EventListener<E, ClockworkCore, I> innerListener, TargetType<T> target, ClockworkCore core) {
+        super(Arguments.notNull(innerListener, "innerListener").getEventClassType(),
+                target.getIdentityComponentType(), innerListener.getPriority());
+        this.innerListener = innerListener;
+        this.innerConsumer = innerListener.getConsumer();
         core.getState().requireOrAfter(ClockworkCore.State.INITIALISED);
-        this.innerComponentType = innerComponentType;
-        this.innerComponent = innerComponentType.get(core);
-        this.innerConsumer = innerConsumer;
-    }
-
-    public CoreEventListener(Class<E> eventClass, ComponentType<ClockworkCore, T> outerComponentType,
-                             ComponentType<I, ClockworkCore> innerComponentType, BiConsumer<I, E> innerConsumer,
-                             ClockworkCore core, EventListenerPriority priority) {
-        this(TypeRef.of(eventClass), outerComponentType, innerComponentType, innerConsumer, core, priority);
+        this.innerComponent = innerListener.getComponentType().get(core);
     }
 
     @Override
-    public BiConsumer<ClockworkCore, E> getConsumer() {
+    public BiConsumer<T, E> getConsumer() {
         return this::invoke;
     }
 
-    private void invoke(ClockworkCore core, E event) {
+    private void invoke(T object, E event) {
         innerConsumer.accept(innerComponent, event);
+    }
+
+    public EventListener<E, ClockworkCore, I> getInnerListener() {
+        return innerListener;
     }
 
     @Override
@@ -47,13 +43,12 @@ public class CoreEventListener<E extends Event, T extends ComponentTarget, I> ex
         if (!(o instanceof CoreEventListener)) return false;
         if (!super.equals(o)) return false;
         CoreEventListener<?, ?, ?> that = (CoreEventListener<?, ?, ?>) o;
-        return innerComponentType.equals(that.innerComponentType) &&
-                innerConsumer.equals(that.innerConsumer);
+        return innerListener.equals(that.innerListener);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(super.hashCode(), innerComponentType, innerConsumer);
+        return Objects.hash(super.hashCode(), innerListener);
     }
 
 }

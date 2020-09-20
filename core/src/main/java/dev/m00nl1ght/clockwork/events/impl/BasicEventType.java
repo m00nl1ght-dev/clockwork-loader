@@ -20,9 +20,9 @@ public abstract class BasicEventType<E extends Event, T extends ComponentTarget>
 
     protected BasicEventType(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
-        this.rootTarget = getTargetType().getRoot();
-        this.idxOffset = getTargetType().getSubtargetIdxFirst();
-        final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
+        this.rootTarget = targetType.getRoot();
+        this.idxOffset = targetType.getSubtargetIdxFirst();
+        final var cnt = targetType.getSubtargetIdxLast() - idxOffset + 1;
         this.listeners = new List[cnt];
     }
 
