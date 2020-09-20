@@ -24,6 +24,9 @@ public class ImmutableComponentContainer<T extends ComponentTarget> extends Comp
                 if (components[idx] == null) {
                     components[idx] = buildComponent(comp);
                 }
+            } catch (ExceptionInPlugin e) {
+                e.addComponentToStack(comp);
+                throw e;
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inComponentInit(comp, t);
             }

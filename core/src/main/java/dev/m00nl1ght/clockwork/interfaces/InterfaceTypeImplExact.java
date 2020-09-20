@@ -40,6 +40,7 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
                 try {
                     if (comp != null) consumer.accept(comp);
                 } catch (ExceptionInPlugin e) {
+                    e.addComponentToStack(target.getComponentTypes().get(idx));
                     throw e;
                 } catch (Throwable e) {
                     final var compType = target.getComponentTypes().get(idx);

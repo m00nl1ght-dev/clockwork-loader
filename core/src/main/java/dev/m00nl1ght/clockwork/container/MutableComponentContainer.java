@@ -21,6 +21,9 @@ public class MutableComponentContainer<T extends ComponentTarget> extends Compon
                 if (components[idx] == null) {
                     components[idx] = buildComponent(comp);
                 }
+            } catch (ExceptionInPlugin e) {
+                e.addComponentToStack(comp);
+                throw e;
             } catch (Throwable t) {
                 throw ExceptionInPlugin.inComponentInit(comp, t);
             }

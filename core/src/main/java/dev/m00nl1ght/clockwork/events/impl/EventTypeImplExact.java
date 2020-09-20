@@ -42,6 +42,7 @@ public class EventTypeImplExact<E extends ContextAwareEvent, T extends Component
                         groupedListeners.consumers[i].accept(component, event);
                     }
                 } catch (ExceptionInPlugin e) {
+                    e.addComponentToStack(groupedListeners.listeners.get(i).getComponentType());
                     throw e;
                 } catch (Throwable e) {
                     throw ExceptionInPlugin.inEventListener(groupedListeners.listeners.get(i), event, target, e);

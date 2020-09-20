@@ -1,23 +1,25 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ExceptionInPlugin extends RuntimeException {
 
-    // TODO add trace list for other plugins that were in the stack
-
-    private final LoadedPlugin plugin;
+    private final List<LoadedPlugin> stack = new LinkedList<>();
 
     private ExceptionInPlugin(LoadedPlugin plugin, String msg) {
         super(msg);
-        this.plugin = Arguments.notNull(plugin, "plugin");
+        addPluginToStack(plugin);
     }
 
     private ExceptionInPlugin(LoadedPlugin plugin, String msg, Throwable throwable) {
         super(msg, throwable);
-        this.plugin = Arguments.notNull(plugin, "plugin");
+        addPluginToStack(plugin);
     }
 
     public static ExceptionInPlugin generic(LoadedPlugin plugin, String msg, Object... objects) {
@@ -58,8 +60,24 @@ public class ExceptionInPlugin extends RuntimeException {
         return genericOrRt(componentType, "Exception thrown while applying interface [] for component type []", cause, interfaceType.getSimpleName(), componentType);
     }
 
-    public LoadedPlugin getPlugin() {
-        return plugin;
+    public void addPluginToStack(LoadedPlugin plugin) {
+        this.stack.add(Arguments.notNull(plugin, "plugin"));
+    }
+
+    public void addComponentToStack(ComponentType componentType) {
+        Arguments.notNull(componentType, "componentType");
+        if (componentType instanceof RegisteredComponentType) {
+            final var registered = (RegisteredComponentType) componentType;
+            this.stack.add(registered.getPlugin());
+        }
+    }
+
+    public List<LoadedPlugin> getStack() {
+        return Collections.unmodifiableList(stack);
+    }
+
+    public LoadedPlugin getSource() {
+        return stack.get(0);
     }
 
 }
