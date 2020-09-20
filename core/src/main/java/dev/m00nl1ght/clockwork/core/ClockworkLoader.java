@@ -261,8 +261,12 @@ public final class ClockworkLoader {
         core.setState(State.PROCESSING);
 
         // Notify all registered plugin processors.
-        for (final var pluginProcessor : registeredProcessors.values()) {
-            pluginProcessor.onLoadingStart(core, parent);
+        for (final var entry : registeredProcessors.entrySet()) {
+            try {
+                entry.getValue().onLoadingStart(core, parent);
+            } catch (Throwable t) {
+                throw PluginLoadingException.inProcessor(entry.getKey(), t);
+            }
         }
 
         // Apply the plugin processors defined to each plugin respectively.
@@ -284,7 +288,7 @@ public final class ClockworkLoader {
                     try {
                         processor.process(reflectiveAccess);
                     } catch (Throwable t) {
-                        throw PluginLoadingException.inProcessor("plugin", plugin.getId(), name, t);
+                        throw PluginLoadingException.inProcessor(plugin, name, t);
                     }
                 }
             }
@@ -368,8 +372,12 @@ public final class ClockworkLoader {
         core.setState(State.INITIALISED);
 
         // Notify all registered plugin processors.
-        for (final var pluginProcessor : registeredProcessors.values()) {
-            pluginProcessor.onLoadingComplete(core);
+        for (final var entry : registeredProcessors.entrySet()) {
+            try {
+                entry.getValue().onLoadingComplete(core);
+            } catch (Throwable t) {
+                throw PluginLoadingException.inProcessor(entry.getKey(), t);
+            }
         }
 
     }

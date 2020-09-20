@@ -101,8 +101,12 @@ public class PluginLoadingException extends RuntimeException {
         return generic("PluginProcessor [] needed by plugin [] is missing", name, id);
     }
 
-    public static PluginLoadingException inProcessor(String text, String id, String name, Throwable cause) {
-        return generic("PluginProcessor [] threw an exception while processing " + text + " []", cause, name, id);
+    public static PluginLoadingException inProcessor(String processor, Throwable cause) {
+        return generic("PluginProcessor [] threw an exception", cause, processor);
+    }
+
+    public static PluginLoadingException inProcessor(LoadedPlugin plugin, String processor, Throwable cause) {
+        return generic("PluginProcessor [] threw an exception while processing plugin []", cause, processor, plugin);
     }
 
     public static PluginLoadingException invalidParentForTarget(TargetDescriptor target, RegisteredTargetType<?> parent) {
