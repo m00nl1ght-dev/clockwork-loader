@@ -32,6 +32,16 @@ public final class ClockworkLoader {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final Lookup INTERNAL_REFLECTIVE_ACCESS = MethodHandles.lookup();
+    private static final int TARGET_JAVA_VERSION = 14;
+
+    static {
+        final var version = Runtime.version();
+        if (version.feature() != TARGET_JAVA_VERSION)
+            LOGGER.warn("The current Java version {} is not fully supported. CWL was developed for Java {}. " +
+                    "Using any other version can cause instability and crashes.", version, TARGET_JAVA_VERSION);
+        if (ClockworkLoader.class.getModule().getName() == null)
+            throw FormatUtil.rtExc("Core module was not loaded correctly (the module is unnamed)");
+    }
 
     /**
      * Finds plugins based on the given {@link ClockworkConfig} and resolves all dependencies.
