@@ -82,6 +82,7 @@ public class PluginInfoFile {
             final var builder = ComponentDescriptor.builder(descriptor);
             builder.id(conf.get("id"));
             builder.componentClass(conf.get("class"));
+            builder.parent(conf.getOrElse("parent", () -> null));
             builder.target(conf.get("target"));
             final Optional<List<UnmodifiableConfig>> compDeps = conf.getOptional("dependency");
             compDeps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));

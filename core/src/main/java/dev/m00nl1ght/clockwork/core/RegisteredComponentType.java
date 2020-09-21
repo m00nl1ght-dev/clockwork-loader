@@ -9,7 +9,7 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
     private final LoadedPlugin plugin;
     private final ComponentDescriptor descriptor;
 
-    RegisteredComponentType(RegisteredComponentType<? super C, ? super T> parent, LoadedPlugin plugin, ComponentDescriptor descriptor, Class<C> componentClass, RegisteredTargetType<T> targetType) {
+    RegisteredComponentType(LoadedPlugin plugin, ComponentType<? super C, ? super T> parent, ComponentDescriptor descriptor, Class<C> componentClass, RegisteredTargetType<T> targetType) {
         super(parent, componentClass, targetType);
         this.descriptor = Arguments.notNull(descriptor, "descriptor");
         this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");

@@ -308,7 +308,8 @@ public final class ClockworkLoader {
         if (descriptor.getParent() != null) {
             final var found = plugin.getClockworkCore().getTargetType(descriptor.getParent()).orElseThrow();
             if (found.getTargetClass().isAssignableFrom(targetClass)) {
-                @SuppressWarnings("unchecked") final var casted = (TargetType<? super T>) found;
+                @SuppressWarnings("unchecked")
+                final var casted = (TargetType<? super T>) found;
                 parentType = casted;
             } else {
                 throw PluginLoadingException.invalidParentForTarget(descriptor, found);
@@ -338,8 +339,32 @@ public final class ClockworkLoader {
     private <C, T extends ComponentTarget> void
     buildComponent(LoadedPlugin plugin, ComponentDescriptor descriptor, RegisteredTargetType<T> targetType, Class<C> componentClass) {
 
+        // First, fetch the parent target if there is any, and verify it.
+        ComponentType<? super C, ? super T> parentType = null;
+        if (descriptor.getParent() != null) {
+            final var found = plugin.getClockworkCore().getComponentType(descriptor.getParent()).orElseThrow();
+            if (found.getComponentClass().isAssignableFrom(componentClass)) {
+                @SuppressWarnings("unchecked")
+                final var casted = (ComponentType<? super C, ? super T>) found;
+                parentType = casted;
+            } else {
+                throw PluginLoadingException.invalidParentForComponent(descriptor, found);
+            }
+        }
+
+        // Assert that there are no inconsistencies in the target hierarchy.
+        Class<?> sctCurrent = componentClass;
+        final var sctExpected = parentType == null ? Object.class : parentType.getComponentClass();
+        while ((sctCurrent = sctCurrent.getSuperclass()) != null) {
+            if (sctCurrent == sctExpected) break;
+            final var found = plugin.getClockworkCore().getComponentTypeUncasted(sctCurrent);
+            if (found.isPresent()) {
+                throw PluginLoadingException.illegalComponentSubclass(descriptor, componentClass, found.get());
+            }
+        }
+
         // Construct the new ComponentType.
-        final var component = new RegisteredComponentType<>(null, plugin, descriptor, componentClass, targetType);
+        final var component = new RegisteredComponentType<>(plugin, parentType, descriptor, componentClass, targetType);
 
         // Then add it to the core, plugin and target.
         plugin.getClockworkCore().addLoadedComponentType(component);

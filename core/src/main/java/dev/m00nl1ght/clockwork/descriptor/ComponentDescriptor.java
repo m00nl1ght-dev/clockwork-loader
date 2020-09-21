@@ -12,6 +12,7 @@ public final class ComponentDescriptor {
     private final PluginDescriptor plugin;
     private final String id;
     private final String targetId;
+    private final String parent;
     private final String componentClass;
     private final List<DependencyDescriptor> dependencies;
     private final boolean factoryAccessEnabled;
@@ -21,6 +22,7 @@ public final class ComponentDescriptor {
         this.plugin = Arguments.notNull(builder.plugin, "plugin");
         this.id = Arguments.notNullOrBlank(builder.id, "id");
         this.targetId = Arguments.notNullOrBlank(builder.targetId, "");
+        this.parent = builder.parentId;
         this.componentClass = Arguments.notNullOrBlank(builder.componentClass, "componentClass");
         this.dependencies = List.copyOf(Arguments.notNull(builder.dependencies, "dependencies").values());
         this.factoryAccessEnabled = builder.factoryAccessEnabled;
@@ -41,6 +43,10 @@ public final class ComponentDescriptor {
 
     public String getTargetId() {
         return targetId;
+    }
+
+    public String getParent() {
+        return parent;
     }
 
     public String getComponentClass() {
@@ -74,6 +80,7 @@ public final class ComponentDescriptor {
         private String id;
         private String componentClass;
         private String targetId;
+        private String parentId;
         private final Map<String, DependencyDescriptor> dependencies = new LinkedHashMap<>();
         private boolean factoryAccessEnabled = false;
         private boolean optional = false;
@@ -92,6 +99,7 @@ public final class ComponentDescriptor {
                 dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDescriptor::buildAnyVersion);
                 if (!id.equals(plugin.getId())) dependencies.computeIfAbsent(plugin.getId(), DependencyDescriptor::buildAnyVersion);
                 if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDescriptor::buildAnyVersion);
+                if (parentId != null) dependencies.computeIfAbsent(parentId, DependencyDescriptor::buildAnyVersion);
             }
         }
 
@@ -119,6 +127,11 @@ public final class ComponentDescriptor {
 
         public Builder target(String targetId) {
             this.targetId = targetId;
+            return this;
+        }
+
+        public Builder parent(String parentId) {
+            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : plugin.getId() + ":" + parentId;
             return this;
         }
 
