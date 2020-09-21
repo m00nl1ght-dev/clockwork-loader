@@ -100,7 +100,7 @@ public abstract class PluginLoadingProblem {
         @Override
         public String getMessage() {
             return FormatUtil.format("Locator [] returned this definition, but it was actually located by []",
-                    actualLocator.getName(), plugin.getLocator().getName());
+                    actualLocator.toString(), plugin.getLocator());
         }
 
         public PluginLocator getActualLocator() {

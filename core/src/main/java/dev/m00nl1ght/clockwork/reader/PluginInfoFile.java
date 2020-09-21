@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.locator;
+package dev.m00nl1ght.clockwork.reader;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;

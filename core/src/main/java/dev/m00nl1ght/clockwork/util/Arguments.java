@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.util;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
@@ -55,6 +56,12 @@ public class Arguments {
         if (list == null)
             throw FormatUtil.illArgExc("Argument [] list must not be null");
         return (List<T>) List.of(list.toArray());
+    }
+
+    public static <K, V> Map<K, V> snapshot(Map<? extends K, ? extends V> map, String name) {
+        if (map == null)
+            throw FormatUtil.illArgExc("Argument [] map must not be null");
+        return Map.copyOf(map);
     }
 
     public static <T> List<T> notNull(List<T> list, Predicate<T> test, String name) {

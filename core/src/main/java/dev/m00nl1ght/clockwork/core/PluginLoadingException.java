@@ -97,8 +97,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Component id [] does not match the plugin [] that defines it", id, plugin.getId());
     }
 
-    public static PluginLoadingException missingProcessor(String id, String name) {
-        return generic("PluginProcessor [] needed by plugin [] is missing", name, id);
+    public static PluginLoadingException missingReader(String name) {
+        return generic("PluginReader [] is missing", name);
+    }
+
+    public static PluginLoadingException missingLocatorFactory(String name) {
+        return generic("PluginLocatorFactory for [] is missing", name);
+    }
+
+    public static PluginLoadingException missingProcessor(String plugin, String name) {
+        return generic("PluginProcessor [] needed by plugin [] is missing", name, plugin);
     }
 
     public static PluginLoadingException inProcessor(String processor, Throwable cause) {
@@ -138,7 +146,7 @@ public class PluginLoadingException extends RuntimeException {
     }
 
     public static PluginLoadingException multipleModulesFound(PluginLocator locator, Path path) {
-        return generic("[] found multiple java modules in path []", locator.getName(), path);
+        return generic("[] found multiple java modules in path []", locator, path);
     }
 
 }

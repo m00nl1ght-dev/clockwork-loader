@@ -11,6 +11,4 @@ public interface PluginLocator {
 
     Collection<PluginReference> find(DependencyDescriptor target);
 
-    String getName();
-
 }

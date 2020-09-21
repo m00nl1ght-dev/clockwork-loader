@@ -4,6 +4,8 @@ import java.util.*;
 
 public class CollectionUtil {
 
+    // TODO not used anymore?
+
     public static <T> Iterator<T> compoundIterator(Iterator<T> iteratorA, Iterator<T> iteratorB) {
         Arguments.notNull(iteratorA, "iteratorA");
         Arguments.notNull(iteratorB, "iteratorB");

@@ -9,7 +9,9 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
+import dev.m00nl1ght.clockwork.locator.*;
+import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.reader.TomlConfigReader;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
@@ -61,7 +63,7 @@ public final class ClockworkLoader {
 
     public static ClockworkLoader buildBootLayerDefault() {
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginLocator(new BootLayerLocator(), true);
+        configBuilder.addPluginLocator(BootLayerLocator.newConfig(true));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         return build(configBuilder.build());
     }
@@ -70,6 +72,8 @@ public final class ClockworkLoader {
     private final ClockworkConfig config;
     private ClockworkCore core;
 
+    private final Map<String, PluginReader> registeredReaders = new HashMap<>();
+    private final Map<String, PluginLocatorFactory> registeredLocatorFactories = new HashMap<>();
     private final Map<String, PluginProcessor> registeredProcessors = new HashMap<>();
 
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
@@ -78,10 +82,28 @@ public final class ClockworkLoader {
     private ClockworkLoader(ClockworkCore parent, ClockworkConfig config) {
         this.parent = parent;
         this.config = config;
+        registerDefaults();
     }
 
-    public synchronized void registerPluginProcessor(String id, PluginProcessor pluginProcessor) {
-        final var existing = registeredProcessors.putIfAbsent(id, pluginProcessor);
+    private void registerDefaults() {
+        registerReader(TomlConfigReader.NAME, new TomlConfigReader());
+        registerLocatorFactory(BootLayerLocator.NAME, BootLayerLocator.FACTORY);
+        registerLocatorFactory(JarFileLocator.NAME, JarFileLocator.FACTORY);
+        registerLocatorFactory(ExplodedDirectoryLocator.NAME, ExplodedDirectoryLocator.FACTORY);
+    }
+
+    public synchronized void registerReader(String id, PluginReader reader) {
+        final var existing = registeredReaders.putIfAbsent(id, reader);
+        if (existing != null) throw FormatUtil.illArgExc("Plugin reader with id [] is already present", id);
+    }
+
+    public synchronized void registerLocatorFactory(String id, PluginLocatorFactory locatorFactory) {
+        final var existing = registeredLocatorFactories.putIfAbsent(id, locatorFactory);
+        if (existing != null) throw FormatUtil.illArgExc("Plugin locator factory with id [] is already present", id);
+    }
+
+    public synchronized void registerProcessor(String id, PluginProcessor processor) {
+        final var existing = registeredProcessors.putIfAbsent(id, processor);
         if (existing != null) throw FormatUtil.illArgExc("Plugin processor with id [] is already present", id);
     }
 
@@ -125,14 +147,21 @@ public final class ClockworkLoader {
         final var wantedPlugins = config.getWantedPlugins().stream()
                 .collect(Collectors.toMap(DependencyDescriptor::getPlugin, Function.identity(), (a, b) -> b, HashMap::new));
 
-        // Also add the plugins found by wildcard locators.
-        for (final var wildcardLocator : config.getWantedWildcard()) {
-            for (final var located : wildcardLocator.findAll()) {
-                wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
+        // Build all the locators wanted by the config. Also add the plugins found by wildcard locators.
+        final var locators = new HashMap<String, PluginLocator>();
+        final var allReaders = Set.copyOf(registeredReaders.values());
+        for (final var config : config.getLocators()) {
+            final var readers = config.getReaders() == null ? allReaders : findReaders(config);
+            final var locator = findLocatorFactory(config).build(config, readers);
+            locators.put(config.getLocator(), locator);
+            if (config.isWildcard()) {
+                for (final var located : locator.findAll()) {
+                    wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
+                }
             }
         }
 
-        // Now try to find all those plugins.
+        // Now try to find all the plugins.
         for (final var wanted : wantedPlugins.values()) {
 
             // If the parent has it and the version matches, it doesn't have to be located again.
@@ -147,7 +176,7 @@ public final class ClockworkLoader {
 
             // Otherwise, try to find it with the PluginLocators from the config.
             final var located = new LinkedList<PluginReference>();
-            for (var locator : config.getPluginLocators()) {
+            for (var locator : locators.values()) {
                 for (var ref : locator.find(wanted)) {
                     located.add(ref);
                     if (ref.getLocator() != locator)
@@ -164,7 +193,7 @@ public final class ClockworkLoader {
                 pluginReferences.addLast(ref);
                 ref.getComponentDescriptors().forEach(componentSorter::add);
                 ref.getTargetDescriptors().forEach(targetSorter::add);
-                LOGGER.debug("Located plugin [" + ref + "] using locator [" + ref.getLocator().getName() + "].");
+                LOGGER.debug("Located plugin [" + ref + "] using locator [" + ref.getLocator() + "].");
             }
 
         }
@@ -260,6 +289,9 @@ public final class ClockworkLoader {
 
         }
 
+        // Group registered components by target.
+        final var componentRegistry = new ComponentRegistry(core);
+
         core.setState(State.PROCESSING);
 
         // Notify all registered plugin processors.
@@ -270,9 +302,6 @@ public final class ClockworkLoader {
                 throw PluginLoadingException.inProcessor(entry.getKey(), t);
             }
         }
-
-        // Group registered components by target.
-        final var componentRegistry = new ComponentRegistry(core);
 
         // Apply the plugin processors defined to each plugin respectively.
         for (final var plugin : core.getLoadedPlugins()) {
@@ -380,6 +409,22 @@ public final class ClockworkLoader {
 
     }
 
+    private PluginLocatorFactory findLocatorFactory(LocatorConfig config) {
+        final var factory = registeredLocatorFactories.get(config.getLocator());
+        if (factory == null) throw PluginLoadingException.missingLocatorFactory(config.getLocator());
+        return factory;
+    }
+
+    private Set<PluginReader> findReaders(LocatorConfig config) {
+        final var readers = new HashSet<PluginReader>();
+        for (final var readerName : config.getReaders()) {
+            final var reader = registeredReaders.get(readerName);
+            if (reader == null) throw PluginLoadingException.missingReader(readerName);
+            readers.add(reader);
+        }
+        return readers;
+    }
+
     /**
      * Initialises this ClockworkCore with a core container.
      * The core container is created for target id {@code clockwork:core}.
@@ -426,11 +471,10 @@ public final class ClockworkLoader {
 
     static class ComponentRegistry {
 
-        private final Map<TargetType<?>, Set<ComponentType<?, ?>>> map;
+        private final Map<TargetType<?>, Set<ComponentType<?, ?>>> map = new LinkedHashMap<>();
 
         private ComponentRegistry(ClockworkCore core) {
-            map = core.getLoadedTargetTypes().stream()
-                    .collect(Collectors.toMap(Function.identity(), t -> new LinkedHashSet<>()));
+            core.getLoadedTargetTypes().forEach(t -> map.put(t, new LinkedHashSet<>()));
             core.getLoadedComponentTypes().forEach(c -> map.get(c.getTargetType()).add(c));
         }
 

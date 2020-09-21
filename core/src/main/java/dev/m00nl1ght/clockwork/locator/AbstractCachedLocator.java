@@ -3,13 +3,23 @@ package dev.m00nl1ght.clockwork.locator;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.*;
 import java.util.function.Consumer;
 
 public abstract class AbstractCachedLocator implements PluginLocator {
 
+    protected final Set<PluginReader> readers;
+    protected final LocatorConfig config;
+
     private Map<String, PluginReference> cache;
+
+    protected AbstractCachedLocator(LocatorConfig config, Set<PluginReader> readers) {
+        this.config = Arguments.notNull(config, "config");
+        this.readers = Set.copyOf(Arguments.notNull(readers, "readers"));
+    }
 
     @Override
     public Collection<PluginReference> findAll() {
@@ -44,7 +54,7 @@ public abstract class AbstractCachedLocator implements PluginLocator {
 
     @Override
     public String toString() {
-        return getName();
+        return config.getLocator();
     }
 
 }

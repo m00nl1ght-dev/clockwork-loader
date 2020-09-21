@@ -143,6 +143,10 @@ public final class PluginReference {
             return this;
         }
 
+        public PluginDescriptor descriptor() {
+            return descriptor;
+        }
+
     }
 
 }

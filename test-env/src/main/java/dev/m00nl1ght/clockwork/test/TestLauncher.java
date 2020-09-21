@@ -43,7 +43,7 @@ public class TestLauncher {
         ClockworkSecurityPolicy.install(securityConfig);
 
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginLocator(new JarFileLocator(TEST_PLUGIN_JAR, JarFileLocator.JarInJarPolicy.ALLOW));
+        configBuilder.addPluginLocator(JarFileLocator.newConfig(TEST_PLUGIN_JAR));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));

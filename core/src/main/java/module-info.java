@@ -5,6 +5,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.descriptor;
     exports dev.m00nl1ght.clockwork.container;
     exports dev.m00nl1ght.clockwork.locator;
+    exports dev.m00nl1ght.clockwork.reader;
     exports dev.m00nl1ght.clockwork.events;
     exports dev.m00nl1ght.clockwork.events.impl;
     exports dev.m00nl1ght.clockwork.events.listener;

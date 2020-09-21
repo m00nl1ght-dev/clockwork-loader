@@ -1,7 +1,8 @@
 package dev.m00nl1ght.clockwork.locator;
 
-import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.reader.PluginReader;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -9,21 +10,37 @@ import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
 import java.util.Arrays;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Consumer;
 
 public class ExplodedDirectoryLocator extends AbstractCachedLocator {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private final File lookupPath;
+    public static final String NAME = "ExplodedDirectoryLocator";
+    public static final PluginLocatorFactory FACTORY = ExplodedDirectoryLocator::new;
+
+    protected final File lookupPath;
+
+    public static LocatorConfig newConfig(File path) {
+        return newConfig(path, null);
+    }
+
+    public static LocatorConfig newConfig(File path, Set<String> readers) {
+        return newConfig(path, readers, false);
+    }
+
+    public static LocatorConfig newConfig(File path, Set<String> readers, boolean wildcard) {
+        return new LocatorConfig(NAME, Map.of("path", path.getPath()), readers, wildcard);
+    }
 
     /**
-     * Constructs a new PluginLocator that can find plugins located in this directory.
-     *
-     * @param lookupPath The path to a directory that should be scanned for plugins
+     * Constructs a new PluginLocator that can find plugins located in a directory.
      */
-    public ExplodedDirectoryLocator(File lookupPath) {
-        this.lookupPath = lookupPath;
+    protected ExplodedDirectoryLocator(LocatorConfig config, Set<PluginReader> readers) {
+        super(config, readers);
+        this.lookupPath = new File(config.get("path"));
     }
 
     @Override
@@ -34,27 +51,28 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
     }
 
     private boolean scanDir(Path path, Consumer<PluginReference> pluginConsumer) {
-        final var pluginInfo = PluginInfoFile.loadFromDir(path);
-        if (pluginInfo == null) return false;
-        final var builder = pluginInfo.populatePluginBuilder();
-        final var moduleFinder = ModuleFinder.of(path);
-        final var modules = moduleFinder.findAll().iterator();
-        if (!modules.hasNext()) {
-            LOGGER.debug(getName() + " found plugin.toml, but no java module in dir [" + path + "], ignoring");
-            return true;
+        for (final var reader : readers) {
+            final var builder = reader.read(path);
+            if (builder != null) {
+                final var moduleFinder = ModuleFinder.of(path);
+                final var modules = moduleFinder.findAll().iterator();
+                if (!modules.hasNext()) {
+                    LOGGER.warn(this + " found plugin, but no java module in dir [" + path + "], ignoring");
+                    return true;
+                }
+                builder.locator(this);
+                builder.moduleFinder(moduleFinder);
+                builder.mainModule(modules.next().descriptor().name());
+                if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
+                pluginConsumer.accept(builder.build());
+                return true;
+            }
         }
-
-        builder.locator(this);
-        builder.moduleFinder(moduleFinder);
-        builder.mainModule(modules.next().descriptor().name());
-        if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
-        pluginConsumer.accept(builder.build());
-        return true;
+        return false;
     }
 
-    @Override
-    public String getName() {
-        return "ExplodedDirectoryLocator[" + lookupPath.getPath() + "]";
+    public String toString() {
+        return super.toString() + "[" + lookupPath.getPath() + "]";
     }
 
 }

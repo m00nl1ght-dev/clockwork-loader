@@ -23,11 +23,11 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
     private EventHandlerAnnotationProcessor() {}
 
     public static void registerTo(ClockworkLoader loader) {
-        loader.registerPluginProcessor(NAME, new EventHandlerAnnotationProcessor());
+        loader.registerProcessor(NAME, new EventHandlerAnnotationProcessor());
     }
 
     public static void registerTo(CollectClockworkExtensionsEvent event) {
-        event.registerPluginProcessor(NAME, new EventHandlerAnnotationProcessor());
+        event.registerProcessor(NAME, new EventHandlerAnnotationProcessor());
     }
 
     @Override

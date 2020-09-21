@@ -1,60 +1,53 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
+import dev.m00nl1ght.clockwork.locator.LocatorConfig;
+import dev.m00nl1ght.clockwork.util.ImmutableConfig;
 
-import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
-public final class ClockworkConfig {
+public final class ClockworkConfig extends ImmutableConfig {
 
-    private final List<PluginLocator> pluginLocators;
     private final List<DependencyDescriptor> wantedPlugins;
-    private final List<PluginLocator> wantedWildcard;
+    private final Set<LocatorConfig> locators;
 
     public static Builder builder() {
         return new Builder();
     }
 
-    public ClockworkConfig(Builder builder) {
-        this.pluginLocators = List.copyOf(builder.pluginLocators);
+    private ClockworkConfig(Builder builder) {
+        super(builder);
         this.wantedPlugins = List.copyOf(builder.wantedPlugins);
-        this.wantedWildcard = List.copyOf(builder.wantedWildcard);
-    }
-
-    public List<PluginLocator> getPluginLocators() {
-        return pluginLocators;
+        this.locators = Set.copyOf(builder.locators);
     }
 
     public List<DependencyDescriptor> getWantedPlugins() {
         return wantedPlugins;
     }
 
-    public List<PluginLocator> getWantedWildcard() {
-        return wantedWildcard;
+    public Set<LocatorConfig> getLocators() {
+        return locators;
     }
 
-    public static class Builder {
+    public static class Builder extends ImmutableConfig.Builder {
 
-        private final List<PluginLocator> pluginLocators = new ArrayList<>();
-        private final List<DependencyDescriptor> wantedPlugins = new ArrayList<>();
-        private final List<PluginLocator> wantedWildcard = new ArrayList<>();
+        private final List<DependencyDescriptor> wantedPlugins = new LinkedList<>();
+        private final Set<LocatorConfig> locators = new LinkedHashSet<>();
 
         private Builder() {}
 
+        @Override
         public ClockworkConfig build() {
             return new ClockworkConfig(this);
         }
 
-        public void addPluginLocator(PluginLocator locator) {
-            this.addPluginLocator(locator, false);
-        }
-
-        public void addPluginLocator(PluginLocator locator, boolean allWanted) {
-            if (pluginLocators.stream().anyMatch(d -> d.getName().equals(locator.getName())))
-                throw new IllegalArgumentException("duplicate locator: " + locator.getName());
-            this.pluginLocators.add(locator);
-            if (allWanted) this.wantedWildcard.add(locator);
+        public void addPluginLocator(LocatorConfig locator) {
+            if (locators.stream().anyMatch(d -> d.getLocator().equals(locator.getLocator())))
+                throw new IllegalArgumentException("duplicate locator: " + locator);
+            this.locators.add(locator);
         }
 
         public void addWantedPlugin(DependencyDescriptor descriptor) {
