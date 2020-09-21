@@ -51,13 +51,13 @@ public class Arguments {
         return type;
     }
 
-    public static <T> List<T> listSnapshot(List<? extends T> list, String name) {
+    public static <T> List<T> snapshot(Collection<? extends T> list, String name) {
         if (list == null)
             throw FormatUtil.illArgExc("Argument [] list must not be null");
         return (List<T>) List.of(list.toArray());
     }
 
-    public static <T> List<T> notNullList(List<T> list, Predicate<T> test, String name) {
+    public static <T> List<T> notNull(List<T> list, Predicate<T> test, String name) {
         for (final var e : Arguments.notNull(list, name)) if (e == null)
             throw FormatUtil.illArgExc("Argument [] list contains null element", name);
         return list;
@@ -69,8 +69,8 @@ public class Arguments {
         return list;
     }
 
-    public static <T> List<T> verifiedListSnapshot(List<? extends T> list, Predicate<T> test, String name) {
-        return verifiedList(listSnapshot(list, name), test, name);
+    public static <T> List<T> verifiedSnapshot(Collection<? extends T> list, Predicate<T> test, String name) {
+        return verifiedList(snapshot(list, name), test, name);
     }
 
     public static <T> T[] asArray(Collection<? extends T> collection, String name) {

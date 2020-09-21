@@ -15,7 +15,7 @@ public class SimpleProfilerEntry extends ProfilerEntry {
     public void put(int value) {
         if (value < min) min = value;
         if (value > max) max = value;
-        total += value;
+        total += value; // TODO overflow?
         count++;
     }
 

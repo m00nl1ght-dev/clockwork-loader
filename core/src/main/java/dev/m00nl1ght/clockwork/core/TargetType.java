@@ -3,10 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
-import java.util.Collections;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
@@ -119,9 +116,9 @@ public class TargetType<T extends ComponentTarget> {
 
     // ### Internal ###
 
-    protected final synchronized void init(List<? extends ComponentType<?, ?>> components) {
+    protected final synchronized void init(Set<? extends ComponentType<?, ?>> componentTypes) {
         if (this.componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
-        components = Arguments.verifiedListSnapshot(components, t -> t.targetType == this, "components");
+        final var components = Arguments.verifiedSnapshot(componentTypes, t -> t.targetType == this, "components");
         Arguments.distinct(components, ComponentType::getComponentClass, "components");
         final var componentList = new LinkedList<ComponentType<?, ? super T>>();
 

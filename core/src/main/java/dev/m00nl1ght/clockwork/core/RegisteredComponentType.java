@@ -15,20 +15,28 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
         this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
         Arguments.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
         Arguments.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
-        super.setFactory(ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalReflectiveAccess(), componentClass, targetType.getTargetClass()));
+        super.setFactory(ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), componentClass, targetType.getTargetClass()));
     }
 
     @Override
     public ComponentFactory<T, C> getFactory() {
-        if (!descriptor.isFactoryAccessEnabled() && targetType.isInitialised())
+        if (!descriptor.isFactoryAccessEnabled())
             throw FormatUtil.illStateExc("Factory access is not enabled on component []", this);
         return super.getFactory();
     }
 
     @Override
     public void setFactory(ComponentFactory<T, C> factory) {
-        if (!descriptor.isFactoryAccessEnabled() && targetType.isInitialised())
+        if (!descriptor.isFactoryAccessEnabled())
             throw FormatUtil.illStateExc("Factory access is not enabled on component []", this);
+        super.setFactory(factory);
+    }
+
+    ComponentFactory<T, C> getFactoryInternal() {
+        return super.getFactory();
+    }
+
+    void setFactoryInternal(ComponentFactory<T, C> factory) {
         super.setFactory(factory);
     }
 
