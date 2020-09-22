@@ -1,10 +1,7 @@
 
 plugins {
-    id 'application'
     id 'java-library'
 }
-
-mainClassName = "dev.m00nl1ght.clockwork.test.TestLauncher"
 
 sourceCompatibility = targetJDK
 targetCompatibility = targetJDK
@@ -23,16 +20,7 @@ sourceSets {
 
 dependencies {
     api project(':core')
-    implementation project(':ext-annotations')
-    implementation project(':ext-nightconfig')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
-}
-
-application {
-    getMainModule() set "dev.m00nl1ght.clockwork.test"
-}
-
-run {
-    workingDir rootProject.rootDir
-    dependsOn(':test-plugin:build')
+    implementation group: 'com.electronwill.night-config', name: 'core', version: nightconfigVersion
+    implementation group: 'com.electronwill.night-config', name: 'toml', version: nightconfigVersion
 }

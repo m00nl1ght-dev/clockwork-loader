@@ -1,10 +1,16 @@
-package dev.m00nl1ght.clockwork.reader;
+package dev.m00nl1ght.clockwork.extension.nightconfig;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.toml.TomlFormat;
-import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.descriptor.*;
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.ClockworkLoader;
+import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
@@ -24,6 +30,16 @@ public class NightconfigPluginReader implements PluginReader {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private static final String INFO_FILE = "META-INF/plugin.toml"; // TODO other formats / file names
+
+    private NightconfigPluginReader() {}
+
+    public static void registerTo(ClockworkLoader loader) {
+        loader.registerReader(NAME, new NightconfigPluginReader());
+    }
+
+    public static void registerTo(CollectClockworkExtensionsEvent event) {
+        event.registerReader(NAME, new NightconfigPluginReader());
+    }
 
     @Override
     public PluginDescriptor read(Path path) {

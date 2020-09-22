@@ -4,7 +4,6 @@ import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.reader.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
@@ -67,7 +66,7 @@ public abstract class AbstractCachedLocator implements PluginLocator {
         if (Files.isDirectory(path)) {
             return tryAllReadersDirect(path);
         } else if (Files.isRegularFile(path)) {
-            try (final var fs = FileSystems.newFileSystem(path, NightconfigPluginReader.class.getClassLoader())) {
+            try (final var fs = FileSystems.newFileSystem(path, this.getClass().getClassLoader())) {
                 return tryAllReadersDirect(fs.getPath(""));
             } catch (IOException | FileSystemNotFoundException e) {
                 LOGGER.error("Failed to open as filesystem: " + path, e);

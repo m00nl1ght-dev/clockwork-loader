@@ -22,6 +22,7 @@ import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.List;
+import java.util.Set;
 
 public class TestLauncher {
 
@@ -44,9 +45,10 @@ public class TestLauncher {
         ClockworkSecurityPolicy.install(securityConfig);
 
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginLocator(JarFileLocator.newConfig(TEST_PLUGIN_JAR));
+        configBuilder.addPluginLocator(JarFileLocator.newConfig(TEST_PLUGIN_JAR, Set.of("NightconfigPluginReader")));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
+        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
@@ -54,6 +56,7 @@ public class TestLauncher {
         bootLayerConfigBuilder.addPluginLocator(BootLayerLocator.newConfig());
         bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
+        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
         bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
 
         final var bootLayerLoader = ClockworkLoader.build(bootLayerConfigBuilder.build());

@@ -14,11 +14,11 @@ public class ClockworkCore implements ComponentTarget {
     public static final String CORE_PLUGIN_ID = "clockwork";
     public static final String CORE_TARGET_ID = CORE_PLUGIN_ID + ":core";
 
-    private final Map<String, LoadedPlugin> loadedPlugins = new HashMap<>();
-    private final Map<String, RegisteredTargetType<?>> loadedTargets = new HashMap<>();
-    private final Map<Class<?>, RegisteredTargetType<?>> classToTargetMap = new HashMap<>();
-    private final Map<String, RegisteredComponentType<?, ?>> loadedComponents = new HashMap<>();
-    private final Map<Class<?>, RegisteredComponentType<?, ?>> classToComponentMap = new HashMap<>();
+    private final Map<String, LoadedPlugin> loadedPlugins = new LinkedHashMap<>();
+    private final Map<String, RegisteredTargetType<?>> loadedTargets = new LinkedHashMap<>();
+    private final Map<Class<?>, RegisteredTargetType<?>> classToTargetMap = new LinkedHashMap<>();
+    private final Map<String, RegisteredComponentType<?, ?>> loadedComponents = new LinkedHashMap<>();
+    private final Map<Class<?>, RegisteredComponentType<?, ?>> classToComponentMap = new LinkedHashMap<>();
 
     private final ModuleManager moduleManager;
 

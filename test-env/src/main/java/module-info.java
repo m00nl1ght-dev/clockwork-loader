@@ -8,6 +8,7 @@ module dev.m00nl1ght.clockwork.test {
 
     requires dev.m00nl1ght.clockwork;
     requires dev.m00nl1ght.clockwork.extension.annotations;
+    requires dev.m00nl1ght.clockwork.extension.nightconfig;
     requires org.apache.logging.log4j;
 
 }
