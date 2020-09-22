@@ -1,11 +1,11 @@
 package dev.m00nl1ght.clockwork.reader;
 
-import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 
 import java.nio.file.Path;
 
 public interface PluginReader {
 
-    PluginReference.Builder read(Path path);
+    PluginDescriptor read(Path path);
 
 }

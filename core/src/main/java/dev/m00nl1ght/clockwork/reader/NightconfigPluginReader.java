@@ -5,6 +5,7 @@ import com.electronwill.nightconfig.core.file.FileNotFoundAction;
 import com.electronwill.nightconfig.toml.TomlFormat;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.descriptor.*;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -17,19 +18,19 @@ import java.nio.file.Path;
 import java.util.List;
 import java.util.Optional;
 
-public class PluginInfoFile {
+public class NightconfigPluginReader implements PluginReader {
+
+    public static final String NAME = "NightconfigPluginReader";
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String INFO_FILE = "plugin.toml";
+    private static final String INFO_FILE = "plugin.toml"; // TODO other formats / file names
 
-    private final UnmodifiableConfig config;
-    private final String pluginId;
-
-    public static PluginInfoFile loadFromDir(Path path) {
+    @Override
+    public PluginDescriptor read(Path path) {
         if (Files.isDirectory(path)) {
             return load(path.resolve(INFO_FILE));
         } else if (Files.isRegularFile(path)) {
-            try (final var fs = FileSystems.newFileSystem(path, PluginInfoFile.class.getClassLoader())) {
+            try (final var fs = FileSystems.newFileSystem(path, NightconfigPluginReader.class.getClassLoader())) {
                 return load(fs.getPath(INFO_FILE));
             } catch (IOException | FileSystemNotFoundException e) {
                 LOGGER.debug("Failed to open as filesystem: " + path, e);
@@ -40,23 +41,15 @@ public class PluginInfoFile {
         }
     }
 
-    public static PluginInfoFile load(Path path) {
+    private PluginDescriptor load(Path path) {
         if (!Files.exists(path)) return null;
         final var parser = TomlFormat.instance().createParser();
-        final var conf = parser.parse(path, FileNotFoundAction.THROW_ERROR);
-        return new PluginInfoFile(conf.unmodifiable());
-    }
+        final var config = parser.parse(path, FileNotFoundAction.THROW_ERROR).unmodifiable();
+        final String pluginId = config.get("plugin_id");
 
-    private PluginInfoFile(UnmodifiableConfig config) {
-        this.config = config;
-        this.pluginId = config.get("plugin_id");
-    }
-
-    public PluginReference.Builder populatePluginBuilder() {
-        final var descriptorBuilder = PluginDescriptor.builder();
-        descriptorBuilder.id(pluginId);
+        final var descriptorBuilder = PluginDescriptor.builder(pluginId);
+        final var version = new Version(config.get("version"), Version.VersionType.IVY);
         descriptorBuilder.displayName(config.get("display_name"));
-        descriptorBuilder.version(new Version(config.get("version"), Version.VersionType.IVY));
         descriptorBuilder.description(config.getOrElse("description", ""));
         final Optional<List<String>> authors = config.getOptional("authors");
         authors.ifPresent(l -> l.forEach(descriptorBuilder::author));
@@ -64,23 +57,21 @@ public class PluginInfoFile {
         perms.ifPresent(l -> l.forEach(p -> descriptorBuilder.permission(buildPerm(p))));
         final Optional<List<String>> processors = config.getOptional("processors");
         processors.ifPresent(l -> l.forEach(descriptorBuilder::markForProcessor));
-        final var descriptor = descriptorBuilder.build();
 
-        final var mainCompBuilder = ComponentDescriptor.builder(descriptor);
-        mainCompBuilder.id(pluginId);
+        final var mainCompBuilder = ComponentDescriptor.builder(pluginId);
+        mainCompBuilder.version(version);
         mainCompBuilder.target(ClockworkCore.CORE_TARGET_ID);
         mainCompBuilder.componentClass(config.get("main_class"));
         final Optional<List<UnmodifiableConfig>> deps = config.getOptional("dependency");
         deps.ifPresent(l -> l.forEach(d -> mainCompBuilder.dependency(buildDep(d))));
         final var mainComp = mainCompBuilder.build();
 
-        final var referenceBuilder = PluginReference.builder(descriptor);
-        referenceBuilder.mainComponent(mainComp);
+        descriptorBuilder.mainComponent(mainComp);
 
         final Optional<List<UnmodifiableConfig>> components = config.getOptional("component");
         if (components.isPresent()) for (var conf : components.get()) {
-            final var builder = ComponentDescriptor.builder(descriptor);
-            builder.id(conf.get("id"));
+            final var builder = ComponentDescriptor.builder(pluginId, verifyId(conf.get("id"), pluginId));
+            builder.version(version);
             builder.componentClass(conf.get("class"));
             builder.parent(conf.getOrElse("parent", () -> null));
             builder.target(conf.get("target"));
@@ -90,19 +81,19 @@ public class PluginInfoFile {
             optional.ifPresent(builder::optional);
             final Optional<Boolean> factoryAccess = conf.getOptional("factoryAccess");
             factoryAccess.ifPresent(builder::factoryAccessEnabled);
-            referenceBuilder.component(builder.build());
+            descriptorBuilder.component(builder.build());
         }
 
         final Optional<List<UnmodifiableConfig>> targets = config.getOptional("target");
         if (targets.isPresent()) for (var conf : targets.get()) {
-            final var builder = TargetDescriptor.builder(descriptor);
-            builder.id(conf.get("id"));
+            final var builder = TargetDescriptor.builder(pluginId, verifyId(conf.get("id"), pluginId));
+            builder.version(version);
             builder.targetClass(conf.get("class"));
-            builder.parent(conf.getOrElse("parent", () -> null));
-            referenceBuilder.target(builder.build());
+            builder.parent(conf.get("parent"));
+            descriptorBuilder.target(builder.build());
         }
 
-        return referenceBuilder;
+        return descriptorBuilder.build();
     }
 
     private DependencyDescriptor buildDep(UnmodifiableConfig conf) {
@@ -117,8 +108,14 @@ public class PluginInfoFile {
         return (value.isPresent() && !value.get().isEmpty()) ? perm + ":" + value.get() : perm;
     }
 
-    public String getPluginId() {
-        return pluginId;
+    private String verifyId(String id, String pluginId) {
+        if (id == null) throw new IllegalStateException("id is missing");
+        final var idx = id.indexOf(':');
+        if (idx < 0) return id;
+        final var pId = id.substring(0, idx);
+        if (!pId.equals(pluginId))
+            throw FormatUtil.rtExc("plugin with id [] can't define mismatched id []", pluginId, id);
+        return id.substring(idx + 1);
     }
 
 }

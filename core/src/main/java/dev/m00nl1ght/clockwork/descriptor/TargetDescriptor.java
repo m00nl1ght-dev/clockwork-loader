@@ -6,28 +6,30 @@ import dev.m00nl1ght.clockwork.version.Version;
 
 public final class TargetDescriptor {
 
-    private final PluginDescriptor plugin;
-    private final String id;
+    private final String pluginId;
+    private final String targetId;
+    private final Version version;
     private final String parent;
     private final String targetClass;
 
     TargetDescriptor(Builder builder) {
-        this.plugin = Arguments.notNull(builder.plugin, "plugin");
-        this.id = Arguments.notNullOrBlank(builder.id, "id");
+        this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
+        this.targetId = Arguments.notNullOrBlank(builder.targetId, "targetId");
+        this.version = Arguments.notNull(builder.version, "version");
         this.parent = builder.parentId;
         this.targetClass = Arguments.notNullOrBlank(builder.targetClass, "targetClass");
     }
 
-    public PluginDescriptor getPlugin() {
-        return plugin;
+    public String getPluginId() {
+        return pluginId;
     }
 
     public String getId() {
-        return id;
+        return pluginId + ":" + targetId;
     }
 
     public Version getVersion() {
-        return plugin.getVersion();
+        return version;
     }
 
     public String getParent() {
@@ -40,42 +42,38 @@ public final class TargetDescriptor {
 
     @Override
     public String toString() {
-        return getId() + ":" + getVersion();
+        return getId();
     }
 
-    public static Builder builder(PluginDescriptor plugin) {
-        return new Builder(plugin);
+    public static Builder builder(String pluginId, String targetId) {
+        Arguments.notNullOrBlank(pluginId, "pluginId");
+        Arguments.notNullOrBlank(targetId, "targetId");
+        final var resultingId = pluginId + ":" + targetId;
+        if (!DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(resultingId).matches())
+            throw PluginLoadingException.invalidId(resultingId);
+        return new Builder(pluginId, targetId);
     }
 
     public static final class Builder {
 
-        private final PluginDescriptor plugin;
-        private String id;
+        private final String pluginId;
+        private final String targetId;
+        private Version version;
         private String targetClass;
         private String parentId;
 
-        private Builder(PluginDescriptor plugin) {
-            this.plugin = plugin;
+        private Builder(String pluginId, String targetId) {
+            this.pluginId = pluginId;
+            this.targetId = targetId;
         }
 
         public TargetDescriptor build() {
             return new TargetDescriptor(this);
         }
 
-        public Builder id(String id) {
-            if (id == null) return this;
-            if (!id.contains(":")) id = plugin.getId() + ":" + id;
-            final var matcher = DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(id);
-            if (matcher.matches()) {
-                if (matcher.group(1).equals(plugin.getId())) {
-                    this.id = id;
-                    return this;
-                } else {
-                    throw PluginLoadingException.subIdMismatch(plugin, id);
-                }
-            } else {
-                throw PluginLoadingException.invalidId(id);
-            }
+        public Builder version(Version version) {
+            this.version = version;
+            return this;
         }
 
         public Builder targetClass(String targetClass) {
@@ -84,7 +82,7 @@ public final class TargetDescriptor {
         }
 
         public Builder parent(String parentId) {
-            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : plugin.getId() + ":" + parentId;
+            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : pluginId + ":" + parentId;
             return this;
         }
 

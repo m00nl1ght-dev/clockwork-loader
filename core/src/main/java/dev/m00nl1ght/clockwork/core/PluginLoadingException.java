@@ -93,10 +93,6 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Id [] is invalid", id);
     }
 
-    public static PluginLoadingException subIdMismatch(PluginDescriptor plugin, String id) {
-        return generic("Component id [] does not match the plugin [] that defines it", id, plugin.getId());
-    }
-
     public static PluginLoadingException missingReader(String name) {
         return generic("PluginReader [] is missing", name);
     }

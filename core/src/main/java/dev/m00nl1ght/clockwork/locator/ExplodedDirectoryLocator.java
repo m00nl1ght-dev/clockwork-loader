@@ -52,14 +52,15 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
 
     private boolean scanDir(Path path, Consumer<PluginReference> pluginConsumer) {
         for (final var reader : readers) {
-            final var builder = reader.read(path);
-            if (builder != null) {
+            final var descriptor = reader.read(path);
+            if (descriptor != null) {
                 final var moduleFinder = ModuleFinder.of(path);
                 final var modules = moduleFinder.findAll().iterator();
                 if (!modules.hasNext()) {
                     LOGGER.warn(this + " found plugin, but no java module in dir [" + path + "], ignoring");
                     return true;
                 }
+                final var builder = PluginReference.builder(descriptor);
                 builder.locator(this);
                 builder.moduleFinder(moduleFinder);
                 builder.mainModule(modules.next().descriptor().name());

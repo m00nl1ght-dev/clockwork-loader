@@ -10,8 +10,8 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.locator.*;
+import dev.m00nl1ght.clockwork.reader.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
-import dev.m00nl1ght.clockwork.reader.TomlConfigReader;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
@@ -86,7 +86,7 @@ public final class ClockworkLoader {
     }
 
     private void registerDefaults() {
-        registerReader(TomlConfigReader.NAME, new TomlConfigReader());
+        registerReader(NightconfigPluginReader.NAME, new NightconfigPluginReader());
         registerLocatorFactory(BootLayerLocator.NAME, BootLayerLocator.FACTORY);
         registerLocatorFactory(JarFileLocator.NAME, JarFileLocator.FACTORY);
         registerLocatorFactory(ExplodedDirectoryLocator.NAME, ExplodedDirectoryLocator.FACTORY);
@@ -191,8 +191,8 @@ public final class ClockworkLoader {
                 located.sort(versionSorter);
                 final var ref = located.get(0);
                 pluginReferences.addLast(ref);
-                ref.getComponentDescriptors().forEach(componentSorter::add);
-                ref.getTargetDescriptors().forEach(targetSorter::add);
+                ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
+                ref.getDescriptor().getTargetDescriptors().forEach(targetSorter::add);
                 LOGGER.debug("Located plugin [" + ref + "] using locator [" + ref.getLocator() + "].");
             }
 
@@ -244,7 +244,7 @@ public final class ClockworkLoader {
         for (final var targetDescriptor : targetDescriptors) {
 
             // Get the plugin that is providing this target.
-            final var plugin = core.getLoadedPlugin(targetDescriptor.getPlugin().getId()).orElseThrow();
+            final var plugin = core.getLoadedPlugin(targetDescriptor.getPluginId()).orElseThrow();
 
             // If the parent has it, get the target class from there.
             if (parent != null) {
@@ -269,7 +269,7 @@ public final class ClockworkLoader {
         for (final var componentDescriptor : componentDescriptors) {
 
             // Get the plugin that is providing this component, and the target it is for.
-            final var plugin = core.getLoadedPlugin(componentDescriptor.getPlugin().getId()).orElseThrow();
+            final var plugin = core.getLoadedPlugin(componentDescriptor.getPluginId()).orElseThrow();
             final var target = core.getTargetType(componentDescriptor.getTargetId());
             if (target.isEmpty()) throw PluginLoadingException.componentMissingTarget(componentDescriptor);
 
@@ -518,12 +518,12 @@ public final class ClockworkLoader {
 
         @Override
         protected void onDuplicateId(ComponentDescriptor node, ComponentDescriptor present) {
-            addProblem(PluginLoadingProblem.duplicateIdFound(node.getPlugin(), node, present));
+            addProblem(PluginLoadingProblem.duplicateIdFound(node.getPluginId(), node, present));
         }
 
         @Override
         public void onCycleFound(ComponentDescriptor tail) {
-            addProblem(PluginLoadingProblem.depCycleFound(tail.getPlugin(), tail));
+            addProblem(PluginLoadingProblem.depCycleFound(tail.getPluginId(), tail));
         }
 
         @Override
@@ -562,12 +562,12 @@ public final class ClockworkLoader {
 
         @Override
         protected void onDuplicateId(TargetDescriptor node, TargetDescriptor present) {
-            addProblem(PluginLoadingProblem.duplicateIdFound(node.getPlugin(), node, present));
+            addProblem(PluginLoadingProblem.duplicateIdFound(node.getPluginId(), node, present));
         }
 
         @Override
         public void onCycleFound(TargetDescriptor tail) {
-            addProblem(PluginLoadingProblem.depCycleFound(tail.getPlugin(), tail));
+            addProblem(PluginLoadingProblem.depCycleFound(tail.getPluginId(), tail));
         }
 
         @Override

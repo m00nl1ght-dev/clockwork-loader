@@ -9,8 +9,9 @@ import java.util.*;
 
 public final class ComponentDescriptor {
 
-    private final PluginDescriptor plugin;
-    private final String id;
+    private final String pluginId;
+    private final String componentId;
+    private final Version version;
     private final String targetId;
     private final String parent;
     private final String componentClass;
@@ -19,9 +20,10 @@ public final class ComponentDescriptor {
     private final boolean optional;
 
     ComponentDescriptor(Builder builder) {
-        this.plugin = Arguments.notNull(builder.plugin, "plugin");
-        this.id = Arguments.notNullOrBlank(builder.id, "id");
-        this.targetId = Arguments.notNullOrBlank(builder.targetId, "");
+        this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
+        this.componentId = builder.componentId;
+        this.version = Arguments.notNull(builder.version, "version");
+        this.targetId = Arguments.notNullOrBlank(builder.targetId, "targetId");
         this.parent = builder.parentId;
         this.componentClass = Arguments.notNullOrBlank(builder.componentClass, "componentClass");
         this.dependencies = List.copyOf(Arguments.notNull(builder.dependencies, "dependencies").values());
@@ -29,16 +31,16 @@ public final class ComponentDescriptor {
         this.optional = builder.optional;
     }
 
-    public PluginDescriptor getPlugin() {
-        return plugin;
+    public String getPluginId() {
+        return pluginId;
     }
 
     public String getId() {
-        return id;
+        return formatId(pluginId, componentId);
     }
 
     public Version getVersion() {
-        return plugin.getVersion();
+        return version;
     }
 
     public String getTargetId() {
@@ -67,17 +69,30 @@ public final class ComponentDescriptor {
 
     @Override
     public String toString() {
-        return getId() + ":" + getVersion();
+        return getId();
     }
 
-    public static Builder builder(PluginDescriptor plugin) {
-        return new Builder(plugin);
+    public static Builder builder(String pluginId) {
+        Arguments.notNullOrBlank(pluginId, "pluginId");
+        if (!DependencyDescriptor.PLUGIN_ID_PATTERN.matcher(pluginId).matches())
+            throw PluginLoadingException.invalidId(pluginId);
+        return new Builder(pluginId, null);
+    }
+
+    public static Builder builder(String pluginId, String componentId) {
+        Arguments.notNullOrBlank(pluginId, "pluginId");
+        Arguments.notNullOrBlank(componentId, "componentId");
+        final var resultingId = formatId(pluginId, componentId);
+        if (!DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(resultingId).matches())
+            throw PluginLoadingException.invalidId(resultingId);
+        return new Builder(pluginId, componentId);
     }
 
     public static final class Builder {
 
-        private final PluginDescriptor plugin;
-        private String id;
+        private final String pluginId;
+        private final String componentId;
+        private Version version;
         private String componentClass;
         private String targetId;
         private String parentId;
@@ -85,8 +100,9 @@ public final class ComponentDescriptor {
         private boolean factoryAccessEnabled = false;
         private boolean optional = false;
 
-        private Builder(PluginDescriptor plugin) {
-            this.plugin = plugin;
+        private Builder(String pluginId, String componentId) {
+            this.pluginId = pluginId;
+            this.componentId = componentId;
         }
 
         public ComponentDescriptor build() {
@@ -94,29 +110,17 @@ public final class ComponentDescriptor {
             return new ComponentDescriptor(this);
         }
 
-        private void addTrivialDeps() {
-            if (!plugin.getId().equals(ClockworkCore.CORE_PLUGIN_ID)) {
-                dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDescriptor::buildAnyVersion);
-                if (!id.equals(plugin.getId())) dependencies.computeIfAbsent(plugin.getId(), DependencyDescriptor::buildAnyVersion);
-                if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDescriptor::buildAnyVersion);
-                if (parentId != null) dependencies.computeIfAbsent(parentId, DependencyDescriptor::buildAnyVersion);
-            }
+        public Builder version(Version version) {
+            this.version = version;
+            return this;
         }
 
-        public Builder id(String id) {
-            if (id == null) return this;
-            if (id.equals(plugin.getId())) {this.id = id; return this;}
-            if (!id.contains(":")) id = plugin.getId() + ":" + id;
-            final var matcher = DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(id);
-            if (matcher.matches()) {
-                if (matcher.group(1).equals(plugin.getId())) {
-                    this.id = id;
-                    return this;
-                } else {
-                    throw PluginLoadingException.subIdMismatch(plugin, id);
-                }
-            } else {
-                throw PluginLoadingException.invalidId(id);
+        private void addTrivialDeps() {
+            if (!pluginId.equals(ClockworkCore.CORE_PLUGIN_ID)) {
+                dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDescriptor::buildAnyVersion);
+                if (componentId != null) dependencies.computeIfAbsent(pluginId, DependencyDescriptor::buildAnyVersion);
+                if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDescriptor::buildAnyVersion);
+                if (parentId != null) dependencies.computeIfAbsent(parentId, DependencyDescriptor::buildAnyVersion);
             }
         }
 
@@ -131,13 +135,13 @@ public final class ComponentDescriptor {
         }
 
         public Builder parent(String parentId) {
-            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : plugin.getId() + ":" + parentId;
+            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : pluginId + ":" + parentId;
             return this;
         }
 
         public Builder dependency(DependencyDescriptor dependency) {
             final var prev = this.dependencies.putIfAbsent(dependency.getTarget(), dependency);
-            if (prev != null) throw PluginLoadingException.dependencyDuplicate(id, dependency, prev);
+            if (prev != null) throw PluginLoadingException.dependencyDuplicate(formatId(pluginId, componentId), dependency, prev);
             return this;
         }
 
@@ -159,6 +163,10 @@ public final class ComponentDescriptor {
     private static String pluginId(String id) {
         final var i = id.indexOf(':');
         return i < 0 ? id : id.substring(0, i);
+    }
+
+    private static String formatId(String pluginId, String componentId) {
+        return componentId == null ? pluginId : (pluginId + ":" + componentId);
     }
 
 }

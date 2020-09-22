@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.Collection;
 import java.util.Collections;
@@ -28,6 +29,10 @@ public final class LoadedPlugin {
 
     public String getId() {
         return descriptor.getId();
+    }
+
+    public Version getVersion() {
+        return descriptor.getVersion();
     }
 
     public ClockworkCore getClockworkCore() {

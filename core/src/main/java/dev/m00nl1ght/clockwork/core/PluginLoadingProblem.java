@@ -188,16 +188,16 @@ public abstract class PluginLoadingProblem {
 
     }
 
-    public static <T> DuplicateIdFound<T> duplicateIdFound(PluginDescriptor plugin, T current, T present) {
-        return new DuplicateIdFound<>(plugin, current, present);
+    public static <T> DuplicateIdFound<T> duplicateIdFound(String pluginId, T current, T present) {
+        return new DuplicateIdFound<>(pluginId, current, present);
     }
 
     public static class DuplicateIdFound<T> extends PluginLoadingProblem {
 
         private final T current, present;
 
-        private DuplicateIdFound(PluginDescriptor plugin, T current, T present) {
-            super(plugin.getId());
+        private DuplicateIdFound(String pluginId, T current, T present) {
+            super(pluginId);
             this.current = current;
             this.present = present;
         }
@@ -218,16 +218,16 @@ public abstract class PluginLoadingProblem {
 
     }
 
-    public static <T> DepCycleFound<T> depCycleFound(PluginDescriptor plugin, T tail) {
-        return new DepCycleFound<>(plugin, tail);
+    public static <T> DepCycleFound<T> depCycleFound(String pluginId, T tail) {
+        return new DepCycleFound<>(pluginId, tail);
     }
 
     public static class DepCycleFound<T> extends PluginLoadingProblem {
 
         private final T tail;
 
-        private DepCycleFound(PluginDescriptor plugin, T tail) {
-            super(plugin.getId());
+        private DepCycleFound(String pluginId, T tail) {
+            super(pluginId);
             this.tail = tail;
         }
 

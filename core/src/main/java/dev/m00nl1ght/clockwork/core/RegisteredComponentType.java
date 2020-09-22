@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.version.Version;
 
 public final class RegisteredComponentType<C, T extends ComponentTarget> extends ComponentType<C, T> {
 
@@ -12,7 +13,7 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
     RegisteredComponentType(LoadedPlugin plugin, ComponentType<? super C, ? super T> parent, ComponentDescriptor descriptor, Class<C> componentClass, RegisteredTargetType<T> targetType) {
         super(parent, componentClass, targetType);
         this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPlugin().getId()), "plugin");
+        this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPluginId()), "plugin");
         Arguments.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
         Arguments.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
         super.setFactory(ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), componentClass, targetType.getTargetClass()));
@@ -54,6 +55,10 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
 
     public String getId() {
         return descriptor.getId();
+    }
+
+    public Version getVersion() {
+        return descriptor.getVersion();
     }
 
     @Override

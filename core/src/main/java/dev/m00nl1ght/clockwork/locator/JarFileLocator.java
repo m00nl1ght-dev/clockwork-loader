@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.locator;
 
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import org.apache.logging.log4j.LogManager;
@@ -61,14 +62,14 @@ public class JarFileLocator extends AbstractCachedLocator {
         }
     }
 
-    private PluginReference.Builder scanFile(Path path, Consumer<PluginReference> pluginConsumer) {
+    private PluginDescriptor scanFile(Path path, Consumer<PluginReference> pluginConsumer) {
         if (path.getFileName().toString().toLowerCase().endsWith(".jar")) {
             try {
                 for (final var reader : readers) {
-                    final var builder = reader.read(path);
-                    if (builder != null) {
-                        if (pluginConsumer != null) scanFile(path, builder, pluginConsumer);
-                        return builder;
+                    final var descriptor = reader.read(path);
+                    if (descriptor != null) {
+                        if (pluginConsumer != null) scanFile(path, descriptor, pluginConsumer);
+                        return descriptor;
                     }
                 }
                 return null;
@@ -82,7 +83,7 @@ public class JarFileLocator extends AbstractCachedLocator {
         }
     }
 
-    private void scanFile(Path path, PluginReference.Builder builder, Consumer<PluginReference> pluginConsumer) {
+    private void scanFile(Path path, PluginDescriptor descriptor, Consumer<PluginReference> pluginConsumer) {
         final var moduleFinder = ModuleFinder.of(path);
         final var modules = moduleFinder.findAll().iterator();
         if (!modules.hasNext()) {
@@ -90,6 +91,7 @@ public class JarFileLocator extends AbstractCachedLocator {
             return;
         }
 
+        final var builder = PluginReference.builder(descriptor);
         final var mainModuleName = modules.next().descriptor().name();
         if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
 
@@ -113,7 +115,7 @@ public class JarFileLocator extends AbstractCachedLocator {
                             finders.add(libModuleFinder);
                         }
                     } else if (jarInJarPolicy == JarInJarPolicy.LIBS_ONLY) {
-                        LOGGER.warn(this + " found jar-in-jar plugin [" + libPlugin.descriptor() + "] in [" + file + "], but nested plugin loading is disabled, ignoring");
+                        LOGGER.warn(this + " found jar-in-jar plugin [" + libPlugin + "] in [" + file + "], but nested plugin loading is disabled, ignoring");
                     } else {
                         scanFile(file.toPath(), libPlugin, pluginConsumer);
                     }
