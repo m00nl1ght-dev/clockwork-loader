@@ -1,15 +1,26 @@
 package dev.m00nl1ght.clockwork.locator;
 
-import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.reader.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
+import java.io.IOException;
+import java.nio.file.FileSystemNotFoundException;
+import java.nio.file.FileSystems;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Consumer;
 
 public abstract class AbstractCachedLocator implements PluginLocator {
+
+    private static final Logger LOGGER = LogManager.getLogger();
 
     protected final Set<PluginReader> readers;
     protected final LocatorConfig config;
@@ -51,6 +62,25 @@ public abstract class AbstractCachedLocator implements PluginLocator {
     }
 
     protected abstract void scan(Consumer<PluginReference> pluginConsumer);
+
+    protected PluginDescriptor tryAllReaders(Path path) {
+        if (Files.isDirectory(path)) {
+            return tryAllReadersDirect(path);
+        } else if (Files.isRegularFile(path)) {
+            try (final var fs = FileSystems.newFileSystem(path, NightconfigPluginReader.class.getClassLoader())) {
+                return tryAllReadersDirect(fs.getPath(""));
+            } catch (IOException | FileSystemNotFoundException e) {
+                LOGGER.error("Failed to open as filesystem: " + path, e);
+                return null;
+            }
+        } else {
+            return null;
+        }
+    }
+
+    protected PluginDescriptor tryAllReadersDirect(Path path) {
+        return readers.stream().map(reader -> reader.read(path)).filter(Objects::nonNull).findFirst().orElse(null);
+    }
 
     @Override
     public String toString() {

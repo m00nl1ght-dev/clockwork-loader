@@ -46,15 +46,12 @@ public class BootLayerLocator extends AbstractCachedLocator {
         if (moduleReference.location().isEmpty()) return;
         try {
             final var path = Path.of(moduleReference.location().get());
-            for (final var reader : readers) {
-                final var descriptor = reader.read(path);
-                if (descriptor != null) {
-                    final var builder = PluginReference.builder(descriptor);
-                    builder.mainModule(moduleName);
-                    builder.locator(this);
-                    pluginConsumer.accept(builder.build());
-                    return;
-                }
+            final var descriptor = tryAllReaders(path);
+            if (descriptor != null) {
+                final var builder = PluginReference.builder(descriptor);
+                builder.mainModule(moduleName);
+                builder.locator(this);
+                pluginConsumer.accept(builder.build());
             }
         } catch (PluginLoadingException e) {
             throw e;

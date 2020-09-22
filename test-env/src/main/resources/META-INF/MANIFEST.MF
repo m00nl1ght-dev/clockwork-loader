@@ -1,0 +1,21 @@
+Manifest-Version: 1.0
+CWL-Plugin-Id: test-env
+CWL-Plugin-Version: 0.5
+CWL-Plugin-Display-Name: Test Environment
+CWL-Plugin-Description: Test environment for CWL dev workspace
+CWL-Plugin-Authors: m00nl1ght
+CWL-Plugin-Processors: extension.annotations.eventhandler
+
+Name: dev/m00nl1ght/clockwork/test/TestEnvPlugin.class
+CWL-Component-Id: test-env
+CWL-Component-Requires: cwl-annotations
+
+Name: dev/m00nl1ght/clockwork/test/TestTarget_A.class
+CWL-Target-Id: test-target-a
+
+Name: dev/m00nl1ght/clockwork/test/TestTarget_B.class
+CWL-Target-Id: test-target-b
+CWL-Target-Extends: test-target-a
+
+Name: dev/m00nl1ght/clockwork/test/TestTarget_C.class
+CWL-Target-Id: test-target-c

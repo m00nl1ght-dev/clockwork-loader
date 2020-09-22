@@ -16,6 +16,7 @@ sourceSets {
     main {
         output.resourcesDir = file('build/bin')
         java.outputDir = file('build/bin')
+        jar { manifest { from(new File(resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF')) } }
     }
 }
 

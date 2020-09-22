@@ -65,14 +65,10 @@ public class JarFileLocator extends AbstractCachedLocator {
     private PluginDescriptor scanFile(Path path, Consumer<PluginReference> pluginConsumer) {
         if (path.getFileName().toString().toLowerCase().endsWith(".jar")) {
             try {
-                for (final var reader : readers) {
-                    final var descriptor = reader.read(path);
-                    if (descriptor != null) {
-                        if (pluginConsumer != null) scanFile(path, descriptor, pluginConsumer);
-                        return descriptor;
-                    }
-                }
-                return null;
+                final var descriptor = tryAllReaders(path);
+                if (descriptor == null) return null;
+                if (pluginConsumer != null) scanFile(path, descriptor, pluginConsumer);
+                return descriptor;
             } catch (PluginLoadingException e) {
                 throw e;
             } catch (Exception e) {

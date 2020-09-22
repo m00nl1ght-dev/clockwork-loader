@@ -37,7 +37,9 @@ public final class ClockworkConfig extends ImmutableConfig {
         private final List<DependencyDescriptor> wantedPlugins = new LinkedList<>();
         private final Set<LocatorConfig> locators = new LinkedHashSet<>();
 
-        private Builder() {}
+        private Builder() {
+            configName("ClockworkConfig");
+        }
 
         @Override
         public ClockworkConfig build() {

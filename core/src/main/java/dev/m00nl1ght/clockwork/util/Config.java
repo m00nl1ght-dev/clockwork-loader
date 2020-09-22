@@ -1,8 +1,7 @@
 package dev.m00nl1ght.clockwork.util;
 
-import java.util.Arrays;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 public interface Config {
 
@@ -91,6 +90,26 @@ public interface Config {
         final var found = Arrays.stream(enumClass.getEnumConstants())
                 .filter(e -> e.name().equalsIgnoreCase(value)).findAny();
         return found.orElseThrow(() -> FormatUtil.rtExc("Inavalid param [] in config [] (enum constant [] does not exist)", key, this, value));
+    }
+
+    default List<String> getList(String key) {
+        return asList(key, get(key));
+    }
+
+    default List<String> getListOrDefault(String key, List<String> defaultValue) {
+        final var value = getOrNull(key);
+        return value == null ? List.copyOf(defaultValue) : asList(key, value);
+    }
+
+    default List<String> getListOrEmpty(String key) {
+        return getListOrDefault(key, List.of());
+    }
+
+    private List<String> asList(String key, String value) {
+        return Arrays.stream(value.split(" "))
+                .map(String::trim)
+                .filter(str -> !str.isEmpty())
+                .collect(Collectors.toUnmodifiableList());
     }
 
 }

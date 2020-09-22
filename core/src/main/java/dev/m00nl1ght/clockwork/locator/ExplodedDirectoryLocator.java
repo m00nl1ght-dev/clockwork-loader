@@ -51,25 +51,21 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
     }
 
     private boolean scanDir(Path path, Consumer<PluginReference> pluginConsumer) {
-        for (final var reader : readers) {
-            final var descriptor = reader.read(path);
-            if (descriptor != null) {
-                final var moduleFinder = ModuleFinder.of(path);
-                final var modules = moduleFinder.findAll().iterator();
-                if (!modules.hasNext()) {
-                    LOGGER.warn(this + " found plugin, but no java module in dir [" + path + "], ignoring");
-                    return true;
-                }
-                final var builder = PluginReference.builder(descriptor);
-                builder.locator(this);
-                builder.moduleFinder(moduleFinder);
-                builder.mainModule(modules.next().descriptor().name());
-                if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
-                pluginConsumer.accept(builder.build());
-                return true;
-            }
+        final var descriptor = tryAllReaders(path);
+        if (descriptor == null) return false;
+        final var moduleFinder = ModuleFinder.of(path);
+        final var modules = moduleFinder.findAll().iterator();
+        if (!modules.hasNext()) {
+            LOGGER.warn(this + " found plugin, but no java module in dir [" + path + "], ignoring");
+            return true;
         }
-        return false;
+        final var builder = PluginReference.builder(descriptor);
+        builder.locator(this);
+        builder.moduleFinder(moduleFinder);
+        builder.mainModule(modules.next().descriptor().name());
+        if (modules.hasNext()) throw PluginLoadingException.multipleModulesFound(this, path);
+        pluginConsumer.accept(builder.build());
+        return true;
     }
 
     public String toString() {

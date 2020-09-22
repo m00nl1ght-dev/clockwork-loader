@@ -23,7 +23,7 @@ public class NightconfigPluginReader implements PluginReader {
     public static final String NAME = "NightconfigPluginReader";
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String INFO_FILE = "plugin.toml"; // TODO other formats / file names
+    private static final String INFO_FILE = "META-INF/plugin.toml"; // TODO other formats / file names
 
     @Override
     public PluginDescriptor read(Path path) {

@@ -21,7 +21,7 @@ public final class LocatorConfig extends ImmutableConfig {
     }
 
     public LocatorConfig(String locator, Map<String, String> params, Set<String> readers, boolean wildcard) {
-        super(params);
+        super(params, "LocatorConfig[" + locator + "]");
         this.locator = Arguments.notNullOrBlank(locator, "locator");
         this.readers = readers == null ? null : Set.copyOf(readers);
         this.wildcard = wildcard;

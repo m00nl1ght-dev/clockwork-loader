@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+CWL-Plugin-Id: cwl-annotations
+CWL-Plugin-Version: 0.5
+CWL-Plugin-Display-Name: [CWL-Extension] Annotations Processor
+CWL-Plugin-Description: An extension for the Clockwork Loader that provides support for convinient annotations, like @EventHandler.
+CWL-Plugin-Authors: m00nl1ght
+
+Name: dev/m00nl1ght/clockwork/extension/annotations/CWLAnnotationsExtension.class
+CWL-Component-Id: cwl-annotations
+CWL-Component-Requires: clockwork[0.5]

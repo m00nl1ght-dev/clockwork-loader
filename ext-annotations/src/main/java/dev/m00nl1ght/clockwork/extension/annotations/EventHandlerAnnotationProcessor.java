@@ -6,6 +6,7 @@ import dev.m00nl1ght.clockwork.core.PluginProcessor;
 import dev.m00nl1ght.clockwork.core.PluginProcessorContext;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.events.EventListenerPriority;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -95,7 +96,8 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
     }
 
     private CWLAnnotationsExtension getExtension(ClockworkCore core) {
-        final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class).orElseThrow();
+        final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class)
+                .orElseThrow(() -> FormatUtil.rtExc("Extension was not loaded correctly, internal component is missing"));
         return componentType.get(core);
     }
 

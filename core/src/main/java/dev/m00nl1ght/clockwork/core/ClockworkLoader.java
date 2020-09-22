@@ -10,11 +10,11 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.locator.*;
-import dev.m00nl1ght.clockwork.reader.NightconfigPluginReader;
+import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -86,7 +86,7 @@ public final class ClockworkLoader {
     }
 
     private void registerDefaults() {
-        registerReader(NightconfigPluginReader.NAME, new NightconfigPluginReader());
+        registerReader(ManifestPluginReader.NAME, new ManifestPluginReader());
         registerLocatorFactory(BootLayerLocator.NAME, BootLayerLocator.FACTORY);
         registerLocatorFactory(JarFileLocator.NAME, JarFileLocator.FACTORY);
         registerLocatorFactory(ExplodedDirectoryLocator.NAME, ExplodedDirectoryLocator.FACTORY);

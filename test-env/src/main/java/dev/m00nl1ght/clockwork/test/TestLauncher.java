@@ -7,6 +7,7 @@ import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
+import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
@@ -49,7 +50,13 @@ public class TestLauncher {
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
-        final var bootLayerLoader = ClockworkLoader.buildBootLayerDefault();
+        final var bootLayerConfigBuilder = ClockworkConfig.builder();
+        bootLayerConfigBuilder.addPluginLocator(BootLayerLocator.newConfig());
+        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
+        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
+        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
+
+        final var bootLayerLoader = ClockworkLoader.build(bootLayerConfigBuilder.build());
         EventHandlerAnnotationProcessor.registerTo(bootLayerLoader);
         final var bootLayerCore = bootLayerLoader.loadAndInit();
 
