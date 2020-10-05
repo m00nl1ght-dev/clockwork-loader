@@ -1,8 +1,11 @@
 package dev.m00nl1ght.clockwork.locator;
 
+import dev.m00nl1ght.clockwork.core.ClockworkLoader;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -19,20 +22,30 @@ public class ExplodedDirectoryLocator extends AbstractCachedLocator {
     private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String NAME = "ExplodedDirectoryLocator";
-    public static final PluginLocatorFactory FACTORY = ExplodedDirectoryLocator::new;
+    public static final PluginLocatorType FACTORY = ExplodedDirectoryLocator::new;
 
     protected final File lookupPath;
 
-    public static LocatorConfig newConfig(File path) {
-        return newConfig(path, null);
+    public static void registerTo(ClockworkLoader loader) {
+        Arguments.notNull(loader, "loader");
+        loader.registerLocatorType(NAME, FACTORY);
     }
 
-    public static LocatorConfig newConfig(File path, Set<String> readers) {
-        return newConfig(path, readers, false);
+    public static void registerTo(CollectClockworkExtensionsEvent event) {
+        Arguments.notNull(event, "event");
+        event.registerLocatorFactory(NAME, FACTORY);
     }
 
-    public static LocatorConfig newConfig(File path, Set<String> readers, boolean wildcard) {
-        return new LocatorConfig(NAME, Map.of("path", path.getPath()), readers, wildcard);
+    public static LocatorConfig newConfig(String name, File path) {
+        return newConfig(name, path, null);
+    }
+
+    public static LocatorConfig newConfig(String name, File path, Set<String> readers) {
+        return newConfig(name, path, readers, false);
+    }
+
+    public static LocatorConfig newConfig(String name, File path, Set<String> readers, boolean wildcard) {
+        return new LocatorConfig(name, NAME, Map.of("path", path.getPath()), readers, wildcard);
     }
 
     /**

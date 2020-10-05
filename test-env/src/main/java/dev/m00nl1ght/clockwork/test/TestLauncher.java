@@ -7,7 +7,7 @@ import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
-import dev.m00nl1ght.clockwork.locator.BootLayerLocator;
+import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.locator.JarFileLocator;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
@@ -45,21 +45,15 @@ public class TestLauncher {
         ClockworkSecurityPolicy.install(securityConfig);
 
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginLocator(JarFileLocator.newConfig(TEST_PLUGIN_JAR, Set.of("NightconfigPluginReader")));
+        configBuilder.addPluginReader(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml"));
+        configBuilder.addPluginLocator(JarFileLocator.newConfig("testJar", TEST_PLUGIN_JAR, Set.of("toml")));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
-        final var bootLayerConfigBuilder = ClockworkConfig.builder();
-        bootLayerConfigBuilder.addPluginLocator(BootLayerLocator.newConfig());
-        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
-        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
-        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
-        bootLayerConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
-
-        final var bootLayerLoader = ClockworkLoader.build(bootLayerConfigBuilder.build());
+        final var bootLayerLoader = ClockworkLoader.buildBootLayerDefault();
         EventHandlerAnnotationProcessor.registerTo(bootLayerLoader);
         final var bootLayerCore = bootLayerLoader.loadAndInit();
 

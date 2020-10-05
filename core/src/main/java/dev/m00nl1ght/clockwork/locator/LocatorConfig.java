@@ -8,27 +8,33 @@ import java.util.Set;
 
 public final class LocatorConfig extends ImmutableConfig {
 
-    private final String locator;
+    private final String name;
+    private final String type;
     private final Set<String> readers;
     private final boolean wildcard;
 
-    public static Builder builder(String locator) {
-        return new Builder(Arguments.notNullOrBlank(locator, "locator"));
+    public static Builder builder(String name, String type) {
+        return new Builder(Arguments.notNullOrBlank(name, "name"), Arguments.notNullOrBlank(type, "type"));
     }
 
     private LocatorConfig(Builder builder) {
-        this(builder.locator, builder.getEntries(), builder.readers, builder.wildcard);
+        this(builder.name, builder.type, builder.getEntries(), builder.readers, builder.wildcard);
     }
 
-    public LocatorConfig(String locator, Map<String, String> params, Set<String> readers, boolean wildcard) {
-        super(params, "LocatorConfig[" + locator + "]");
-        this.locator = Arguments.notNullOrBlank(locator, "locator");
+    public LocatorConfig(String name, String type, Map<String, String> params, Set<String> readers, boolean wildcard) {
+        super(params, "LocatorConfig[" + name + "]");
+        this.name = Arguments.notNullOrBlank(name, "name");
+        this.type = Arguments.notNullOrBlank(type, "type");
         this.readers = readers == null ? null : Set.copyOf(readers);
         this.wildcard = wildcard;
     }
 
-    public String getLocator() {
-        return locator;
+    public String getName() {
+        return name;
+    }
+
+    public String getType() {
+        return type;
     }
 
     public Set<String> getReaders() {
@@ -41,12 +47,15 @@ public final class LocatorConfig extends ImmutableConfig {
 
     public static class Builder extends ImmutableConfig.Builder {
 
-        private final String locator;
+        private final String name;
+        private final String type;
         private Set<String> readers;
         private boolean wildcard;
 
-        private Builder(String locator) {
-            this.locator = locator;
+        private Builder(String name, String type) {
+            this.name = name;
+            this.type = type;
+            configName("LocatorConfig[" + name + "]");
         }
 
         @Override

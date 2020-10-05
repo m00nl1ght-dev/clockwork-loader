@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+CWL-Plugin-Id: cwl-jar-in-jar
+CWL-Plugin-Version: 0.5
+CWL-Plugin-Display-Name: [CWL-Extension] Jar-in-Jar support
+CWL-Plugin-Description: An extension for the Clockwork Loader that supports loading dependencies from within plugin jars.
+CWL-Plugin-Authors: m00nl1ght
+
+Name: dev/m00nl1ght/clockwork/extension/jarinjar/CWLJarInJarExtension.class
+CWL-Component-Id: cwl-jar-in-jar
+CWL-Component-Requires: clockwork[0.5]

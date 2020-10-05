@@ -1,8 +1,11 @@
 package dev.m00nl1ght.clockwork.locator;
 
+import dev.m00nl1ght.clockwork.core.ClockworkLoader;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
+import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -15,20 +18,30 @@ import java.util.function.Consumer;
 public class BootLayerLocator extends AbstractCachedLocator {
 
     public static final String NAME = "BootLayerLocator";
-    public static final PluginLocatorFactory FACTORY = BootLayerLocator::new;
+    public static final PluginLocatorType FACTORY = BootLayerLocator::new;
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    public static LocatorConfig newConfig() {
-        return newConfig(false);
+    public static void registerTo(ClockworkLoader loader) {
+        Arguments.notNull(loader, "loader");
+        loader.registerLocatorType(NAME, FACTORY);
     }
 
-    public static LocatorConfig newConfig(boolean wildcard) {
-        return newConfig(null, wildcard);
+    public static void registerTo(CollectClockworkExtensionsEvent event) {
+        Arguments.notNull(event, "event");
+        event.registerLocatorFactory(NAME, FACTORY);
     }
 
-    public static LocatorConfig newConfig(Set<String> readers, boolean wildcard) {
-        return new LocatorConfig(NAME, Map.of(), readers, wildcard);
+    public static LocatorConfig newConfig(String name) {
+        return newConfig(name, false);
+    }
+
+    public static LocatorConfig newConfig(String name, boolean wildcard) {
+        return newConfig(name, null, wildcard);
+    }
+
+    public static LocatorConfig newConfig(String name, Set<String> readers, boolean wildcard) {
+        return new LocatorConfig(name, NAME, Map.of(), readers, wildcard);
     }
 
     protected BootLayerLocator(LocatorConfig config, Set<PluginReader> readers) {

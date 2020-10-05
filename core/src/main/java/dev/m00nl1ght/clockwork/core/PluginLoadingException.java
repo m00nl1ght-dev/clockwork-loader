@@ -93,12 +93,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Id [] is invalid", id);
     }
 
-    public static PluginLoadingException missingReader(String name) {
-        return generic("PluginReader [] is missing", name);
+    public static PluginLoadingException missingReaderType(String name) {
+        return generic("PluginReaderType [] is missing", name);
     }
 
-    public static PluginLoadingException missingLocatorFactory(String name) {
-        return generic("PluginLocatorFactory for [] is missing", name);
+    public static PluginLoadingException missingLocatorType(String name) {
+        return generic("PluginLocatorType [] is missing", name);
+    }
+
+    public static PluginLoadingException missingReader(String name) {
+        return generic("No PluginReader with id [] is defined", name);
     }
 
     public static PluginLoadingException missingProcessor(String plugin, String name) {

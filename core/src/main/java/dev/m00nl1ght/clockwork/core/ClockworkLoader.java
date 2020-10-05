@@ -12,6 +12,8 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.locator.*;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.reader.PluginReaderType;
+import dev.m00nl1ght.clockwork.reader.ReaderConfig;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -56,7 +58,8 @@ public final class ClockworkLoader {
 
     public static ClockworkLoader buildBootLayerDefault() {
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginLocator(BootLayerLocator.newConfig(true));
+        configBuilder.addPluginReader(ManifestPluginReader.newConfig("manifest"));
+        configBuilder.addPluginLocator(BootLayerLocator.newConfig("boot", true));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         return build(configBuilder.build());
     }
@@ -65,8 +68,8 @@ public final class ClockworkLoader {
     private final ClockworkConfig config;
     private ClockworkCore core;
 
-    private final Map<String, PluginReader> registeredReaders = new HashMap<>();
-    private final Map<String, PluginLocatorFactory> registeredLocatorFactories = new HashMap<>();
+    private final Map<String, PluginReaderType> registeredReaderTypes = new HashMap<>();
+    private final Map<String, PluginLocatorType> registeredLocatorTypes = new HashMap<>();
     private final Map<String, PluginProcessor> registeredProcessors = new HashMap<>();
 
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
@@ -79,20 +82,20 @@ public final class ClockworkLoader {
     }
 
     private void registerDefaults() {
-        registerReader(ManifestPluginReader.NAME, new ManifestPluginReader());
-        registerLocatorFactory(BootLayerLocator.NAME, BootLayerLocator.FACTORY);
-        registerLocatorFactory(JarFileLocator.NAME, JarFileLocator.FACTORY);
-        registerLocatorFactory(ExplodedDirectoryLocator.NAME, ExplodedDirectoryLocator.FACTORY);
+        ManifestPluginReader.registerTo(this);
+        BootLayerLocator.registerTo(this);
+        JarFileLocator.registerTo(this);
+        ExplodedDirectoryLocator.registerTo(this);
     }
 
-    public synchronized void registerReader(String id, PluginReader reader) {
-        final var existing = registeredReaders.putIfAbsent(id, reader);
-        if (existing != null) throw FormatUtil.illArgExc("Plugin reader with id [] is already present", id);
+    public synchronized void registerReaderType(String id, PluginReaderType readerType) {
+        final var existing = registeredReaderTypes.putIfAbsent(id, readerType);
+        if (existing != null) throw FormatUtil.illArgExc("PluginReaderType with id [] is already present", id);
     }
 
-    public synchronized void registerLocatorFactory(String id, PluginLocatorFactory locatorFactory) {
-        final var existing = registeredLocatorFactories.putIfAbsent(id, locatorFactory);
-        if (existing != null) throw FormatUtil.illArgExc("Plugin locator factory with id [] is already present", id);
+    public synchronized void registerLocatorType(String id, PluginLocatorType locatorType) {
+        final var existing = registeredLocatorTypes.putIfAbsent(id, locatorType);
+        if (existing != null) throw FormatUtil.illArgExc("PluginLocatorType with id [] is already present", id);
     }
 
     public synchronized void registerProcessor(String id, PluginProcessor processor) {
@@ -140,13 +143,20 @@ public final class ClockworkLoader {
         final var wantedPlugins = config.getWantedPlugins().stream()
                 .collect(Collectors.toMap(DependencyDescriptor::getPlugin, Function.identity(), (a, b) -> b, HashMap::new));
 
+        // Build all the readers wanted by the config.
+        final var readers = new HashMap<String, PluginReader>();
+        for (final var config : config.getReaders()) {
+            final var reader = findReaderType(config).build(config);
+            readers.put(config.getName(), reader);
+        }
+
         // Build all the locators wanted by the config. Also add the plugins found by wildcard locators.
         final var locators = new HashMap<String, PluginLocator>();
-        final var allReaders = Set.copyOf(registeredReaders.values());
+        final var allReaders = Set.copyOf(readers.values());
         for (final var config : config.getLocators()) {
-            final var readers = config.getReaders() == null ? allReaders : findReaders(config);
-            final var locator = findLocatorFactory(config).build(config, readers);
-            locators.put(config.getLocator(), locator);
+            final var wantedReaders = config.getReaders() == null ? allReaders : findReaders(readers, config);
+            final var locator = findLocatorType(config).build(config, wantedReaders);
+            locators.put(config.getName(), locator);
             if (config.isWildcard()) {
                 for (final var located : locator.findAll()) {
                     wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
@@ -167,7 +177,7 @@ public final class ClockworkLoader {
                 }
             }
 
-            // Otherwise, try to find it with the PluginLocators from the config.
+            // Otherwise, try to find it using the PluginLocators from the config.
             final var located = new LinkedList<PluginReference>();
             for (var locator : locators.values()) {
                 for (var ref : locator.find(wanted)) {
@@ -401,16 +411,22 @@ public final class ClockworkLoader {
 
     }
 
-    private PluginLocatorFactory findLocatorFactory(LocatorConfig config) {
-        final var factory = registeredLocatorFactories.get(config.getLocator());
-        if (factory == null) throw PluginLoadingException.missingLocatorFactory(config.getLocator());
-        return factory;
+    private PluginReaderType findReaderType(ReaderConfig config) {
+        final var type = registeredReaderTypes.get(config.getType());
+        if (type == null) throw PluginLoadingException.missingReaderType(config.getType());
+        return type;
     }
 
-    private Set<PluginReader> findReaders(LocatorConfig config) {
+    private PluginLocatorType findLocatorType(LocatorConfig config) {
+        final var type = registeredLocatorTypes.get(config.getType());
+        if (type == null) throw PluginLoadingException.missingLocatorType(config.getType());
+        return type;
+    }
+
+    private Set<PluginReader> findReaders(Map<String, PluginReader> available, LocatorConfig config) {
         final var readers = new HashSet<PluginReader>();
         for (final var readerName : config.getReaders()) {
-            final var reader = registeredReaders.get(readerName);
+            final var reader = available.get(readerName);
             if (reader == null) throw PluginLoadingException.missingReader(readerName);
             readers.add(reader);
         }

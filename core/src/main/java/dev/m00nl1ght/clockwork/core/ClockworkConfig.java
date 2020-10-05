@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.locator.LocatorConfig;
+import dev.m00nl1ght.clockwork.reader.ReaderConfig;
 import dev.m00nl1ght.clockwork.util.ImmutableConfig;
 
 import java.util.LinkedHashSet;
@@ -13,6 +14,7 @@ public final class ClockworkConfig extends ImmutableConfig {
 
     private final List<DependencyDescriptor> wantedPlugins;
     private final Set<LocatorConfig> locators;
+    private final Set<ReaderConfig> readers;
 
     public static Builder builder() {
         return new Builder();
@@ -22,10 +24,15 @@ public final class ClockworkConfig extends ImmutableConfig {
         super(builder);
         this.wantedPlugins = List.copyOf(builder.wantedPlugins);
         this.locators = Set.copyOf(builder.locators);
+        this.readers = Set.copyOf(builder.readers);
     }
 
     public List<DependencyDescriptor> getWantedPlugins() {
         return wantedPlugins;
+    }
+
+    public Set<ReaderConfig> getReaders() {
+        return readers;
     }
 
     public Set<LocatorConfig> getLocators() {
@@ -36,6 +43,7 @@ public final class ClockworkConfig extends ImmutableConfig {
 
         private final List<DependencyDescriptor> wantedPlugins = new LinkedList<>();
         private final Set<LocatorConfig> locators = new LinkedHashSet<>();
+        private final Set<ReaderConfig> readers = new LinkedHashSet<>();
 
         private Builder() {
             configName("ClockworkConfig");
@@ -47,9 +55,15 @@ public final class ClockworkConfig extends ImmutableConfig {
         }
 
         public void addPluginLocator(LocatorConfig locator) {
-            if (locators.stream().anyMatch(d -> d.getLocator().equals(locator.getLocator())))
-                throw new IllegalArgumentException("duplicate locator: " + locator);
+            if (locators.stream().anyMatch(d -> d.getName().equals(locator.getName())))
+                throw new IllegalArgumentException("duplicate locator: " + locator.getName());
             this.locators.add(locator);
+        }
+
+        public void addPluginReader(ReaderConfig reader) {
+            if (readers.stream().anyMatch(d -> d.getName().equals(reader.getName())))
+                throw new IllegalArgumentException("duplicate reader: " + reader.getName());
+            this.readers.add(reader);
         }
 
         public void addWantedPlugin(DependencyDescriptor descriptor) {

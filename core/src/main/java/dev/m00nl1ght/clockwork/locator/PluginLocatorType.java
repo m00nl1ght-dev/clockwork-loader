@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.reader.PluginReader;
 
 import java.util.Set;
 
-public interface PluginLocatorFactory {
+public interface PluginLocatorType {
 
     PluginLocator build(LocatorConfig config, Set<PluginReader> readers);
 

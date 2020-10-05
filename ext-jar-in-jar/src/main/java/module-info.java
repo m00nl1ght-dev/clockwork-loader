@@ -1,0 +1,11 @@
+module dev.m00nl1ght.clockwork.extension.jarinjar {
+
+    exports dev.m00nl1ght.clockwork.extension.jarinjar;
+
+    // needed so that reflective access works in boot layer
+    opens dev.m00nl1ght.clockwork.extension.jarinjar to dev.m00nl1ght.clockwork;
+
+    requires dev.m00nl1ght.clockwork;
+    requires org.apache.logging.log4j;
+
+}

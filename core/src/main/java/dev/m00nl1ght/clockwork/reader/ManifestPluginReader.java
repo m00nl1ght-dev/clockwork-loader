@@ -1,10 +1,13 @@
 package dev.m00nl1ght.clockwork.reader;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.ClockworkLoader;
+import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.ConsumingConfig;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.ImmutableConfig;
@@ -14,14 +17,15 @@ import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Map;
 import java.util.jar.Manifest;
 
 public class ManifestPluginReader implements PluginReader {
 
     public static final String NAME = "ManifestPluginReader";
+    public static final PluginReaderType FACTORY = ManifestPluginReader::new;
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final String MANIFEST_FILE = "META-INF/MANIFEST.MF";
 
     private static final String HEADER_PREFIX = "CWL-";
     private static final String HEADER_PLUGIN_ID = HEADER_PREFIX + "Plugin-Id";
@@ -41,9 +45,35 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_COMPONENT_OPTIONAL = HEADER_PREFIX + "Component-Optional";
     private static final String HEADER_COMPONENT_FACTORY_ACCESS = HEADER_PREFIX + "Component-AllowFactoryAccess";
 
+    protected final ReaderConfig config;
+    protected final String manifestFilePath;
+
+    protected ManifestPluginReader(ReaderConfig config) {
+        this.config = Arguments.notNull(config, "config");
+        this.manifestFilePath = config.get("manifestPath");
+    }
+
+    public static void registerTo(ClockworkLoader loader) {
+        Arguments.notNull(loader, "loader");
+        loader.registerReaderType(NAME, FACTORY);
+    }
+
+    public static void registerTo(CollectClockworkExtensionsEvent event) {
+        Arguments.notNull(event, "event");
+        event.registerReaderType(NAME, FACTORY);
+    }
+
+    public static ReaderConfig newConfig(String name) {
+        return newConfig(name, "META-INF/MANIFEST.MF");
+    }
+
+    public static ReaderConfig newConfig(String name, String manifestPath) {
+        return new ReaderConfig(name, NAME, Map.of("manifestPath", manifestPath));
+    }
+
     @Override
     public PluginDescriptor read(Path path) {
-        final var manifestPath = path.resolve(MANIFEST_FILE);
+        final var manifestPath = path.resolve(manifestFilePath);
         if (!Files.exists(manifestPath)) return null;
         try (final var fis = Files.newInputStream(manifestPath)) {
             return read(new Manifest(fis));
@@ -126,6 +156,11 @@ public class ManifestPluginReader implements PluginReader {
     private String autoId(String id, String pluginId) {
         if (id == null) return null;
         return id.contains(":") ? id : (pluginId + id);
+    }
+
+    @Override
+    public String toString() {
+        return config.getType() + "[" + config.getName() +  "]";
     }
 
 }

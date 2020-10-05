@@ -83,7 +83,7 @@ public abstract class AbstractCachedLocator implements PluginLocator {
 
     @Override
     public String toString() {
-        return config.getLocator();
+        return config.getType() + "[" + config.getName() +  "]";
     }
 
 }
