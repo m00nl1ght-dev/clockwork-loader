@@ -12,10 +12,12 @@ public class TargetType<T extends ComponentTarget> {
     protected final Class<T> targetClass;
     protected final TargetType<? super T> root;
     protected final TargetType<? super T> parent;
+    protected final IdentityComponentType<T> identityComponentType;
 
     private final List<TargetType<? extends T>> directSubtargets = new LinkedList<>();
     private final List<TargetType<?>> allSubtargets;
 
+    private final Set<ComponentType<?, T>> ownComponentTypes = new LinkedHashSet<>();
     private List<ComponentType<?, ? super T>> componentTypes;
     private int subtargetIdxFirst = -1, subtargetIdxLast = -1;
 
@@ -25,13 +27,17 @@ public class TargetType<T extends ComponentTarget> {
         if (this.parent == null) {
             this.root = this;
             this.allSubtargets = new LinkedList<>();
+            this.identityComponentType = new IdentityComponentType<>(null, this);
         } else {
             synchronized (this.parent) {
                 this.root = this.parent.root;
+                if (!this.parent.targetClass.isAssignableFrom(targetClass))
+                    throw FormatUtil.illArgExc("Heap pollution: Incompatible parent target [] for []", parent, this);
                 if (this.parent.isInitialised())
                     throw FormatUtil.illStateExc("Parent TargetType [] is already initialised", this.parent);
                 this.parent.directSubtargets.add(this);
                 this.allSubtargets = this.parent.allSubtargets;
+                this.identityComponentType = new IdentityComponentType<>(parent.identityComponentType, this);
             }
         }
     }
@@ -56,6 +62,10 @@ public class TargetType<T extends ComponentTarget> {
         return componentTypes;
     }
 
+    public Set<ComponentType<?, T>> getOwnComponentTypes() {
+        return Collections.unmodifiableSet(ownComponentTypes);
+    }
+
     /**
      * Returns the {@link ComponentType} for the given component class, wrapped in an {@link Optional}.
      * If no such component is registered to this TargetType, this method will return an empty optional.
@@ -70,10 +80,8 @@ public class TargetType<T extends ComponentTarget> {
                 .findFirst();
     }
 
-    @SuppressWarnings("unchecked")
     public final ComponentType<T, T> getIdentityComponentType() {
-        if (componentTypes == null) return null;
-        return (ComponentType<T, T>) componentTypes.get(0);
+        return identityComponentType;
     }
 
     @SuppressWarnings("unchecked")
@@ -116,28 +124,25 @@ public class TargetType<T extends ComponentTarget> {
 
     // ### Internal ###
 
-    protected final synchronized void init(Set<? extends ComponentType<?, ?>> componentTypes) {
-        if (this.componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
-        final var components = Arguments.verifiedSnapshot(componentTypes, t -> t.targetType == this, "components");
-        Arguments.distinct(components, ComponentType::getComponentClass, "components");
-        final var componentList = new LinkedList<ComponentType<?, ? super T>>();
+    protected final synchronized void init() {
+        if (this.componentTypes != null)
+            throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
 
+        final var componentList = new LinkedList<ComponentType<?, ? super T>>();
         if (parent == null) {
             this.populateSubtargets();
-            componentList.add(new IdentityComponentType<>(this));
         } else {
-            if (parent.componentTypes == null) throw FormatUtil.illStateExc("Parent TargetType [] is not initialised", parent);
+            if (parent.componentTypes == null)
+                throw FormatUtil.illStateExc("Parent TargetType [] is not initialised", parent);
             componentList.addAll(parent.componentTypes);
-            componentList.set(0, new IdentityComponentType<>(this));
+            this.verifySiblings();
         }
 
-        for (final var component : components) {
-            @SuppressWarnings("unchecked")
-            final var castedComponent = (ComponentType<?, T>) component;
+        for (final var component : ownComponentTypes) {
             if (component.parent != null) {
-                componentList.set(component.parent.getInternalIdx(), castedComponent);
+                componentList.set(component.parent.getInternalIdx(), component);
             } else {
-                componentList.add(castedComponent);
+                componentList.add(component);
             }
         }
 
@@ -145,7 +150,7 @@ public class TargetType<T extends ComponentTarget> {
             final var component = componentList.get(i);
             final var idx = component.getInternalIdx();
             if (idx < 0) {
-                component.setInternalIdx(i);
+                component.init(i);
             } else {
                 if (idx != i) throw new IllegalStateException();
             }
@@ -154,11 +159,27 @@ public class TargetType<T extends ComponentTarget> {
         this.componentTypes = List.copyOf(componentList);
     }
 
+    synchronized void registerComponentType(ComponentType<?, T> componentType) {
+        requireNotInitialised();
+        if (componentType.targetType != this) throw new IllegalArgumentException();
+        if (ownComponentTypes.contains(componentType)) throw new IllegalStateException();
+        ownComponentTypes.add(componentType);
+    }
+
     private void populateSubtargets() {
         this.subtargetIdxFirst = this.allSubtargets.size();
         this.allSubtargets.add(this);
         for (final var sub : this.directSubtargets) sub.populateSubtargets();
         this.subtargetIdxLast = this.allSubtargets.size() - 1;
+    }
+
+    private void verifySiblings() {
+        for (final var sibling : parent.directSubtargets) {
+            if (sibling == this) continue;
+            if (this.targetClass.isAssignableFrom(sibling.targetClass)) {
+                throw PluginLoadingException.illegalSubtarget(this, sibling);
+            }
+        }
     }
 
 }

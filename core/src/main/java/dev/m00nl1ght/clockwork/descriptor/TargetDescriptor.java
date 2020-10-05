@@ -4,6 +4,10 @@ import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 public final class TargetDescriptor {
 
     private final String pluginId;
@@ -11,6 +15,7 @@ public final class TargetDescriptor {
     private final Version version;
     private final String parent;
     private final String targetClass;
+    private final List<String> internalComponents;
 
     TargetDescriptor(Builder builder) {
         this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
@@ -18,6 +23,7 @@ public final class TargetDescriptor {
         this.version = Arguments.notNull(builder.version, "version");
         this.parent = builder.parentId;
         this.targetClass = Arguments.notNullOrBlank(builder.targetClass, "targetClass");
+        this.internalComponents = Arguments.snapshot(builder.internalComponents, "internalComponents");
     }
 
     public String getPluginId() {
@@ -38,6 +44,10 @@ public final class TargetDescriptor {
 
     public String getTargetClass() {
         return targetClass;
+    }
+
+    public List<String> getInternalComponents() {
+        return internalComponents;
     }
 
     @Override
@@ -61,6 +71,7 @@ public final class TargetDescriptor {
         private Version version;
         private String targetClass;
         private String parentId;
+        private final Set<String> internalComponents = new LinkedHashSet<>();
 
         private Builder(String pluginId, String targetId) {
             this.pluginId = pluginId;
@@ -84,6 +95,11 @@ public final class TargetDescriptor {
         public Builder parent(String parentId) {
             this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : pluginId + ":" + parentId;
             return this;
+        }
+
+        public void internalComponent(String componentClass) {
+            if (componentClass == null) return;
+            internalComponents.add(componentClass);
         }
 
     }

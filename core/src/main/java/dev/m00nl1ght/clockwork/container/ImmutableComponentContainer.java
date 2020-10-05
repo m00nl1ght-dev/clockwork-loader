@@ -18,11 +18,12 @@ public class ImmutableComponentContainer<T extends ComponentTarget> extends Comp
     }
 
     public void initComponents() {
+        final var object = getTarget();
         for (var comp : targetType.getComponentTypes()) {
             try {
-                final var idx = comp.getInternalIdx(targetType);
+                final var idx = comp.getInternalIdx();
                 if (components[idx] == null) {
-                    components[idx] = buildComponent(comp);
+                    components[idx] = buildComponent(comp, object);
                 }
             } catch (ExceptionInPlugin e) {
                 e.addComponentToStack(comp);

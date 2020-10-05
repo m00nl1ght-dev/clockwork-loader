@@ -107,21 +107,34 @@ public class ModuleManager {
      * and verifies that it was loaded from the main module of the specified plugin.
      *
      * @param className the qualified name of the class to be loaded
-     * @param plugin    the plugin the class should be loaded for
+     * @param plugin    the plugin the class should be loaded from
      * @throws PluginLoadingException if the class is in a module other than
      *                                the main module of the plugin, or the class was not found
      */
     public Class<?> loadClassForPlugin(String className, LoadedPlugin plugin) {
         try {
-            final var cl = plugin.getMainModule().getClassLoader();
-            final var clazz = Class.forName(className, false, cl);
+            final var clazz = Class.forName(className, false, classloader);
             final var md = clazz.getModule().getDescriptor();
             final var actPlugin = md == null ? null : modules.get(md.name());
             if (!plugin.getId().equals(actPlugin))
-                throw PluginLoadingException.componentClassIllegal(className, plugin.getDescriptor(), actPlugin, md);
+                throw PluginLoadingException.pluginClassIllegal(className, plugin.getDescriptor(), actPlugin, md);
             return clazz;
         } catch (ClassNotFoundException e) {
-            throw PluginLoadingException.componentClassNotFound(className, plugin.getDescriptor());
+            throw PluginLoadingException.pluginClassNotFound(className, plugin.getDescriptor());
+        }
+    }
+
+    /**
+     * Loads the class with the given name from the internal module layer or any parent layers.
+     *
+     * @param className the qualified name of the class to be loaded
+     * @return the loaded class, or null if no such class was found
+     */
+    public Class<?> loadClassOrNull(String className) {
+        try {
+            return Class.forName(className, false, classloader);
+        } catch (ClassNotFoundException e) {
+            return null;
         }
     }
 

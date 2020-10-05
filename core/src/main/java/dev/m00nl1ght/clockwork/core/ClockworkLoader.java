@@ -28,7 +28,7 @@ import java.util.stream.Collectors;
  * The entry point of the plugin loading framework.
  *
  * From application code, call {@link ClockworkLoader#build}
- * to get a ClockworkCore instance.
+ * to get a ClockworkLoader instance.
  */
 public final class ClockworkLoader {
 
@@ -45,13 +45,6 @@ public final class ClockworkLoader {
             throw FormatUtil.rtExc("Core module was not loaded correctly (the module is unnamed)");
     }
 
-    /**
-     * Finds plugins based on the given {@link ClockworkConfig} and resolves all dependencies.
-     *
-     * @param config the {@link ClockworkConfig} defining how plugins will be located
-     * @return a new {@link ClockworkCore} that can be used to load the plugins that have been located
-     * @throws PluginLoadingException if there were any fatal dependency resolution problems
-     */
     public static ClockworkLoader build(ClockworkConfig config) {
         return new ClockworkLoader(null, Arguments.notNull(config, "config"));
     }
@@ -289,8 +282,16 @@ public final class ClockworkLoader {
 
         }
 
-        // Group registered components by target.
-        final var componentRegistry = new ComponentRegistry(core);
+        // Add internal components of each target type.
+        for (final var targetType : core.getLoadedTargetTypes()) {
+            final var classes = targetType.getDescriptor().getInternalComponents();
+            for (final var className : classes) {
+                final var compClass = moduleManager.loadClassOrNull(className);
+                if (compClass == null)
+                    throw PluginLoadingException.pluginClassNotFound(className, targetType.getPlugin().getDescriptor());
+                buildInternalComponent(targetType, compClass);
+            }
+        }
 
         core.setState(State.PROCESSING);
 
@@ -311,7 +312,7 @@ public final class ClockworkLoader {
             if (processors.isEmpty()) continue;
 
             // Now apply the processors.
-            final var reflectiveAccess = new PluginProcessorContext(plugin, componentRegistry, INTERNAL_LOOKUP);
+            final var reflectiveAccess = new PluginProcessorContext(plugin, INTERNAL_LOOKUP);
             for (var name : processors) {
                 final var optional = name.startsWith("?");
                 if (optional) name = name.substring(1);
@@ -330,7 +331,7 @@ public final class ClockworkLoader {
         }
 
         // Initialise the target types.
-        componentRegistry.initAll();
+        core.getLoadedTargetTypes().forEach(TargetType::init);
 
         // The core is now ready for use.
         core.setState(State.POPULATED);
@@ -350,17 +351,6 @@ public final class ClockworkLoader {
                 parentType = casted;
             } else {
                 throw PluginLoadingException.invalidParentForTarget(descriptor, found);
-            }
-        }
-
-        // Assert that there are no inconsistencies in the target hierarchy.
-        Class<?> sctCurrent = targetClass;
-        final var sctExpected = parentType == null ? Object.class : parentType.getTargetClass();
-        while ((sctCurrent = sctCurrent.getSuperclass()) != null) {
-            if (sctCurrent == sctExpected) break;
-            final var found = plugin.getClockworkCore().getTargetTypeUncasted(sctCurrent);
-            if (found.isPresent()) {
-                throw PluginLoadingException.illegalTargetSubclass(descriptor, targetClass, found.get());
             }
         }
 
@@ -389,23 +379,25 @@ public final class ClockworkLoader {
             }
         }
 
-        // Assert that there are no inconsistencies in the target hierarchy.
-        Class<?> sctCurrent = componentClass;
-        final var sctExpected = parentType == null ? Object.class : parentType.getComponentClass();
-        while ((sctCurrent = sctCurrent.getSuperclass()) != null) {
-            if (sctCurrent == sctExpected) break;
-            final var found = plugin.getClockworkCore().getComponentTypeUncasted(sctCurrent);
-            if (found.isPresent()) {
-                throw PluginLoadingException.illegalComponentSubclass(descriptor, componentClass, found.get());
-            }
-        }
-
         // Construct the new ComponentType.
         final var component = new RegisteredComponentType<>(plugin, parentType, descriptor, componentClass, targetType);
 
         // Then add it to the core and plugin.
         plugin.getClockworkCore().addLoadedComponentType(component);
         plugin.addLoadedComponentType(component);
+
+    }
+
+    private <C, T extends ComponentTarget> void
+    buildInternalComponent(RegisteredTargetType<T> targetType, Class<C> compClass) {
+
+        final var scOpt = targetType.getComponentTypes().stream()
+                .filter(c -> c.componentClass.isAssignableFrom(compClass))
+                .findFirst();
+
+        @SuppressWarnings("unchecked")
+        final var casted = scOpt.isEmpty() ? null : (ComponentType<? super C, ? super T>) scOpt.get();
+        new ComponentType<>(casted, compClass, targetType);
 
     }
 
@@ -467,31 +459,6 @@ public final class ClockworkLoader {
 
     static Lookup getInternalLookup() {
         return INTERNAL_LOOKUP;
-    }
-
-    static class ComponentRegistry {
-
-        private final Map<TargetType<?>, Set<ComponentType<?, ?>>> map = new LinkedHashMap<>();
-
-        private ComponentRegistry(ClockworkCore core) {
-            core.getLoadedTargetTypes().forEach(t -> map.put(t, new LinkedHashSet<>()));
-            core.getLoadedComponentTypes().forEach(c -> map.get(c.getTargetType()).add(c));
-        }
-
-        private void initAll() {
-            for (var entry : map.entrySet()) entry.getKey().init(entry.getValue());
-        }
-
-        public <T extends ComponentTarget> void register(TargetType<T> targetType, ComponentType<?, T> componentType) {
-            final var list = map.get(targetType);
-            if (list == null) throw new IllegalArgumentException();
-            list.add(componentType);
-        }
-
-        public List<ComponentType<?, ?>> get(RegisteredTargetType<?> targetType) {
-            return List.copyOf(map.getOrDefault(targetType, Set.of()));
-        }
-
     }
 
     private class ComponentSorter extends AbstractTopologicalSorter<ComponentDescriptor, DependencyDescriptor> {

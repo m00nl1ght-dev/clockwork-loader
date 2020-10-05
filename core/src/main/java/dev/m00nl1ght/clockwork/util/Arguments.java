@@ -105,4 +105,10 @@ public class Arguments {
         }
     }
 
+    public static int inRange(int num, int min, int max, String name) {
+        if (num < min || num > max)
+            throw FormatUtil.illArgExc("Argument [] is not in valid range", name);
+        return num;
+    }
+
 }

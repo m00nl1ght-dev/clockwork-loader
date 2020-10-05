@@ -22,8 +22,8 @@ public abstract class ComponentContainer<T extends ComponentTarget> {
         return targetType;
     }
 
-    protected <C> C buildComponent(ComponentType<C, ? super T> componentType) throws Throwable {
-        return componentType.factory.create(getTarget());
+    protected <C> C buildComponent(ComponentType<C, ? super T> componentType, T object) throws Throwable {
+        return componentType.factory.create(object);
     }
 
 }

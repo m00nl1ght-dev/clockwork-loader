@@ -1,7 +1,11 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
+
+import java.util.Collections;
+import java.util.LinkedList;
+import java.util.List;
 
 public class ComponentType<C, T extends ComponentTarget> {
 
@@ -10,7 +14,9 @@ public class ComponentType<C, T extends ComponentTarget> {
     protected final TargetType<? super T> rootType;
     protected final ComponentType<? super C, ? super T> parent;
 
+    private final List<ComponentType<? extends C, ? extends T>> directSubcomponents = new LinkedList<>();
     private int internalIdx = -1;
+
     ComponentFactory<T, C> factory = ComponentFactory.emptyFactory();
 
     public ComponentType(ComponentType<? super C, ? super T> parent, Class<C> componentClass, TargetType<T> targetType) {
@@ -18,6 +24,16 @@ public class ComponentType<C, T extends ComponentTarget> {
         this.targetType = Arguments.notNull(targetType, "targetType");
         this.componentClass = Arguments.notNull(componentClass, "componentClass");
         this.rootType = targetType.getRoot();
+        this.targetType.registerComponentType(this);
+        if (parent != null) {
+            synchronized (this.parent) {
+                if (!this.parent.componentClass.isAssignableFrom(componentClass))
+                    throw FormatUtil.illArgExc("Heap pollution: Incompatible parent component [] for []", parent, this);
+                if (this.parent.isInitialised())
+                    throw FormatUtil.illStateExc("Parent ComponentType [] is already initialised", this.parent);
+                this.parent.directSubcomponents.add(this);
+            }
+        }
     }
 
     public final TargetType<T> getTargetType() {
@@ -30,6 +46,11 @@ public class ComponentType<C, T extends ComponentTarget> {
 
     public ComponentType<? super C, ? super T> getParent() {
         return parent;
+    }
+
+    public final List<ComponentType<? extends C, ? extends T>> getDirectSubcomponents() {
+        this.requireInitialised();
+        return Collections.unmodifiableList(directSubcomponents);
     }
 
     public final int getInternalIdx() {
@@ -60,6 +81,18 @@ public class ComponentType<C, T extends ComponentTarget> {
         this.factory = Arguments.notNull(factory, "factory");
     }
 
+    public final boolean isInitialised() {
+        return internalIdx >= 0;
+    }
+
+    public final void requireInitialised() {
+        if (internalIdx < 0) throw FormatUtil.illStateExc("ComponentType [] is not initialised", this);
+    }
+
+    public final void requireNotInitialised() {
+        if (internalIdx >= 0) throw FormatUtil.illStateExc("ComponentType [] is initialised", this);
+    }
+
     @Override
     public String toString() {
         return componentClass.getSimpleName() + "@" + targetType.toString();
@@ -68,6 +101,7 @@ public class ComponentType<C, T extends ComponentTarget> {
     // ### Internal ###
 
     protected void checkCompatibility(TargetType<?> otherTarget) {
+        this.requireInitialised();
         targetType.requireInitialised();
         if (!otherTarget.isEquivalentTo(this.targetType)) {
             final var msg = "Cannot access component [] (registered to target []) from different target []";
@@ -75,9 +109,20 @@ public class ComponentType<C, T extends ComponentTarget> {
         }
     }
 
-    protected final void setInternalIdx(int internalIdx) {
+    protected final synchronized void init(int internalIdx) {
+        this.requireNotInitialised();
         targetType.requireNotInitialised();
-        this.internalIdx = internalIdx;
+        this.internalIdx = Arguments.inRange(internalIdx, 0, Integer.MAX_VALUE, "internalIdx");
+        if (parent != null) verifySiblings();
+    }
+
+    private void verifySiblings() {
+        for (final var sibling : parent.directSubcomponents) {
+            if (sibling == this) continue;
+            if (this.componentClass.isAssignableFrom(sibling.componentClass)) {
+                throw PluginLoadingException.illegalSubcomponent(this, sibling);
+            }
+        }
     }
 
 }

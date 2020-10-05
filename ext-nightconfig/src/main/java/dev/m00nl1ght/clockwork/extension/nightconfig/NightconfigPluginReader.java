@@ -1,8 +1,7 @@
 package dev.m00nl1ght.clockwork.extension.nightconfig;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
-import com.electronwill.nightconfig.core.file.FileNotFoundAction;
-import com.electronwill.nightconfig.toml.TomlFormat;
+import com.electronwill.nightconfig.core.file.FileConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ClockworkLoader;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
@@ -16,9 +15,6 @@ import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.io.IOException;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
@@ -42,27 +38,13 @@ public class NightconfigPluginReader implements PluginReader {
     }
 
     @Override
-    public PluginDescriptor read(Path path) {
-        if (Files.isDirectory(path)) {
-            return load(path.resolve(INFO_FILE));
-        } else if (Files.isRegularFile(path)) {
-            try (final var fs = FileSystems.newFileSystem(path, NightconfigPluginReader.class.getClassLoader())) {
-                return load(fs.getPath(INFO_FILE));
-            } catch (IOException | FileSystemNotFoundException e) {
-                LOGGER.debug("Failed to open as filesystem: " + path, e);
-                return null;
-            }
-        } else {
-            return null;
-        }
-    }
-
-    private PluginDescriptor load(Path path) {
+    public PluginDescriptor read(Path sourcePath) {
+        final var path = sourcePath.resolve(INFO_FILE);
         if (!Files.exists(path)) return null;
-        final var parser = TomlFormat.instance().createParser();
-        final var config = parser.parse(path, FileNotFoundAction.THROW_ERROR).unmodifiable();
-        final String pluginId = config.get("plugin_id");
+        final var config = FileConfig.of(path);
+        config.load(); config.close();
 
+        final String pluginId = config.get("plugin_id");
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
         final var version = new Version(config.get("version"), Version.VersionType.IVY);
         descriptorBuilder.displayName(config.get("display_name"));

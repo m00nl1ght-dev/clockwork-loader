@@ -49,16 +49,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Could not find target [] for component []", component.getTargetId(), component.getId());
     }
 
-    public static PluginLoadingException componentClassIllegal(String className, PluginDescriptor plugin, String actPlugin, ModuleDescriptor module) {
+    public static PluginLoadingException pluginClassIllegal(String className, PluginDescriptor plugin, String actPlugin, ModuleDescriptor module) {
         if (module == null || actPlugin == null) {
-            return generic("Component class [] for plugin [] found in external module []", className, plugin.getId(), module == null ? "UNNAMED" : module.name());
+            return generic("Class [] for plugin [] found in external module []", className, plugin.getId(), module == null ? "UNNAMED" : module.name());
         } else {
-            return generic("Component class [] for plugin [] found in module [] of plugin []", className, plugin.getId(), module.name(), actPlugin);
+            return generic("Class [] for plugin [] found in module [] of different plugin []", className, plugin.getId(), module.name(), actPlugin);
         }
     }
 
-    public static PluginLoadingException componentClassNotFound(String className, PluginDescriptor plugin) {
-        return generic("Class [] defined for plugin [] not found", className, plugin.getId());
+    public static PluginLoadingException pluginClassNotFound(String className, PluginDescriptor plugin) {
+        return generic("Class [] for plugin [] not found", className, plugin.getId());
     }
 
     public static PluginLoadingException componentClassDuplicate(ComponentDescriptor component, String existing) {
@@ -121,12 +121,12 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), component.getId());
     }
 
-    public static PluginLoadingException illegalTargetSubclass(TargetDescriptor target, Class<?> targetClass, RegisteredTargetType<?> sub) {
-        return generic("[] is a subclass of class [], but target [] is not a parent of target []", sub.getTargetClass().getSimpleName(), targetClass.getSimpleName(), target.getId(), sub.getId());
+    public static PluginLoadingException illegalSubtarget(TargetType<?> target, TargetType<?> other) {
+        return generic("Class [] extends class [], but respective target [] does not extend target []", other.getTargetClass().getSimpleName(), target.getTargetClass().getSimpleName(), other, target);
     }
 
-    public static PluginLoadingException illegalComponentSubclass(ComponentDescriptor component, Class<?> componentClass, RegisteredComponentType<?, ?> sub) {
-        return generic("[] is a subclass of class [], but component [] is not a parent of component []", sub.getComponentClass().getSimpleName(), componentClass.getSimpleName(), component.getId(), sub.getId());
+    public static PluginLoadingException illegalSubcomponent(ComponentType<?, ?> component, ComponentType<?, ?> other) {
+        return generic("Class [] extends class [], but respective component [] does not extend component []", other.getComponentClass().getSimpleName(), component.getComponentClass().getSimpleName(), other, component);
     }
 
     public static PluginLoadingException invalidTargetClass(TargetDescriptor target, Class<?> targetClass) {
