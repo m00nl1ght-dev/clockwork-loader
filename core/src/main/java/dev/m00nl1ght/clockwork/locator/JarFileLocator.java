@@ -18,6 +18,8 @@ import java.util.function.Consumer;
 
 public class JarFileLocator extends AbstractCachedLocator {
 
+    // TODO move jar-in-jar functionality to an extension
+
     private static final Logger LOGGER = LogManager.getLogger();
     private static final String LIBS_DIR = "libs";
 

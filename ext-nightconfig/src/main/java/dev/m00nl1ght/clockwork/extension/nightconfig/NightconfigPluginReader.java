@@ -88,6 +88,8 @@ public class NightconfigPluginReader implements PluginReader {
             builder.version(version);
             builder.targetClass(conf.get("class"));
             builder.parent(conf.get("parent"));
+            final Optional<List<String>> internalComps = conf.getOptional("internalComponent");
+            internalComps.ifPresent(l -> l.forEach(builder::internalComponent));
             descriptorBuilder.target(builder.build());
         }
 

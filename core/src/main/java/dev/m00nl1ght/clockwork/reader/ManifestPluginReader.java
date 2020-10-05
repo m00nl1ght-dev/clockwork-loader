@@ -33,6 +33,7 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_PLUGIN_PERMISSIONS = HEADER_PREFIX + "Plugin-Permissions";
     private static final String HEADER_TARGET_ID = HEADER_PREFIX + "Target-Id";
     private static final String HEADER_TARGET_EXTENDS = HEADER_PREFIX + "Target-Extends";
+    private static final String HEADER_TARGET_INTERNAL_COMPONENTS = HEADER_PREFIX + "Target-Internal-Components";
     private static final String HEADER_COMPONENT_ID = HEADER_PREFIX + "Component-Id";
     private static final String HEADER_COMPONENT_TARGET = HEADER_PREFIX + "Component-Target";
     private static final String HEADER_COMPONENT_EXTENDS = HEADER_PREFIX + "Component-Extends";
@@ -98,6 +99,7 @@ public class ManifestPluginReader implements PluginReader {
                     builder.version(version);
                     builder.targetClass(className);
                     builder.parent(entryConfig.getOrNull(HEADER_TARGET_EXTENDS));
+                    entryConfig.getListOrEmpty(HEADER_TARGET_INTERNAL_COMPONENTS).forEach(builder::internalComponent);
                     descriptorBuilder.target(builder.build());
                 }
             }
