@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.locator.LocatorConfig;
-import dev.m00nl1ght.clockwork.reader.ReaderConfig;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
+import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.util.ImmutableConfig;
 
 import java.util.LinkedHashSet;
@@ -13,8 +13,8 @@ import java.util.Set;
 public final class ClockworkConfig extends ImmutableConfig {
 
     private final List<DependencyDescriptor> wantedPlugins;
-    private final Set<LocatorConfig> locators;
-    private final Set<ReaderConfig> readers;
+    private final Set<PluginFinderConfig> finders;
+    private final Set<PluginReaderConfig> readers;
 
     public static Builder builder() {
         return new Builder();
@@ -23,7 +23,7 @@ public final class ClockworkConfig extends ImmutableConfig {
     private ClockworkConfig(Builder builder) {
         super(builder);
         this.wantedPlugins = List.copyOf(builder.wantedPlugins);
-        this.locators = Set.copyOf(builder.locators);
+        this.finders = Set.copyOf(builder.finders);
         this.readers = Set.copyOf(builder.readers);
     }
 
@@ -31,19 +31,19 @@ public final class ClockworkConfig extends ImmutableConfig {
         return wantedPlugins;
     }
 
-    public Set<ReaderConfig> getReaders() {
+    public Set<PluginReaderConfig> getReaders() {
         return readers;
     }
 
-    public Set<LocatorConfig> getLocators() {
-        return locators;
+    public Set<PluginFinderConfig> getFinders() {
+        return finders;
     }
 
     public static class Builder extends ImmutableConfig.Builder {
 
         private final List<DependencyDescriptor> wantedPlugins = new LinkedList<>();
-        private final Set<LocatorConfig> locators = new LinkedHashSet<>();
-        private final Set<ReaderConfig> readers = new LinkedHashSet<>();
+        private final Set<PluginFinderConfig> finders = new LinkedHashSet<>();
+        private final Set<PluginReaderConfig> readers = new LinkedHashSet<>();
 
         private Builder() {
             configName("ClockworkConfig");
@@ -54,13 +54,13 @@ public final class ClockworkConfig extends ImmutableConfig {
             return new ClockworkConfig(this);
         }
 
-        public void addPluginLocator(LocatorConfig locator) {
-            if (locators.stream().anyMatch(d -> d.getName().equals(locator.getName())))
-                throw new IllegalArgumentException("duplicate locator: " + locator.getName());
-            this.locators.add(locator);
+        public void addPluginFinder(PluginFinderConfig finder) {
+            if (finders.stream().anyMatch(d -> d.getName().equals(finder.getName())))
+                throw new IllegalArgumentException("duplicate finder: " + finder.getName());
+            this.finders.add(finder);
         }
 
-        public void addPluginReader(ReaderConfig reader) {
+        public void addPluginReader(PluginReaderConfig reader) {
             if (readers.stream().anyMatch(d -> d.getName().equals(reader.getName())))
                 throw new IllegalArgumentException("duplicate reader: " + reader.getName());
             this.readers.add(reader);

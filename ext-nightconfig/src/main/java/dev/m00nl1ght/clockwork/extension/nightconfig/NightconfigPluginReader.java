@@ -11,7 +11,7 @@ import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.reader.ReaderConfig;
+import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
@@ -26,15 +26,15 @@ import java.util.Optional;
 
 public class NightconfigPluginReader implements PluginReader {
 
-    public static final String NAME = "NightconfigPluginReader";
+    public static final String NAME = "extension.pluginreader.nightconfig";
     public static final PluginReaderType FACTORY = NightconfigPluginReader::new;
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    protected final ReaderConfig config;
+    protected final PluginReaderConfig config;
     protected final String descriptorFilePath;
 
-    protected NightconfigPluginReader(ReaderConfig config) {
+    protected NightconfigPluginReader(PluginReaderConfig config) {
         this.config = Arguments.notNull(config, "config");
         this.descriptorFilePath = config.get("descriptorPath");
     }
@@ -49,14 +49,14 @@ public class NightconfigPluginReader implements PluginReader {
         event.registerReaderType(NAME, FACTORY);
     }
 
-    public static ReaderConfig newConfig(String name, String descriptorPath) {
-        return new ReaderConfig(name, NAME, Map.of("descriptorPath", descriptorPath));
+    public static PluginReaderConfig newConfig(String name, String descriptorPath) {
+        return new PluginReaderConfig(name, NAME, Map.of("descriptorPath", descriptorPath));
     }
 
     @Override
-    public PluginDescriptor read(Path sourcePath) {
+    public Optional<PluginDescriptor> read(Path sourcePath) {
         final var path = sourcePath.resolve(descriptorFilePath);
-        if (!Files.exists(path)) return null;
+        if (!Files.exists(path)) return Optional.empty();
         final var config = FileConfig.of(path);
         config.load(); config.close();
 
@@ -109,7 +109,7 @@ public class NightconfigPluginReader implements PluginReader {
             descriptorBuilder.target(builder.build());
         }
 
-        return descriptorBuilder.build();
+        return Optional.of(descriptorBuilder.build());
     }
 
     private DependencyDescriptor buildDep(UnmodifiableConfig conf) {

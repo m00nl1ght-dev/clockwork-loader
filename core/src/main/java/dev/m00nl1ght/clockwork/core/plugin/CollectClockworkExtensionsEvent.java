@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.core.plugin;
 import dev.m00nl1ght.clockwork.core.ClockworkLoader;
 import dev.m00nl1ght.clockwork.core.PluginProcessor;
 import dev.m00nl1ght.clockwork.events.impl.ContextAwareEvent;
-import dev.m00nl1ght.clockwork.locator.PluginLocatorType;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
@@ -20,9 +20,9 @@ public final class CollectClockworkExtensionsEvent extends ContextAwareEvent {
         loader.registerReaderType(id, readerType);
     }
 
-    public void registerLocatorFactory(String id, PluginLocatorType locatorType) {
+    public void registerLocatorFactory(String id, PluginFinderType locatorType) {
         checkModificationAllowed();
-        loader.registerLocatorType(id, locatorType);
+        loader.registerFinderType(id, locatorType);
     }
 
     public void registerProcessor(String id, PluginProcessor processor) {

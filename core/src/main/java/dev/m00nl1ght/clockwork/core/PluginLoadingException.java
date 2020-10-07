@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
+import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.lang.module.ModuleDescriptor;
@@ -97,8 +97,8 @@ public class PluginLoadingException extends RuntimeException {
         return generic("PluginReaderType [] is missing", name);
     }
 
-    public static PluginLoadingException missingLocatorType(String name) {
-        return generic("PluginLocatorType [] is missing", name);
+    public static PluginLoadingException missingFinderType(String name) {
+        return generic("PluginFinderType [] is missing", name);
     }
 
     public static PluginLoadingException missingReader(String name) {
@@ -145,7 +145,7 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Multiple plugins with the same id [] are present", plugin.getId());
     }
 
-    public static PluginLoadingException multipleModulesFound(PluginLocator locator, Path path) {
+    public static PluginLoadingException multipleModulesFound(PluginFinder locator, Path path) {
         return generic("[] found multiple java modules in path []", locator, path);
     }
 

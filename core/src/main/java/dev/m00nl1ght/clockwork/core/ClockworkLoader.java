@@ -9,11 +9,11 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.locator.*;
+import dev.m00nl1ght.clockwork.fnder.*;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.reader.ReaderConfig;
+import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -59,7 +59,7 @@ public final class ClockworkLoader {
     public static ClockworkLoader buildBootLayerDefault() {
         final var configBuilder = ClockworkConfig.builder();
         configBuilder.addPluginReader(ManifestPluginReader.newConfig("manifest"));
-        configBuilder.addPluginLocator(BootLayerLocator.newConfig("boot", true));
+        configBuilder.addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", true));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         return build(configBuilder.build());
     }
@@ -69,7 +69,7 @@ public final class ClockworkLoader {
     private ClockworkCore core;
 
     private final Map<String, PluginReaderType> registeredReaderTypes = new HashMap<>();
-    private final Map<String, PluginLocatorType> registeredLocatorTypes = new HashMap<>();
+    private final Map<String, PluginFinderType> registeredFinderTypes = new HashMap<>();
     private final Map<String, PluginProcessor> registeredProcessors = new HashMap<>();
 
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
@@ -83,9 +83,8 @@ public final class ClockworkLoader {
 
     private void registerDefaults() {
         ManifestPluginReader.registerTo(this);
-        BootLayerLocator.registerTo(this);
-        JarFileLocator.registerTo(this);
-        ExplodedDirectoryLocator.registerTo(this);
+        ModuleLayerPluginFinder.registerTo(this);
+        ModulePathPluginFinder.registerTo(this);
     }
 
     public synchronized void registerReaderType(String id, PluginReaderType readerType) {
@@ -93,9 +92,9 @@ public final class ClockworkLoader {
         if (existing != null) throw FormatUtil.illArgExc("PluginReaderType with id [] is already present", id);
     }
 
-    public synchronized void registerLocatorType(String id, PluginLocatorType locatorType) {
-        final var existing = registeredLocatorTypes.putIfAbsent(id, locatorType);
-        if (existing != null) throw FormatUtil.illArgExc("PluginLocatorType with id [] is already present", id);
+    public synchronized void registerFinderType(String id, PluginFinderType finderType) {
+        final var existing = registeredFinderTypes.putIfAbsent(id, finderType);
+        if (existing != null) throw FormatUtil.illArgExc("PluginFinderType with id [] is already present", id);
     }
 
     public synchronized void registerProcessor(String id, PluginProcessor processor) {
@@ -146,19 +145,19 @@ public final class ClockworkLoader {
         // Build all the readers wanted by the config.
         final var readers = new HashMap<String, PluginReader>();
         for (final var config : config.getReaders()) {
-            final var reader = findReaderType(config).build(config);
+            final var reader = getReaderType(config).build(config);
             readers.put(config.getName(), reader);
         }
 
-        // Build all the locators wanted by the config. Also add the plugins found by wildcard locators.
-        final var locators = new HashMap<String, PluginLocator>();
+        // Build all the finders wanted by the config. Also add the plugins found by wildcard finders.
+        final var finders = new HashMap<String, PluginFinder>();
         final var allReaders = Set.copyOf(readers.values());
-        for (final var config : config.getLocators()) {
-            final var wantedReaders = config.getReaders() == null ? allReaders : findReaders(readers, config);
-            final var locator = findLocatorType(config).build(config, wantedReaders);
-            locators.put(config.getName(), locator);
+        for (final var config : config.getFinders()) {
+            final var wantedReaders = config.getReaders() == null ? allReaders : getReaders(readers, config);
+            final var finder = getFinderType(config).build(config, wantedReaders);
+            finders.put(config.getName(), finder);
             if (config.isWildcard()) {
-                for (final var located : locator.findAll()) {
+                for (final var located : finder.findAll()) {
                     wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
                 }
             }
@@ -177,13 +176,13 @@ public final class ClockworkLoader {
                 }
             }
 
-            // Otherwise, try to find it using the PluginLocators from the config.
+            // Otherwise, try to find it using the PluginFinders from the config.
             final var located = new LinkedList<PluginReference>();
-            for (var locator : locators.values()) {
-                for (var ref : locator.find(wanted)) {
+            for (var finder : finders.values()) {
+                for (var ref : finder.find(wanted)) {
                     located.add(ref);
-                    if (ref.getLocator() != locator)
-                        addProblem(PluginLoadingProblem.locatorMismatch(ref, locator));
+                    if (ref.getFinder() != finder)
+                        addProblem(PluginLoadingProblem.finderMismatch(ref, finder));
                 }
             }
 
@@ -196,7 +195,7 @@ public final class ClockworkLoader {
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
                 ref.getDescriptor().getTargetDescriptors().forEach(targetSorter::add);
-                LOGGER.debug("Located plugin [" + ref + "] using locator [" + ref.getLocator() + "].");
+                LOGGER.debug("Located plugin [" + ref + "] using finder [" + ref.getFinder() + "].");
             }
 
         }
@@ -411,19 +410,19 @@ public final class ClockworkLoader {
 
     }
 
-    private PluginReaderType findReaderType(ReaderConfig config) {
+    private PluginReaderType getReaderType(PluginReaderConfig config) {
         final var type = registeredReaderTypes.get(config.getType());
         if (type == null) throw PluginLoadingException.missingReaderType(config.getType());
         return type;
     }
 
-    private PluginLocatorType findLocatorType(LocatorConfig config) {
-        final var type = registeredLocatorTypes.get(config.getType());
-        if (type == null) throw PluginLoadingException.missingLocatorType(config.getType());
+    private PluginFinderType getFinderType(PluginFinderConfig config) {
+        final var type = registeredFinderTypes.get(config.getType());
+        if (type == null) throw PluginLoadingException.missingFinderType(config.getType());
         return type;
     }
 
-    private Set<PluginReader> findReaders(Map<String, PluginReader> available, LocatorConfig config) {
+    private Set<PluginReader> getReaders(Map<String, PluginReader> available, PluginFinderConfig config) {
         final var readers = new HashSet<PluginReader>();
         for (final var readerName : config.getReaders()) {
             final var reader = available.get(readerName);

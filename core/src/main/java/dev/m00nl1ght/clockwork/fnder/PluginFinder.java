@@ -1,11 +1,11 @@
-package dev.m00nl1ght.clockwork.locator;
+package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 
 import java.util.Collection;
 
-public interface PluginLocator {
+public interface PluginFinder {
 
     Collection<PluginReference> findAll();
 

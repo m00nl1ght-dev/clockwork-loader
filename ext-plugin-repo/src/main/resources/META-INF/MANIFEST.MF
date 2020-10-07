@@ -1,0 +1,10 @@
+Manifest-Version: 1.0
+CWL-Plugin-Id: cwl-plugin-repo
+CWL-Plugin-Version: 0.5
+CWL-Plugin-Display-Name: [CWL-Extension] Plugin Repository support
+CWL-Plugin-Description: An extension for the Clockwork Loader that allows loading plugins from an online repository.
+CWL-Plugin-Authors: m00nl1ght
+
+Name: dev/m00nl1ght/clockwork/extension/pluginrepo/CWLPluginRepoExtension.class
+CWL-Component-Id: cwl-plugin-repo
+CWL-Component-Requires: clockwork[0.5]

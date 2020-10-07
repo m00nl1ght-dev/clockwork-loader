@@ -18,11 +18,12 @@ import org.apache.logging.log4j.Logger;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.Map;
+import java.util.Optional;
 import java.util.jar.Manifest;
 
 public class ManifestPluginReader implements PluginReader {
 
-    public static final String NAME = "ManifestPluginReader";
+    public static final String NAME = "internal.pluginreader.manifest";
     public static final PluginReaderType FACTORY = ManifestPluginReader::new;
 
     private static final Logger LOGGER = LogManager.getLogger();
@@ -37,7 +38,7 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_PLUGIN_PERMISSIONS = HEADER_PREFIX + "Plugin-Permissions";
     private static final String HEADER_TARGET_ID = HEADER_PREFIX + "Target-Id";
     private static final String HEADER_TARGET_EXTENDS = HEADER_PREFIX + "Target-Extends";
-    private static final String HEADER_TARGET_INTERNAL_COMPONENTS = HEADER_PREFIX + "Target-Internal-Components";
+    private static final String HEADER_TARGET_INTERNAL_COMPONENTS = HEADER_PREFIX + "Target-InternalComponents";
     private static final String HEADER_COMPONENT_ID = HEADER_PREFIX + "Component-Id";
     private static final String HEADER_COMPONENT_TARGET = HEADER_PREFIX + "Component-Target";
     private static final String HEADER_COMPONENT_EXTENDS = HEADER_PREFIX + "Component-Extends";
@@ -45,10 +46,10 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_COMPONENT_OPTIONAL = HEADER_PREFIX + "Component-Optional";
     private static final String HEADER_COMPONENT_FACTORY_ACCESS = HEADER_PREFIX + "Component-AllowFactoryAccess";
 
-    protected final ReaderConfig config;
+    protected final PluginReaderConfig config;
     protected final String manifestFilePath;
 
-    protected ManifestPluginReader(ReaderConfig config) {
+    protected ManifestPluginReader(PluginReaderConfig config) {
         this.config = Arguments.notNull(config, "config");
         this.manifestFilePath = config.get("manifestPath");
     }
@@ -63,30 +64,30 @@ public class ManifestPluginReader implements PluginReader {
         event.registerReaderType(NAME, FACTORY);
     }
 
-    public static ReaderConfig newConfig(String name) {
+    public static PluginReaderConfig newConfig(String name) {
         return newConfig(name, "META-INF/MANIFEST.MF");
     }
 
-    public static ReaderConfig newConfig(String name, String manifestPath) {
-        return new ReaderConfig(name, NAME, Map.of("manifestPath", manifestPath));
+    public static PluginReaderConfig newConfig(String name, String manifestPath) {
+        return new PluginReaderConfig(name, NAME, Map.of("manifestPath", manifestPath));
     }
 
     @Override
-    public PluginDescriptor read(Path path) {
+    public Optional<PluginDescriptor> read(Path path) {
         final var manifestPath = path.resolve(manifestFilePath);
-        if (!Files.exists(manifestPath)) return null;
+        if (!Files.exists(manifestPath)) return Optional.empty();
         try (final var fis = Files.newInputStream(manifestPath)) {
             return read(new Manifest(fis));
         } catch (Exception e) {
             LOGGER.warn("Failed to read manifest: " + manifestPath, e);
-            return null;
+            return Optional.empty();
         }
     }
 
-    public PluginDescriptor read(Manifest manifest) {
+    public Optional<PluginDescriptor> read(Manifest manifest) {
         final var mainConfig = new ConsumingConfig(ImmutableConfig.fromAttributes(manifest.getMainAttributes()));
         final String pluginId = mainConfig.getOrNull(HEADER_PLUGIN_ID);
-        if (pluginId == null) return null;
+        if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
         final var version = new Version(mainConfig.get(HEADER_PLUGIN_VERSION), Version.VersionType.IVY);
         descriptorBuilder.displayName(mainConfig.get(HEADER_PLUGIN_NAME));
@@ -136,7 +137,7 @@ public class ManifestPluginReader implements PluginReader {
             mainConfig.throwOnRemaining(e -> e.startsWith(HEADER_PREFIX));
         }
 
-        return descriptorBuilder.build();
+        return Optional.of(descriptorBuilder.build());
     }
 
     private String extractClassName(String entryName) {

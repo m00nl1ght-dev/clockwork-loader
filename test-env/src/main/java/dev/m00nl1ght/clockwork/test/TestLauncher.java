@@ -8,7 +8,7 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
-import dev.m00nl1ght.clockwork.locator.JarFileLocator;
+import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
 import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
@@ -46,7 +46,7 @@ public class TestLauncher {
 
         final var configBuilder = ClockworkConfig.builder();
         configBuilder.addPluginReader(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml"));
-        configBuilder.addPluginLocator(JarFileLocator.newConfig("testJar", TEST_PLUGIN_JAR, Set.of("toml")));
+        configBuilder.addPluginFinder(ModulePathPluginFinder.newConfig("testJar", TEST_PLUGIN_JAR, Set.of("toml")));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));

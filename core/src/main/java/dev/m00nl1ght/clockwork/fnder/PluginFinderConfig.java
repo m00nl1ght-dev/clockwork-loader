@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.locator;
+package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.ImmutableConfig;
@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.util.ImmutableConfig;
 import java.util.Map;
 import java.util.Set;
 
-public final class LocatorConfig extends ImmutableConfig {
+public final class PluginFinderConfig extends ImmutableConfig {
 
     private final String name;
     private final String type;
@@ -17,11 +17,11 @@ public final class LocatorConfig extends ImmutableConfig {
         return new Builder(Arguments.notNullOrBlank(name, "name"), Arguments.notNullOrBlank(type, "type"));
     }
 
-    private LocatorConfig(Builder builder) {
+    private PluginFinderConfig(Builder builder) {
         this(builder.name, builder.type, builder.getEntries(), builder.readers, builder.wildcard);
     }
 
-    public LocatorConfig(String name, String type, Map<String, String> params, Set<String> readers, boolean wildcard) {
+    public PluginFinderConfig(String name, String type, Map<String, String> params, Set<String> readers, boolean wildcard) {
         super(params, "LocatorConfig[" + name + "]");
         this.name = Arguments.notNullOrBlank(name, "name");
         this.type = Arguments.notNullOrBlank(type, "type");
@@ -59,8 +59,8 @@ public final class LocatorConfig extends ImmutableConfig {
         }
 
         @Override
-        public LocatorConfig build() {
-            return new LocatorConfig(this);
+        public PluginFinderConfig build() {
+            return new PluginFinderConfig(this);
         }
 
         public void setReaders(Set<String> readers) {

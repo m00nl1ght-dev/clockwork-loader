@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.*;
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
+import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 public abstract class PluginLoadingProblem {
@@ -42,7 +42,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Could not locate plugin []", missing);
+            return FormatUtil.format("Could not find plugin []", missing);
         }
 
         public DependencyDescriptor getMissing() {
@@ -82,29 +82,29 @@ public abstract class PluginLoadingProblem {
 
     }
 
-    public static LocatorMismatch locatorMismatch(PluginReference plugin, PluginLocator actualLocator) {
-        return new LocatorMismatch(plugin, actualLocator);
+    public static FinderMismatch finderMismatch(PluginReference plugin, PluginFinder actualFinder) {
+        return new FinderMismatch(plugin, actualFinder);
     }
 
-    public static class LocatorMismatch extends PluginLoadingProblem {
+    public static class FinderMismatch extends PluginLoadingProblem {
 
         private final PluginReference plugin;
-        private final PluginLocator actualLocator;
+        private final PluginFinder actualFinder;
 
-        private LocatorMismatch(PluginReference plugin, PluginLocator actualLocator) {
+        private FinderMismatch(PluginReference plugin, PluginFinder actualFinder) {
             super(plugin.getId());
             this.plugin = plugin;
-            this.actualLocator = actualLocator;
+            this.actualFinder = actualFinder;
         }
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Locator [] returned this definition, but it was actually located by []",
-                    actualLocator.toString(), plugin.getLocator());
+            return FormatUtil.format("PluginFinder [] returned this definition, but it was actually found by []",
+                    actualFinder.toString(), plugin.getFinder());
         }
 
-        public PluginLocator getActualLocator() {
-            return actualLocator;
+        public PluginFinder getActualFinder() {
+            return actualFinder;
         }
 
         public PluginReference getPlugin() {

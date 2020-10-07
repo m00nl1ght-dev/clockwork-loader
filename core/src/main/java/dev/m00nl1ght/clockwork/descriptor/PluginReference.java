@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.locator.PluginLocator;
+import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -9,13 +9,13 @@ import java.lang.module.ModuleFinder;
 public final class PluginReference {
 
     private final PluginDescriptor descriptor;
-    private final PluginLocator locator;
+    private final PluginFinder finder;
     private final String mainModule;
     private final ModuleFinder moduleFinder;
 
     PluginReference(Builder builder) {
         this.descriptor = Arguments.notNull(builder.descriptor, "descriptor");
-        this.locator = Arguments.notNull(builder.locator, "locator");
+        this.finder = Arguments.notNull(builder.finder, "finder");
         this.mainModule = Arguments.notNullOrBlank(builder.mainModule, "mainModule");
         this.moduleFinder = builder.moduleFinder;
     }
@@ -32,8 +32,8 @@ public final class PluginReference {
         return descriptor.getVersion();
     }
 
-    public PluginLocator getLocator() {
-        return locator;
+    public PluginFinder getFinder() {
+        return finder;
     }
 
     /**
@@ -63,7 +63,7 @@ public final class PluginReference {
     public static final class Builder {
 
         private final PluginDescriptor descriptor;
-        private PluginLocator locator;
+        private PluginFinder finder;
         private String mainModule;
         private ModuleFinder moduleFinder;
 
@@ -75,8 +75,8 @@ public final class PluginReference {
             return new PluginReference(this);
         }
 
-        public Builder locator(PluginLocator locator) {
-            this.locator = locator;
+        public Builder finder(PluginFinder locator) {
+            this.finder = locator;
             return this;
         }
 

@@ -5,7 +5,7 @@ import dev.m00nl1ght.clockwork.util.ImmutableConfig;
 
 import java.util.Map;
 
-public final class ReaderConfig extends ImmutableConfig {
+public final class PluginReaderConfig extends ImmutableConfig {
 
     private final String name;
     private final String type;
@@ -14,11 +14,11 @@ public final class ReaderConfig extends ImmutableConfig {
         return new Builder(Arguments.notNullOrBlank(name, "name"), Arguments.notNullOrBlank(type, "type"));
     }
 
-    private ReaderConfig(Builder builder) {
+    private PluginReaderConfig(Builder builder) {
         this(builder.name, builder.type, builder.getEntries());
     }
 
-    public ReaderConfig(String name, String type, Map<String, String> params) {
+    public PluginReaderConfig(String name, String type, Map<String, String> params) {
         super(params, "ReaderConfig[" + name + "]");
         this.name = Arguments.notNullOrBlank(name, "name");
         this.type = Arguments.notNullOrBlank(type, "type");
@@ -44,8 +44,8 @@ public final class ReaderConfig extends ImmutableConfig {
         }
 
         @Override
-        public ReaderConfig build() {
-            return new ReaderConfig(this);
+        public PluginReaderConfig build() {
+            return new PluginReaderConfig(this);
         }
 
     }
