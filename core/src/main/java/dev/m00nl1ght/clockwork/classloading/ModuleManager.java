@@ -1,11 +1,7 @@
 package dev.m00nl1ght.clockwork.classloading;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.LoadedPlugin;
-import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.core.PluginProcessor;
+import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 
 import java.lang.module.ModuleFinder;
 import java.util.Collection;
@@ -30,10 +26,12 @@ public class ModuleManager {
      *
      * @param parent the module layer that will be used as a parent for the plugin module layer (usually the boot layer)
      */
-    public ModuleManager(Collection<PluginFinder> finders, Collection<PluginReference> plugins, ModuleLayer parent) {
+    public ModuleManager(LoadingContext loadingContext, Collection<PluginReference> plugins, ModuleLayer parent) {
         try {
-            final var pluginModules = plugins.stream().map(PluginReference::getMainModule).collect(Collectors.toUnmodifiableList());
-            final var comp = finders.stream().map(PluginFinder::getModuleFinder).filter(Objects::nonNull);
+            final var pluginModules = plugins.stream()
+                    .map(p -> p.getMainModule().descriptor().name()).collect(Collectors.toUnmodifiableList());
+            final var comp = loadingContext.getFinders().stream()
+                    .map(finder -> finder.getModuleFinder(loadingContext)).filter(Objects::nonNull);
             final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
             final var config = parent.configuration().resolveAndBind(ModuleFinder.of(), finder, pluginModules);
             classloader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);

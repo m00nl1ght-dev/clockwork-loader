@@ -99,7 +99,11 @@ public class PluginLoadingException extends RuntimeException {
     }
 
     public static PluginLoadingException missingReader(String name) {
-        return generic("No PluginReader with id [] is defined", name);
+        return generic("No PluginReader with name [] is defined", name);
+    }
+
+    public static PluginLoadingException missingFinder(String name) {
+        return generic("No PluginFinder with name [] is defined", name);
     }
 
     public static PluginLoadingException missingProcessor(String plugin, String name) {

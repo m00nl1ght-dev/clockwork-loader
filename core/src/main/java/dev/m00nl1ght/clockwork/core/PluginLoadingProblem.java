@@ -1,7 +1,9 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.descriptor.*;
-import dev.m00nl1ght.clockwork.fnder.PluginFinder;
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 public abstract class PluginLoadingProblem {
@@ -78,37 +80,6 @@ public abstract class PluginLoadingProblem {
 
         public PluginDescriptor getInherited() {
             return inherited;
-        }
-
-    }
-
-    public static FinderMismatch finderMismatch(PluginReference plugin, PluginFinder actualFinder) {
-        return new FinderMismatch(plugin, actualFinder);
-    }
-
-    public static class FinderMismatch extends PluginLoadingProblem {
-
-        private final PluginReference plugin;
-        private final PluginFinder actualFinder;
-
-        private FinderMismatch(PluginReference plugin, PluginFinder actualFinder) {
-            super(plugin.getId());
-            this.plugin = plugin;
-            this.actualFinder = actualFinder;
-        }
-
-        @Override
-        public String getMessage() {
-            return FormatUtil.format("PluginFinder [] returned this definition, but it was actually found by []",
-                    actualFinder.toString(), plugin.getFinder());
-        }
-
-        public PluginFinder getActualFinder() {
-            return actualFinder;
-        }
-
-        public PluginReference getPlugin() {
-            return plugin;
         }
 
     }

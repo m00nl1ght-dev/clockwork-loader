@@ -9,11 +9,13 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.fnder.*;
+import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
+import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
-import dev.m00nl1ght.clockwork.reader.PluginReader;
-import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
+import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -142,28 +144,18 @@ public final class ClockworkLoader {
         final var wantedPlugins = config.getWantedPlugins().stream()
                 .collect(Collectors.toMap(DependencyDescriptor::getPlugin, Function.identity(), (a, b) -> b, HashMap::new));
 
-        // Build all the readers wanted by the config.
-        final var readers = new HashMap<String, PluginReader>();
-        for (final var config : config.getReaders()) {
-            final var reader = getReaderType(config).build(config);
-            readers.put(config.getName(), reader);
-        }
-
-        // Build all the finders wanted by the config. Also add the plugins found by wildcard finders.
-        final var finders = new HashMap<String, PluginFinder>();
-        final var allReaders = Set.copyOf(readers.values());
+        // Build the LoadingContext and add plugins found by wildcard finders.
+        final var loadingContext = LoadingContext.of(config, this);
         for (final var config : config.getFinders()) {
-            final var wantedReaders = config.getReaders() == null ? allReaders : getReaders(readers, config);
-            final var finder = getFinderType(config).build(config, wantedReaders);
-            finders.put(config.getName(), finder);
             if (config.isWildcard()) {
-                for (final var located : finder.findAll()) {
+                final var finder = loadingContext.getFinder(config.getName());
+                for (final var located : finder.findAll(loadingContext)) {
                     wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
                 }
             }
         }
 
-        // Now try to find all the plugins.
+        // Now try to find all the wanted plugins.
         for (final var wanted : wantedPlugins.values()) {
 
             // If the parent has it and the version matches, it doesn't have to be located again.
@@ -178,11 +170,10 @@ public final class ClockworkLoader {
 
             // Otherwise, try to find it using the PluginFinders from the config.
             final var located = new LinkedList<PluginReference>();
-            for (var finder : finders.values()) {
-                for (var ref : finder.find(wanted)) {
+            for (var finder : loadingContext.getFinders()) {
+                for (var ref : finder.find(loadingContext, wanted)) {
                     located.add(ref);
-                    if (ref.getFinder() != finder)
-                        addProblem(PluginLoadingProblem.finderMismatch(ref, finder));
+                    LOGGER.debug("Located plugin [" + ref + "] using finder [" + finder + "].");
                 }
             }
 
@@ -195,7 +186,6 @@ public final class ClockworkLoader {
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
                 ref.getDescriptor().getTargetDescriptors().forEach(targetSorter::add);
-                LOGGER.debug("Located plugin [" + ref + "] using finder [" + ref.getFinder() + "].");
             }
 
         }
@@ -223,7 +213,7 @@ public final class ClockworkLoader {
 
         // Create the new ModuleLayer and the ClockworkCore instance.
         final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
-        final var moduleManager = new ModuleManager(finders.values(), pluginReferences, parentLayer);
+        final var moduleManager = new ModuleManager(loadingContext, pluginReferences, parentLayer);
         core = new ClockworkCore(moduleManager);
 
         // First add the plugins inherited from the parent.
@@ -236,7 +226,8 @@ public final class ClockworkLoader {
 
         // Then add the new ones that were located using the config.
         for (final var pluginReference : pluginReferences) {
-            final var mainModule = moduleManager.getModuleLayer().findModule(pluginReference.getMainModule()).orElseThrow();
+            final var mainModule = moduleManager.getModuleLayer()
+                    .findModule(pluginReference.getMainModule().descriptor().name()).orElseThrow();
             final var plugin = new LoadedPlugin(pluginReference.getDescriptor(), core, mainModule);
             moduleManager.patchModule(mainModule);
             core.addLoadedPlugin(plugin);
@@ -410,26 +401,16 @@ public final class ClockworkLoader {
 
     }
 
-    private PluginReaderType getReaderType(PluginReaderConfig config) {
+    public PluginReaderType getReaderType(PluginReaderConfig config) {
         final var type = registeredReaderTypes.get(config.getType());
         if (type == null) throw PluginLoadingException.missingReaderType(config.getType());
         return type;
     }
 
-    private PluginFinderType getFinderType(PluginFinderConfig config) {
+    public PluginFinderType getFinderType(PluginFinderConfig config) {
         final var type = registeredFinderTypes.get(config.getType());
         if (type == null) throw PluginLoadingException.missingFinderType(config.getType());
         return type;
-    }
-
-    private Set<PluginReader> getReaders(Map<String, PluginReader> available, PluginFinderConfig config) {
-        final var readers = new HashSet<PluginReader>();
-        for (final var readerName : config.getReaders()) {
-            final var reader = available.get(readerName);
-            if (reader == null) throw PluginLoadingException.missingReader(readerName);
-            readers.add(reader);
-        }
-        return readers;
     }
 
     /**

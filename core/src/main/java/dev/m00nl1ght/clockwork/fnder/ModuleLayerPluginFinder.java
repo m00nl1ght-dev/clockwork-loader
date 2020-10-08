@@ -1,12 +1,14 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.core.ClockworkLoader;
+import dev.m00nl1ght.clockwork.core.LoadingContext;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -42,20 +44,20 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
         return new PluginFinderConfig(name, NAME, Map.of(), readers, wildcard);
     }
 
-    protected ModuleLayerPluginFinder(ModuleLayer moduleLayer, Predicate<ResolvedModule> filter, PluginFinderConfig config, Set<PluginReader> readers) {
-        super(config, readers);
+    protected ModuleLayerPluginFinder(ModuleLayer moduleLayer, Predicate<ResolvedModule> filter, PluginFinderConfig config) {
+        super(config);
         this.moduleLayer = moduleLayer;
         this.filter = filter;
     }
 
-    protected ModuleLayerPluginFinder(PluginFinderConfig config, Set<PluginReader> readers) {
-        this(ModuleLayer.boot(), ModuleLayerPluginFinder::systemModuleFilter, config, readers);
+    protected ModuleLayerPluginFinder(PluginFinderConfig config) {
+        this(ModuleLayer.boot(), ModuleLayerPluginFinder::systemModuleFilter, config);
     }
 
     @Override
-    protected void scan() {
+    protected void scan(LoadingContext context, Collection<PluginReader> readers) {
         moduleLayer.configuration().modules().stream().filter(filter)
-                .map(m -> tryReadFromModule(m.reference(), null))
+                .map(m -> tryReadFromModule(readers, m.reference(), null))
                 .filter(Optional::isPresent).map(Optional::get)
                 .forEach(this::found);
     }
@@ -66,7 +68,7 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
     }
 
     @Override
-    public ModuleFinder getModuleFinder() {
+    public ModuleFinder getModuleFinder(LoadingContext context) {
         return null;
     }
 

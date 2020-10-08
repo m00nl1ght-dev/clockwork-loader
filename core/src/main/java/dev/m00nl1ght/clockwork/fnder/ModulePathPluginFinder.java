@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.core.ClockworkLoader;
+import dev.m00nl1ght.clockwork.core.LoadingContext;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
@@ -8,6 +9,7 @@ import dev.m00nl1ght.clockwork.util.Arguments;
 import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
+import java.util.Collection;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -41,21 +43,21 @@ public class ModulePathPluginFinder extends AbstractPluginFinder {
         return new PluginFinderConfig(name, NAME, Map.of("modulePath", modulePath.getPath()), readers, wildcard);
     }
 
-    protected ModulePathPluginFinder(PluginFinderConfig config, Set<PluginReader> readers) {
-        super(config, readers);
+    protected ModulePathPluginFinder(PluginFinderConfig config) {
+        super(config);
         this.moduleFinder = ModuleFinder.of(Path.of(config.get("modulePath")));
     }
 
     @Override
-    protected void scan() {
+    protected void scan(LoadingContext context, Collection<PluginReader> readers) {
         moduleFinder.findAll().stream()
-                .map(m -> tryReadFromModule(m, moduleFinder))
+                .map(m -> tryReadFromModule(readers, m, moduleFinder))
                 .filter(Optional::isPresent).map(Optional::get)
                 .forEach(this::found);
     }
 
     @Override
-    public ModuleFinder getModuleFinder() {
+    public ModuleFinder getModuleFinder(LoadingContext context) {
         return moduleFinder;
     }
 

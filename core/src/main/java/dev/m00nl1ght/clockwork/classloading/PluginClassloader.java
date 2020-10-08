@@ -525,7 +525,7 @@ public class PluginClassloader extends SecureClassLoader {
      * then this method just has no effect, and will not throw any exception.
      */
     protected void bindPlugin(PluginReference plugin) {
-        final var module = nameToModule.get(plugin.getMainModule());
+        final var module = nameToModule.get(plugin.getMainModule().descriptor().name());
         if (module != null && module.location().isPresent()) {
             try {
                 codeSourceToPlugin.put(module.location().get().toURL(), plugin.getDescriptor());

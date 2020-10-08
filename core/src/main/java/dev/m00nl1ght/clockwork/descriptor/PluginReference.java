@@ -1,22 +1,21 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
+
+import java.lang.module.ModuleReference;
 
 public final class PluginReference {
 
     private final PluginDescriptor descriptor;
-    private final PluginFinder finder;
-    private final String mainModule;
+    private final ModuleReference mainModule;
 
-    public static PluginReference of(PluginDescriptor descriptor, PluginFinder finder, String mainModule) {
-        return new PluginReference(descriptor, finder, mainModule);
+    public static PluginReference of(PluginDescriptor descriptor, ModuleReference mainModule) {
+        return new PluginReference(descriptor, mainModule);
     }
 
-    private PluginReference(PluginDescriptor descriptor, PluginFinder finder, String mainModule) {
+    private PluginReference(PluginDescriptor descriptor, ModuleReference mainModule) {
         this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.finder = Arguments.notNull(finder, "finder");
         this.mainModule = Arguments.notNull(mainModule, "mainModule");
     }
 
@@ -32,11 +31,7 @@ public final class PluginReference {
         return descriptor.getVersion();
     }
 
-    public PluginFinder getFinder() {
-        return finder;
-    }
-
-    public String getMainModule() {
+    public ModuleReference getMainModule() {
         return mainModule;
     }
 
