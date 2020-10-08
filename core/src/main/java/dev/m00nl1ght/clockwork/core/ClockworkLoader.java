@@ -9,13 +9,17 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.fnder.*;
+import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
+import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
+import dev.m00nl1ght.clockwork.fnder.NestedPluginFinder;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
-import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.Registry;
+import dev.m00nl1ght.clockwork.verifier.PluginVerifierType;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -67,9 +71,10 @@ public final class ClockworkLoader {
     private final ClockworkConfig config;
     private ClockworkCore core;
 
-    private final Map<String, PluginReaderType> registeredReaderTypes = new HashMap<>();
-    private final Map<String, PluginFinderType> registeredFinderTypes = new HashMap<>();
-    private final Map<String, PluginProcessor> registeredProcessors = new HashMap<>();
+    private final Registry<PluginReaderType> readerTypeRegistry = new Registry<>(PluginReaderType.class);
+    private final Registry<PluginFinderType> finderTypeRegistry = new Registry<>(PluginFinderType.class);
+    private final Registry<PluginVerifierType> verifierTypeRegistry = new Registry<>(PluginVerifierType.class);
+    private final Registry<PluginProcessor> processorRegistry = new Registry<>(PluginProcessor.class);
 
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
@@ -81,25 +86,10 @@ public final class ClockworkLoader {
     }
 
     private void registerDefaults() {
-        ManifestPluginReader.registerTo(this);
-        ModuleLayerPluginFinder.registerTo(this);
-        ModulePathPluginFinder.registerTo(this);
-        NestedPluginFinder.registerTo(this);
-    }
-
-    public synchronized void registerReaderType(String id, PluginReaderType readerType) {
-        final var existing = registeredReaderTypes.putIfAbsent(id, readerType);
-        if (existing != null) throw FormatUtil.illArgExc("PluginReaderType with id [] is already present", id);
-    }
-
-    public synchronized void registerFinderType(String id, PluginFinderType finderType) {
-        final var existing = registeredFinderTypes.putIfAbsent(id, finderType);
-        if (existing != null) throw FormatUtil.illArgExc("PluginFinderType with id [] is already present", id);
-    }
-
-    public synchronized void registerProcessor(String id, PluginProcessor processor) {
-        final var existing = registeredProcessors.putIfAbsent(id, processor);
-        if (existing != null) throw FormatUtil.illArgExc("Plugin processor with id [] is already present", id);
+        ManifestPluginReader.registerTo(readerTypeRegistry);
+        ModuleLayerPluginFinder.registerTo(finderTypeRegistry);
+        ModulePathPluginFinder.registerTo(finderTypeRegistry);
+        NestedPluginFinder.registerTo(finderTypeRegistry);
     }
 
     public synchronized void collectExtensionsFromParent() {
@@ -181,6 +171,7 @@ public final class ClockworkLoader {
             } else {
                 located.sort(versionSorter);
                 final var ref = located.get(0);
+                loadingContext.getVerifiers().forEach(v -> v.verifyPlugin(ref));
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
                 ref.getDescriptor().getTargetDescriptors().forEach(targetSorter::add);
@@ -294,7 +285,7 @@ public final class ClockworkLoader {
         core.setState(State.PROCESSING);
 
         // Notify all registered plugin processors.
-        for (final var entry : registeredProcessors.entrySet()) {
+        for (final var entry : processorRegistry.getRegistered().entrySet()) {
             try {
                 entry.getValue().onLoadingStart(core, parent);
             } catch (Throwable t) {
@@ -314,7 +305,7 @@ public final class ClockworkLoader {
             for (var name : processors) {
                 final var optional = name.startsWith("?");
                 if (optional) name = name.substring(1);
-                final var processor = registeredProcessors.get(name);
+                final var processor = processorRegistry.get(name);
                 if (processor == null) {
                     if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
                 } else {
@@ -399,18 +390,6 @@ public final class ClockworkLoader {
 
     }
 
-    public PluginReaderType getReaderType(PluginReaderConfig config) {
-        final var type = registeredReaderTypes.get(config.getType());
-        if (type == null) throw PluginLoadingException.missingReaderType(config.getType());
-        return type;
-    }
-
-    public PluginFinderType getFinderType(PluginFinderConfig config) {
-        final var type = registeredFinderTypes.get(config.getType());
-        if (type == null) throw PluginLoadingException.missingFinderType(config.getType());
-        return type;
-    }
-
     /**
      * Initialises this ClockworkCore with a core container.
      * The core container is created for target id {@code clockwork:core}.
@@ -437,7 +416,7 @@ public final class ClockworkLoader {
         core.setState(State.INITIALISED);
 
         // Notify all registered plugin processors.
-        for (final var entry : registeredProcessors.entrySet()) {
+        for (final var entry : processorRegistry.getRegistered().entrySet()) {
             try {
                 entry.getValue().onLoadingComplete(core);
             } catch (Throwable t) {
@@ -445,6 +424,22 @@ public final class ClockworkLoader {
             }
         }
 
+    }
+
+    public Registry<PluginReaderType> getReaderTypeRegistry() {
+        return readerTypeRegistry;
+    }
+
+    public Registry<PluginFinderType> getFinderTypeRegistry() {
+        return finderTypeRegistry;
+    }
+
+    public Registry<PluginVerifierType> getVerifierTypeRegistry() {
+        return verifierTypeRegistry;
+    }
+
+    public Registry<PluginProcessor> getProcessorRegistry() {
+        return processorRegistry;
     }
 
     private void addProblem(PluginLoadingProblem problem) {

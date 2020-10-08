@@ -29,7 +29,7 @@ public final class CWLNightconfigExtension {
     }
 
     private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {
-        NightconfigPluginReader.registerTo(event);
+        NightconfigPluginReader.registerTo(event.getReaderTypeRegistry());
     }
 
 }

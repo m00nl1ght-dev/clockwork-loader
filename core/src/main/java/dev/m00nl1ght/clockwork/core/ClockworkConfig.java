@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.util.ImmutableConfig;
+import dev.m00nl1ght.clockwork.verifier.PluginVerifierConfig;
 
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -15,6 +16,7 @@ public final class ClockworkConfig extends ImmutableConfig {
     private final List<DependencyDescriptor> wantedPlugins;
     private final Set<PluginFinderConfig> finders;
     private final Set<PluginReaderConfig> readers;
+    private final Set<PluginVerifierConfig> verifiers;
 
     public static Builder builder() {
         return new Builder();
@@ -25,6 +27,7 @@ public final class ClockworkConfig extends ImmutableConfig {
         this.wantedPlugins = List.copyOf(builder.wantedPlugins);
         this.finders = Set.copyOf(builder.finders);
         this.readers = Set.copyOf(builder.readers);
+        this.verifiers = Set.copyOf(builder.verifiers);
     }
 
     public List<DependencyDescriptor> getWantedPlugins() {
@@ -39,11 +42,16 @@ public final class ClockworkConfig extends ImmutableConfig {
         return finders;
     }
 
+    public Set<PluginVerifierConfig> getVerifiers() {
+        return verifiers;
+    }
+
     public static class Builder extends ImmutableConfig.Builder {
 
         private final List<DependencyDescriptor> wantedPlugins = new LinkedList<>();
         private final Set<PluginFinderConfig> finders = new LinkedHashSet<>();
         private final Set<PluginReaderConfig> readers = new LinkedHashSet<>();
+        private final Set<PluginVerifierConfig> verifiers = new LinkedHashSet<>();
 
         private Builder() {
             configName("ClockworkConfig");
@@ -64,6 +72,12 @@ public final class ClockworkConfig extends ImmutableConfig {
             if (readers.stream().anyMatch(d -> d.getName().equals(reader.getName())))
                 throw new IllegalArgumentException("duplicate reader: " + reader.getName());
             this.readers.add(reader);
+        }
+
+        public void addPluginVerifier(PluginVerifierConfig verifier) {
+            if (verifiers.stream().anyMatch(d -> d.getName().equals(verifier.getName())))
+                throw new IllegalArgumentException("duplicate verifier: " + verifier.getName());
+            this.verifiers.add(verifier);
         }
 
         public void addWantedPlugin(DependencyDescriptor descriptor) {

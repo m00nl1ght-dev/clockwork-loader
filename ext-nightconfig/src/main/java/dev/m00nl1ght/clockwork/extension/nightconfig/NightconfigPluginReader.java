@@ -3,20 +3,17 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.ClockworkLoader;
-import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
-import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
+import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.version.Version;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -29,8 +26,6 @@ public class NightconfigPluginReader implements PluginReader {
     public static final String NAME = "extension.pluginreader.nightconfig";
     public static final PluginReaderType FACTORY = NightconfigPluginReader::new;
 
-    private static final Logger LOGGER = LogManager.getLogger();
-
     protected final PluginReaderConfig config;
     protected final String descriptorFilePath;
 
@@ -39,14 +34,9 @@ public class NightconfigPluginReader implements PluginReader {
         this.descriptorFilePath = config.get("descriptorPath");
     }
 
-    public static void registerTo(ClockworkLoader loader) {
-        Arguments.notNull(loader, "loader");
-        loader.registerReaderType(NAME, FACTORY);
-    }
-
-    public static void registerTo(CollectClockworkExtensionsEvent event) {
-        Arguments.notNull(event, "event");
-        event.registerReaderType(NAME, FACTORY);
+    public static void registerTo(Registry<PluginReaderType> registry) {
+        Arguments.notNull(registry, "registry");
+        registry.register(NAME, FACTORY);
     }
 
     public static PluginReaderConfig newConfig(String name, String descriptorPath) {

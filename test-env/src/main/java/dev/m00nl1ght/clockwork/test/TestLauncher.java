@@ -54,7 +54,7 @@ public class TestLauncher {
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
 
         final var bootLayerLoader = ClockworkLoader.buildBootLayerDefault();
-        EventHandlerAnnotationProcessor.registerTo(bootLayerLoader);
+        EventHandlerAnnotationProcessor.registerTo(bootLayerLoader.getProcessorRegistry());
         final var bootLayerCore = bootLayerLoader.loadAndInit();
 
         final var loader = ClockworkLoader.build(bootLayerCore, configBuilder.build());

@@ -1,10 +1,9 @@
 package dev.m00nl1ght.clockwork.fnder;
 
-import dev.m00nl1ght.clockwork.core.ClockworkLoader;
 import dev.m00nl1ght.clockwork.core.LoadingContext;
-import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.Registry;
 
 import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
@@ -22,14 +21,9 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
     protected final ModuleLayer moduleLayer;
     protected final Predicate<ResolvedModule> filter;
 
-    public static void registerTo(ClockworkLoader loader) {
-        Arguments.notNull(loader, "loader");
-        loader.registerFinderType(NAME, FACTORY);
-    }
-
-    public static void registerTo(CollectClockworkExtensionsEvent event) {
-        Arguments.notNull(event, "event");
-        event.registerLocatorFactory(NAME, FACTORY);
+    public static void registerTo(Registry<PluginFinderType> registry) {
+        Arguments.notNull(registry, "registry");
+        registry.register(NAME, FACTORY);
     }
 
     public static PluginFinderConfig newConfig(String name) {

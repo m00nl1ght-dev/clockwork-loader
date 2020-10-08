@@ -77,7 +77,7 @@ public final class CWLAnnotationsExtension {
     }
 
     private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {
-        EventHandlerAnnotationProcessor.registerTo(event);
+        EventHandlerAnnotationProcessor.registerTo(event.getProcessorRegistry());
     }
 
     EventHandlerRegistry getCollectedHandlers() {
