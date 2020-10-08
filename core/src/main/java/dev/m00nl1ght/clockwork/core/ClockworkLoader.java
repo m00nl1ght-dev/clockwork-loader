@@ -9,10 +9,7 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
-import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
-import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.fnder.*;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
@@ -87,6 +84,7 @@ public final class ClockworkLoader {
         ManifestPluginReader.registerTo(this);
         ModuleLayerPluginFinder.registerTo(this);
         ModulePathPluginFinder.registerTo(this);
+        NestedPluginFinder.registerTo(this);
     }
 
     public synchronized void registerReaderType(String id, PluginReaderType readerType) {
