@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.security.permissions;
 
-import dev.m00nl1ght.clockwork.core.LoadedPlugin;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 
 import java.security.Permission;
 import java.util.function.Consumer;
 
 public interface PluginPermissionEntry {
 
-    void getPermissions(Consumer<Permission> permissions, LoadedPlugin plugin, String value);
+    void getPermissions(Consumer<Permission> permissions, PluginDescriptor plugin, String value);
 
     /**
      * Returns the name of this permission. Used for plugin definition files.

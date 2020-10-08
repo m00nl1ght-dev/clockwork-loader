@@ -49,7 +49,7 @@ public abstract class AbstractPluginFinder implements PluginFinder {
         }
     }
 
-    private void scanIfNeeded() {
+    protected void scanIfNeeded() {
         if (cache == null) {
             cache = new HashMap<>();
             scan();
@@ -90,16 +90,7 @@ public abstract class AbstractPluginFinder implements PluginFinder {
         final var moduleName = moduleReference.descriptor().name();
         try {
             final var path = Path.of(moduleReference.location().get());
-            final var descriptor = tryRead(path);
-            if (descriptor.isPresent()) {
-                final var builder = PluginReference.builder(descriptor.get());
-                builder.mainModule(moduleName);
-                builder.moduleFinder(finder);
-                builder.finder(this);
-                return Optional.of(builder.build());
-            } else {
-                return Optional.empty();
-            }
+            return tryRead(path).map(descriptor -> PluginReference.of(descriptor, this, moduleName));
         } catch (PluginLoadingException e) {
             throw e;
         } catch (Exception e) {

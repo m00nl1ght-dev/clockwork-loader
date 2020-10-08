@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.security.permissions;
 
-import dev.m00nl1ght.clockwork.core.LoadedPlugin;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 
 import java.security.Permission;
 import java.util.Collections;
@@ -29,7 +29,7 @@ public class PropertyPermissionEntry implements PluginPermissionEntry {
     }
 
     @Override
-    public void getPermissions(Consumer<Permission> permissions, LoadedPlugin plugin, String value) {
+    public void getPermissions(Consumer<Permission> permissions, PluginDescriptor plugin, String value) {
         if (value.isEmpty()) value = "*";
         permissions.accept(new PropertyPermission(value, actions));
     }

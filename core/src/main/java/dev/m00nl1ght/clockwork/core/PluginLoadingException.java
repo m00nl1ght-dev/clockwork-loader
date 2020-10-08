@@ -7,7 +7,6 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
-import java.lang.module.ModuleDescriptor;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -49,12 +48,10 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Could not find target [] for component []", component.getTargetId(), component.getId());
     }
 
-    public static PluginLoadingException pluginClassIllegal(String className, PluginDescriptor plugin, String actPlugin, ModuleDescriptor module) {
-        if (module == null || actPlugin == null) {
-            return generic("Class [] for plugin [] found in external module []", className, plugin.getId(), module == null ? "UNNAMED" : module.name());
-        } else {
-            return generic("Class [] for plugin [] found in module [] of different plugin []", className, plugin.getId(), module.name(), actPlugin);
-        }
+    public static PluginLoadingException pluginClassIllegal(Class<?> clazz, LoadedPlugin plugin) {
+        final var expectedName = plugin.getMainModule().getName() != null ? plugin.getMainModule().getName() : "UNNAMED";
+        final var actualName = clazz.getModule().getName() != null ? clazz.getModule().getName() : "UNNAMED";
+        return generic("Class [] for plugin [] was expected in its main module [], but was found in module []", clazz, plugin.getId(), expectedName, actualName);
     }
 
     public static PluginLoadingException pluginClassNotFound(String className, PluginDescriptor plugin) {

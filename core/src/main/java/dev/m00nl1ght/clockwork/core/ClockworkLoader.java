@@ -223,7 +223,7 @@ public final class ClockworkLoader {
 
         // Create the new ModuleLayer and the ClockworkCore instance.
         final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
-        final var moduleManager = new ModuleManager(pluginReferences, parentLayer);
+        final var moduleManager = new ModuleManager(finders.values(), pluginReferences, parentLayer);
         core = new ClockworkCore(moduleManager);
 
         // First add the plugins inherited from the parent.
@@ -236,9 +236,9 @@ public final class ClockworkLoader {
 
         // Then add the new ones that were located using the config.
         for (final var pluginReference : pluginReferences) {
-            final var mainModule = moduleManager.mainModuleFor(pluginReference);
+            final var mainModule = moduleManager.getModuleLayer().findModule(pluginReference.getMainModule()).orElseThrow();
             final var plugin = new LoadedPlugin(pluginReference.getDescriptor(), core, mainModule);
-            moduleManager.bindModule(plugin, mainModule.getName());
+            moduleManager.patchModule(mainModule);
             core.addLoadedPlugin(plugin);
         }
 

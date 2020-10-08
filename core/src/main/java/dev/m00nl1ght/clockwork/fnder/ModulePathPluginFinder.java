@@ -54,4 +54,9 @@ public class ModulePathPluginFinder extends AbstractPluginFinder {
                 .forEach(this::found);
     }
 
+    @Override
+    public ModuleFinder getModuleFinder() {
+        return moduleFinder;
+    }
+
 }

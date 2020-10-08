@@ -5,6 +5,7 @@ import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
+import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
 import java.util.Map;
 import java.util.Optional;
@@ -62,6 +63,11 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
     private static boolean systemModuleFilter(ResolvedModule module) {
         final var location = module.reference().location();
         return location.isPresent() && !location.get().getScheme().equals("jrt");
+    }
+
+    @Override
+    public ModuleFinder getModuleFinder() {
+        return null;
     }
 
 }
