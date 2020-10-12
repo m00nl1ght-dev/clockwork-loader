@@ -3,27 +3,28 @@ package dev.m00nl1ght.clockwork.events.impl;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
-import dev.m00nl1ght.clockwork.events.ListenerList;
+import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
+import dev.m00nl1ght.clockwork.events.AbstractExactEventDispatcher;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
-public class EventTypeImplExact<E extends ContextAwareEvent, T extends ComponentTarget> extends BasicEventTypeExact<E, T> {
+public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractExactEventDispatcher<E, T> {
 
     protected ListenerList groupedListeners = ListenerList.EMPTY;
-    protected EventProfilerGroup<E, T> profilerGroup;
+    protected EventDispatcherProfilerGroup<E, T> profilerGroup;
 
-    public EventTypeImplExact(TypeRef<E> eventClassType, TargetType<T> targetType) {
+    public ExactEventDispatcherImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
     }
 
-    public EventTypeImplExact(Class<E> eventClass, TargetType<T> targetType) {
+    public ExactEventDispatcherImpl(Class<E> eventClass, TargetType<T> targetType) {
         this(TypeRef.of(eventClass), targetType);
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void onListenersChanged() {
-        groupedListeners = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(getListeners(), profilerGroup);
+        groupedListeners = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(listeners, profilerGroup);
     }
 
     @Override
@@ -58,11 +59,11 @@ public class EventTypeImplExact<E extends ContextAwareEvent, T extends Component
 
     @Override
     @SuppressWarnings("unchecked")
-    public synchronized void attachProfiler(EventProfilerGroup<E, ? extends T> profilerGroup) {
+    public synchronized void attachProfiler(EventDispatcherProfilerGroup<E, ? extends T> profilerGroup) {
         Arguments.notNull(profilerGroup, "profilerGroup");
         if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());
-        this.profilerGroup = (EventProfilerGroup<E, T>) profilerGroup;
+        this.profilerGroup = (EventDispatcherProfilerGroup<E, T>) profilerGroup;
         onListenersChanged();
     }
 

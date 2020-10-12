@@ -1,26 +1,32 @@
-package dev.m00nl1ght.clockwork.interfaces;
+package dev.m00nl1ght.clockwork.interfaces.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.interfaces.AbstractExactComponentInterface;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Iterator;
 import java.util.Spliterator;
 import java.util.function.Consumer;
 
-public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicInterfaceTypeExact<I, T> {
+public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends AbstractExactComponentInterface<I, T> {
 
     protected static final int[] EMPTY_ARRAY = new int[0];
 
     protected int[] compIds = EMPTY_ARRAY;
 
-    public InterfaceTypeImplExact(Class<I> interfaceClass, TargetType<T> targetType) {
-        super(interfaceClass, targetType);
+    public ExactComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType) {
+        super(interfaceType, targetType);
     }
 
-    public InterfaceTypeImplExact(Class<I> interfaceClass, TargetType<T> targetType, boolean autoCollect) {
-        this(interfaceClass, targetType);
+    public ExactComponentInterfaceImpl(Class<I> interfaceClass, TargetType<T> targetType) {
+        this(TypeRef.of(interfaceClass), targetType);
+    }
+
+    public ExactComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType, boolean autoCollect) {
+        this(interfaceType, targetType);
         if (autoCollect) autoCollectComponents();
     }
 
@@ -44,7 +50,7 @@ public class InterfaceTypeImplExact<I, T extends ComponentTarget> extends BasicI
                     throw e;
                 } catch (Throwable e) {
                     final var compType = target.getComponentTypes().get(idx);
-                    throw ExceptionInPlugin.inComponentInterface(compType, interfaceClass, e);
+                    throw ExceptionInPlugin.inComponentInterface(compType, interfaceType, e);
                 }
             }
         } catch (Throwable t) {

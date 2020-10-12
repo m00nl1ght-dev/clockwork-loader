@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.debug.DebugUtils;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
-import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
@@ -68,11 +68,11 @@ public class TestLauncher {
         CWLAnnotationsExtension.buildListeners(clockworkCore, List.of(PluginInitEvent.TYPE, SimpleTestEvent.TYPE, GenericTestEvent.TYPE_STRING, GenericTestEvent.TYPE_RAW));
 
         final var profiler = new DebugProfiler();
-        profiler.addGroup(new EventProfilerGroup<>(PluginInitEvent.TYPE, coreTargetType).attach());
-        profiler.addGroup(new EventProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_A.TARGET_TYPE).attach());
-        profiler.addGroup(new EventProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_B.TARGET_TYPE).attach());
-        profiler.addGroup(new EventProfilerGroup<>(GenericTestEvent.TYPE_STRING, TestTarget_B.TARGET_TYPE).attach());
-        profiler.addGroup(new EventProfilerGroup<>(GenericTestEvent.TYPE_RAW, TestTarget_B.TARGET_TYPE).attach());
+        profiler.addGroup(new EventDispatcherProfilerGroup<>(PluginInitEvent.TYPE, coreTargetType).attach());
+        profiler.addGroup(new EventDispatcherProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_A.TARGET_TYPE).attach());
+        profiler.addGroup(new EventDispatcherProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_B.TARGET_TYPE).attach());
+        profiler.addGroup(new EventDispatcherProfilerGroup<>(GenericTestEvent.TYPE_STRING, TestTarget_B.TARGET_TYPE).attach());
+        profiler.addGroup(new EventDispatcherProfilerGroup<>(GenericTestEvent.TYPE_RAW, TestTarget_B.TARGET_TYPE).attach());
 
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
 

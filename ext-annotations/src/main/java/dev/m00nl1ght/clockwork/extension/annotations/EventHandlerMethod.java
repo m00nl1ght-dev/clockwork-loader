@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.extension.annotations;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListenerPriority;
+import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.SimpleEventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;

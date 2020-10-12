@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collections;
 import java.util.LinkedList;
@@ -56,8 +57,8 @@ public class ExceptionInPlugin extends RuntimeException {
         return genericOrRt(componentType, "Exception thrown while initialising component []", cause, componentType);
     }
 
-    public static RuntimeException inComponentInterface(ComponentType componentType, Class<?> interfaceType, Throwable cause) {
-        return genericOrRt(componentType, "Exception thrown while applying interface [] for component type []", cause, interfaceType.getSimpleName(), componentType);
+    public static RuntimeException inComponentInterface(ComponentType componentType, TypeRef<?> interfaceType, Throwable cause) {
+        return genericOrRt(componentType, "Exception thrown while applying interface [] for component type []", cause, interfaceType, componentType);
     }
 
     public void addPluginToStack(LoadedPlugin plugin) {

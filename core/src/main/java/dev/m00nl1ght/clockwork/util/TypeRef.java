@@ -63,6 +63,14 @@ public abstract class TypeRef<T> {
         }
     }
 
+    public final boolean tryFindAssignable(Class<?> other) {
+        if (type instanceof Class) {
+            return ((Class<?>) type).isAssignableFrom(other);
+        } else {
+            return ReflectionUtil.tryFindSupertype(other, type);
+        }
+    }
+
     @Override
     public final boolean equals(Object o) {
         if (this == o) return true;

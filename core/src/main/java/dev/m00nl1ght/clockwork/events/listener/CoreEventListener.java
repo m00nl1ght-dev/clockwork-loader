@@ -16,7 +16,7 @@ public class CoreEventListener<E extends Event, T extends ComponentTarget, I> ex
     protected final I innerComponent;
 
     public CoreEventListener(EventListener<E, ClockworkCore, I> innerListener, TargetType<T> target, ClockworkCore core) {
-        super(Arguments.notNull(innerListener, "innerListener").getEventClassType(),
+        super(Arguments.notNull(innerListener, "innerListener").getEventType(),
                 target.getIdentityComponentType(), innerListener.getPriority());
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();

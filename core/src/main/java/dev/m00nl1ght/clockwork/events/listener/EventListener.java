@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -17,17 +16,17 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
 
     protected final ComponentType<C, T> componentType;
     protected final EventListenerPriority priority;
-    protected final TypeRef<E> eventClassType;
+    protected final TypeRef<E> eventType;
 
-    protected EventListener(TypeRef<E> eventClassType, ComponentType<C, T> componentType, EventListenerPriority priority) {
+    protected EventListener(TypeRef<E> eventType, ComponentType<C, T> componentType, EventListenerPriority priority) {
         this.componentType = Arguments.notNull(componentType, "componentType");
         this.priority = Arguments.notNull(priority, "priority");
-        this.eventClassType = Arguments.notNull(eventClassType, "eventClassType");
+        this.eventType = Arguments.notNull(eventType, "eventType");
         componentType.getTargetType().requireInitialised();
     }
 
-    public TypeRef<E> getEventClassType() {
-        return eventClassType;
+    public TypeRef<E> getEventType() {
+        return eventType;
     }
 
     public ComponentType<C, T> getComponentType() {
@@ -42,7 +41,7 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
 
     @Override
     public String toString() {
-        return eventClassType + "@" + componentType.toString() + "[" + priority + "]";
+        return eventType + "@" + componentType.toString() + "[" + priority + "]";
     }
 
     @Override
@@ -51,12 +50,12 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
         if (!(o instanceof EventListener)) return false;
         EventListener<?, ?, ?> that = (EventListener<?, ?, ?>) o;
         return componentType.equals(that.componentType) &&
-                eventClassType.equals(that.eventClassType);
+                eventType.equals(that.eventType);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(componentType, eventClassType);
+        return Objects.hash(componentType, eventType);
     }
 
 }

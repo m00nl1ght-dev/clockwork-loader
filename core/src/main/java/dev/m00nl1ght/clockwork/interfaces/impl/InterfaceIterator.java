@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.interfaces;
+package dev.m00nl1ght.clockwork.interfaces.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 

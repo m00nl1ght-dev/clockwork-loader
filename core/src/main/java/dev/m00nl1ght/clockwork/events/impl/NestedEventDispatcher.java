@@ -1,28 +1,30 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.events.Event;
+import dev.m00nl1ght.clockwork.events.EventDispatcher;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.NestedEventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NestedEventType<E extends Event, T extends ComponentTarget, O extends ComponentTarget> extends EventType<E, T> {
+public class NestedEventDispatcher<E extends Event, T extends ComponentTarget, O extends ComponentTarget> implements EventDispatcher<E, T> {
 
-    protected final EventType<E, O> origin;
+    protected final EventDispatcher<E, O> origin;
     protected final ComponentType<T, O> componentOrigin;
     protected final TargetType<T> targetType;
 
-    public NestedEventType(EventType<E, O> origin, ComponentType<T, O> componentOrigin, TargetType<T> targetType) {
-        super(Arguments.notNull(origin, "origin").getEventClassType(), Arguments.notNull(targetType, "targetType"));
-        this.origin = origin;
-        this.componentOrigin = componentOrigin;
-        this.targetType = targetType;
+    public NestedEventDispatcher(EventDispatcher<E, O> origin, ComponentType<T, O> componentOrigin, TargetType<T> targetType) {
+        this.origin = Arguments.notNull(origin, "origin");
+        this.componentOrigin = Arguments.notNull(componentOrigin, "componentOrigin");
+        this.targetType = Arguments.notNull(targetType, "targetType");
     }
 
     @Override
@@ -33,12 +35,22 @@ public class NestedEventType<E extends Event, T extends ComponentTarget, O exten
     @Override
     @SuppressWarnings("unchecked")
     public <S extends T> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
+        return getRawListeners(target);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<EventListener<E, ? extends T, ?>> getEffectiveListeners(TargetType<? extends T> target) {
+        return getRawListeners(target);
+    }
+
+    protected List getRawListeners(TargetType<?> target) {
         if (target != targetType) checkCompatibility(target);
         return origin.getListeners(componentOrigin.getTargetType()).stream()
                 .filter(l -> l instanceof NestedEventListener)
                 .map(l -> (NestedEventListener) l)
                 .filter(l -> l.getComponentType() == componentOrigin)
-                .map(l -> (EventListener<E, S, ?>) l.getInnerListener())
+                .map(NestedEventListener::getInnerListener)
                 .collect(Collectors.toUnmodifiableList());
     }
 
@@ -65,6 +77,20 @@ public class NestedEventType<E extends Event, T extends ComponentTarget, O exten
     }
 
     @Override
+    public TypeRef<E> getEventClassType() {
+        return origin.getEventClassType();
+    }
+
+    @Override
+    public TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return List.of(targetType);
+    }
+
     protected void checkCompatibility(TargetType<?> otherType) {
         if (otherType != targetType) {
             final var msg = "Cannot post event [] to different target []";

@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -14,8 +13,8 @@ public class SimpleEventListener<E extends Event, T extends ComponentTarget, C> 
 
     private final BiConsumer<C, E> consumer;
 
-    public SimpleEventListener(TypeRef<E> eventClassType, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
-        super(eventClassType, componentType, priority);
+    public SimpleEventListener(TypeRef<E> eventType, ComponentType<C, T> componentType, EventListenerPriority priority, BiConsumer<C, E> consumer) {
+        super(eventType, componentType, priority);
         this.consumer = Arguments.notNull(consumer, "consumer");
     }
 

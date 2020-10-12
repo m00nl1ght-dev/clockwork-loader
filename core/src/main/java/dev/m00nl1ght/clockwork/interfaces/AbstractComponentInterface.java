@@ -4,19 +4,27 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
 import java.util.List;
 
-public abstract class BasicInterfaceType<I, T extends ComponentTarget> extends InterfaceType<I, T> {
+public abstract class AbstractComponentInterface<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
+
+    protected final TypeRef<I> interfaceType;
+    protected final TargetType<T> targetType;
 
     protected final List[] components;
     protected final TargetType<? super T> rootTarget;
     protected final int idxOffset;
 
-    protected BasicInterfaceType(Class<I> interfaceClass, TargetType<T> targetType) {
-        super(interfaceClass, targetType);
+    protected AbstractComponentInterface(TypeRef<I> interfaceType, TargetType<T> targetType) {
+        this.interfaceType = Arguments.notNull(interfaceType, "interfaceType");
+        this.targetType = Arguments.notNull(targetType, "targetType");
+        targetType.requireInitialised();
         this.rootTarget = getTargetType().getRoot();
         this.idxOffset = getTargetType().getSubtargetIdxFirst();
         final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
@@ -30,6 +38,27 @@ public abstract class BasicInterfaceType<I, T extends ComponentTarget> extends I
             @SuppressWarnings("unchecked")
             final List<ComponentType<? extends I, S>> list = components[target.getSubtargetIdxFirst() - idxOffset];
             if (list == null) return List.of();
+            return list;
+        } catch (Exception e) {
+            checkCompatibility(target);
+            throw e;
+        }
+    }
+
+    @Override
+    public List<ComponentType<? extends I, ? extends T>> getEffectiveComponents(TargetType<? extends T> target) {
+        if (target.getRoot() != rootTarget) checkCompatibility(target);
+        try {
+            final var list = new ArrayList<ComponentType<? extends I, ? extends T>>();
+            TargetType<?> type = target;
+            while (type != null) {
+                @SuppressWarnings("unchecked")
+                final List<ComponentType<? extends I, ? extends T>> got = components[target.getSubtargetIdxFirst() - idxOffset];
+                if (got != null) list.addAll(got);
+                if (type == this.targetType) break;
+                final var castedType = type.getParent();
+                type = castedType;
+            }
             return list;
         } catch (Exception e) {
             checkCompatibility(target);
@@ -77,5 +106,32 @@ public abstract class BasicInterfaceType<I, T extends ComponentTarget> extends I
     }
 
     protected abstract void onComponentsChanged(TargetType<? extends T> targetType);
+
+    @Override
+    public TypeRef<I> getInterfaceType() {
+        return interfaceType;
+    }
+
+    @Override
+    public TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return targetType.getAllSubtargets();
+    }
+
+    protected void checkCompatibility(TargetType<?> otherType) {
+        if (!otherType.isEquivalentTo(targetType)) {
+            final var msg = "Cannot use interface type [] (created for target []) on different target []";
+            throw new IllegalArgumentException(FormatUtil.format(msg, this, targetType, otherType));
+        }
+    }
+
+    @Override
+    public String toString() {
+        return targetType == null ? interfaceType.getSimpleName() + "@?" : interfaceType.getSimpleName() + "@" + targetType;
+    }
 
 }

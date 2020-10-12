@@ -22,10 +22,11 @@ public final class CWLNightconfigExtension {
 
     private void attachEventListener() {
         final var cwlPluginComponent = core.getComponentType(CWLPlugin.class, ClockworkCore.class).orElseThrow();
+        final var extComponent = core.getComponentType(CWLNightconfigExtension.class, ClockworkCore.class).orElseThrow();
         final var cwlPlugin = cwlPluginComponent.get(core);
         if (cwlPlugin == null) throw FormatUtil.illStateExc("Internal core component missing");
-        cwlPlugin.getCollectExtensionsEventType().addListener(core, CWLNightconfigExtension.class,
-                CWLNightconfigExtension::onCollectExtensionsEvent);
+        cwlPlugin.getCollectExtensionsEventType()
+                .addListener(extComponent, CWLNightconfigExtension::onCollectExtensionsEvent);
     }
 
     private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {

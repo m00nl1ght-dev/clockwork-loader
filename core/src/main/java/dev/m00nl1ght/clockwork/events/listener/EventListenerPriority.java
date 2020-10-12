@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.listener;
 
 public enum EventListenerPriority {
 

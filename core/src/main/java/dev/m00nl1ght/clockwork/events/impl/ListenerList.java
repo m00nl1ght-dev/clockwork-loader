@@ -1,6 +1,6 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
-import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
+import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 
 import java.util.Collections;
@@ -19,7 +19,7 @@ public class ListenerList {
         this(listeners, null);
     }
 
-    public ListenerList(List<? extends EventListener<?, ?, ?>> listeners, EventProfilerGroup<?, ?> profilerGroup) {
+    public ListenerList(List<? extends EventListener<?, ?, ?>> listeners, EventDispatcherProfilerGroup<?, ?> profilerGroup) {
         this.listeners = listeners;
         this.consumers = new BiConsumer[listeners.size()];
         this.cIdxs = new int[listeners.size()];

@@ -3,8 +3,8 @@ package dev.m00nl1ght.clockwork.events.impl;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.EventProfilerGroup;
-import dev.m00nl1ght.clockwork.events.ListenerList;
+import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
+import dev.m00nl1ght.clockwork.events.AbstractEventDispatcher;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
@@ -12,19 +12,19 @@ import dev.m00nl1ght.clockwork.util.TypeRef;
 import java.util.Arrays;
 import java.util.List;
 
-public class EventTypeImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends BasicEventType<E, T> {
+public class EventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractEventDispatcher<E, T> {
 
     protected final ListenerList[] groupedListeners;
-    protected EventProfilerGroup[] profilerGroups;
+    protected EventDispatcherProfilerGroup[] profilerGroups;
 
-    public EventTypeImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
+    public EventDispatcherImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
         super(eventClassType, targetType);
         final int cnt = targetType.getSubtargetIdxLast() - idxOffset + 1;
         this.groupedListeners = new ListenerList[cnt];
         Arrays.fill(groupedListeners, ListenerList.EMPTY);
     }
 
-    public EventTypeImpl(Class<E> eventClass, TargetType<T> targetType) {
+    public EventDispatcherImpl(Class<E> eventClass, TargetType<T> targetType) {
         this(TypeRef.of(eventClass), targetType);
     }
 
@@ -68,9 +68,9 @@ public class EventTypeImpl<E extends ContextAwareEvent, T extends ComponentTarge
     }
 
     @Override
-    public synchronized void attachProfiler(EventProfilerGroup<E, ? extends T> profilerGroup) {
+    public synchronized void attachProfiler(EventDispatcherProfilerGroup<E, ? extends T> profilerGroup) {
         Arguments.notNull(profilerGroup, "profilerGroup");
-        if (this.profilerGroups == null) this.profilerGroups = new EventProfilerGroup[groupedListeners.length];
+        if (this.profilerGroups == null) this.profilerGroups = new EventDispatcherProfilerGroup[groupedListeners.length];
         if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());
         this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;

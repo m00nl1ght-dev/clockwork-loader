@@ -6,6 +6,8 @@ import org.apache.logging.log4j.Logger;
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
+import java.lang.reflect.Type;
+import java.util.Arrays;
 
 public class ReflectionUtil {
 
@@ -22,6 +24,18 @@ public class ReflectionUtil {
         } catch (Throwable t) {
             throw FormatUtil.rtExc(t, "Failed to extract constructor from []", targetClass.getSimpleName());
         }
+    }
+
+    public static boolean tryFindSupertype(Type type, Type supertype) {
+        if (type.equals(supertype)) return true;
+        if (type instanceof Class) {
+            final var classType = (Class<?>) type;
+            final var sc = classType.getGenericSuperclass();
+            if (sc != null && tryFindSupertype(sc, supertype)) return true;
+            return Arrays.stream(classType.getGenericInterfaces())
+                    .anyMatch(i -> tryFindSupertype(i, supertype));
+        }
+        return false;
     }
 
 }

@@ -5,41 +5,46 @@ import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> extends InterfaceType<I, T> {
+public abstract class AbstractExactComponentInterface<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
+
+    protected final TypeRef<I> interfaceType;
+    protected final TargetType<T> targetType;
 
     protected List components;
 
-    protected BasicInterfaceTypeExact(Class<I> interfaceClass, TargetType<T> targetType) {
-        super(interfaceClass, targetType);
-    }
-
-    @Override
-    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
-        return List.of(targetType);
+    protected AbstractExactComponentInterface(TypeRef<I> interfaceType, TargetType<T> targetType) {
+        this.interfaceType = Arguments.notNull(interfaceType, "interfaceType");
+        this.targetType = Arguments.notNull(targetType, "targetType");
+        targetType.requireInitialised();
     }
 
     @SuppressWarnings("unchecked")
-    public List<ComponentType<?, T>> getComponents() {
+    public List<ComponentType<? extends I, T>> getComponents() {
         return components;
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     public <S extends T> List<ComponentType<? extends I, S>> getComponents(TargetType<S> target) {
+        return getRawComponents(target);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<ComponentType<? extends I, ? extends T>> getEffectiveComponents(TargetType<? extends T> target) {
+        return getRawComponents(target);
+    }
+
+    protected List getRawComponents(TargetType<?> target) {
         if (target != getTargetType()) checkCompatibility(target);
-        try {
-            @SuppressWarnings("unchecked")
-            final List<ComponentType<? extends I, S>> list = components;
-            if (list == null) return List.of();
-            return list;
-        } catch (Exception e) {
-            checkCompatibility(target);
-            throw e;
-        }
+        if (components == null) return List.of();
+        return components;
     }
 
     @Override
@@ -74,17 +79,33 @@ public abstract class BasicInterfaceTypeExact<I, T extends ComponentTarget> exte
         if (modified) onComponentsChanged();
     }
 
-    @Override
     protected void checkCompatibility(TargetType<?> otherType) {
-        if (getTargetType() == null) {
-            final var msg = "Interface type for [] is not registered";
-            throw new IllegalArgumentException(FormatUtil.format(msg, interfaceClass.getSimpleName()));
-        } else if (otherType != getTargetType()) {
+        if (otherType != getTargetType()) {
             final var msg = "Cannot use interface type [] (created for target []) on different target []";
             throw new IllegalArgumentException(FormatUtil.format(msg, this, getTargetType(), otherType));
         }
     }
 
     protected abstract void onComponentsChanged();
+
+    @Override
+    public TypeRef<I> getInterfaceType() {
+        return interfaceType;
+    }
+
+    @Override
+    public TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return List.of(targetType);
+    }
+
+    @Override
+    public String toString() {
+        return targetType == null ? interfaceType.getSimpleName() + "@?" : interfaceType.getSimpleName() + "@" + targetType;
+    }
 
 }

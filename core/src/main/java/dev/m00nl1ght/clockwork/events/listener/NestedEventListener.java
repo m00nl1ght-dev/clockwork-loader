@@ -15,7 +15,7 @@ public class NestedEventListener<E extends Event, T extends ComponentTarget, C e
     protected final int cIdx;
 
     public NestedEventListener(EventListener<E, ? extends C, I> innerListener, ComponentType<C, T> componentType) {
-        super(Arguments.notNull(innerListener, "innerListener").getEventClassType(), componentType, innerListener.getPriority());
+        super(Arguments.notNull(innerListener, "innerListener").getEventType(), componentType, innerListener.getPriority());
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();
         this.cIdx = innerListener.getComponentType().getInternalIdx();

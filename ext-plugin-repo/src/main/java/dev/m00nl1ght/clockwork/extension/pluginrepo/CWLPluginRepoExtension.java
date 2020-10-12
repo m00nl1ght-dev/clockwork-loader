@@ -22,10 +22,11 @@ public final class CWLPluginRepoExtension {
 
     private void attachEventListener() {
         final var cwlPluginComponent = core.getComponentType(CWLPlugin.class, ClockworkCore.class).orElseThrow();
+        final var extComponent = core.getComponentType(CWLPluginRepoExtension.class, ClockworkCore.class).orElseThrow();
         final var cwlPlugin = cwlPluginComponent.get(core);
         if (cwlPlugin == null) throw FormatUtil.illStateExc("Internal core component missing");
-        cwlPlugin.getCollectExtensionsEventType().addListener(core, CWLPluginRepoExtension.class,
-                CWLPluginRepoExtension::onCollectExtensionsEvent);
+        cwlPlugin.getCollectExtensionsEventType()
+                .addListener(extComponent, CWLPluginRepoExtension::onCollectExtensionsEvent);
     }
 
     private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {

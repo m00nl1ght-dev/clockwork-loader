@@ -2,16 +2,16 @@ package dev.m00nl1ght.clockwork.test.event;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.events.impl.ContextAwareEvent;
-import dev.m00nl1ght.clockwork.events.EventType;
-import dev.m00nl1ght.clockwork.events.impl.EventTypeImpl;
+import dev.m00nl1ght.clockwork.events.EventDispatcher;
+import dev.m00nl1ght.clockwork.events.impl.EventDispatcherImpl;
 import dev.m00nl1ght.clockwork.test.TestLauncher;
 
 import java.io.File;
 
 public class PluginInitEvent extends ContextAwareEvent {
 
-    public static final EventType<PluginInitEvent, ClockworkCore> TYPE =
-            new EventTypeImpl<>(PluginInitEvent.class, TestLauncher.coreTargetType());
+    public static final EventDispatcher<PluginInitEvent, ClockworkCore> TYPE =
+            new EventDispatcherImpl<>(PluginInitEvent.class, TestLauncher.coreTargetType());
 
     private final ClockworkCore cwc;
     private final File dataDir;

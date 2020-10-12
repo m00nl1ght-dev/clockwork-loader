@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
-import dev.m00nl1ght.clockwork.events.EventListenerPriority;
+import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
 
 import java.lang.annotation.ElementType;
 import java.lang.annotation.Retention;

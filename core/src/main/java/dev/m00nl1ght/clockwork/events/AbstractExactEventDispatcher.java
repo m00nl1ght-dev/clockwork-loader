@@ -1,10 +1,9 @@
-package dev.m00nl1ght.clockwork.events.impl;
+package dev.m00nl1ght.clockwork.events;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
@@ -12,36 +11,35 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
-public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTarget> extends EventType<E, T> {
+public abstract class AbstractExactEventDispatcher<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
+
+    protected final TypeRef<E> eventClassType;
+    protected final TargetType<T> targetType;
 
     protected List listeners;
 
-    protected BasicEventTypeExact(TypeRef<E> eventClassType, TargetType<T> targetType) {
-        super(eventClassType, targetType);
+    protected AbstractExactEventDispatcher(TypeRef<E> eventClassType, TargetType<T> targetType) {
+        this.eventClassType = Arguments.notNull(eventClassType, "eventClassType");
+        this.targetType = Arguments.notNull(targetType, "targetType");
+        targetType.requireInitialised();
     }
 
     @Override
-    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
-        return List.of(targetType);
-    }
-
     @SuppressWarnings("unchecked")
-    protected List<EventListener<E, T, ?>> getListeners() {
-        return listeners;
+    public <S extends T> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
+        return getRawListeners(target);
     }
 
     @Override
-    public <S extends T> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
+    @SuppressWarnings("unchecked")
+    public List<EventListener<E, ? extends T, ?>> getEffectiveListeners(TargetType<? extends T> target) {
+        return getRawListeners(target);
+    }
+
+    protected List getRawListeners(TargetType<?> target) {
         if (target != targetType) checkCompatibility(target);
-        try {
-            @SuppressWarnings("unchecked")
-            final List<EventListener<E, S, ?>> list = listeners;
-            if (list == null) return List.of();
-            return list;
-        } catch (Exception e) {
-            checkCompatibility(target);
-            throw e;
-        }
+        if (listeners == null) return List.of();
+        return listeners;
     }
 
     @Override
@@ -75,7 +73,23 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
         if (modified) onListenersChanged();
     }
 
+    protected abstract void onListenersChanged();
+
     @Override
+    public TypeRef<E> getEventClassType() {
+        return eventClassType;
+    }
+
+    @Override
+    public TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return List.of(targetType);
+    }
+
     protected void checkCompatibility(TargetType<?> otherType) {
         if (otherType != targetType) {
             final var msg = "Cannot post event [] to different target []";
@@ -83,6 +97,9 @@ public abstract class BasicEventTypeExact<E extends Event, T extends ComponentTa
         }
     }
 
-    protected abstract void onListenersChanged();
+    @Override
+    public String toString() {
+        return targetType == null ? eventClassType + "@?" : eventClassType + "@" + targetType;
+    }
 
 }

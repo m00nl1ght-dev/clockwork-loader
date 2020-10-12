@@ -1,30 +1,33 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.events.impl;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.events.Event;
+import dev.m00nl1ght.clockwork.events.EventDispatcher;
 import dev.m00nl1ght.clockwork.events.listener.CoreEventListener;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class CoreEventType<E extends Event, O extends ComponentTarget> extends EventType<E, ClockworkCore> {
+public class CoreEventDispatcher<E extends Event, O extends ComponentTarget> implements EventDispatcher<E, ClockworkCore> {
 
-    protected final EventType<E, O> origin;
+    protected final EventDispatcher<E, O> origin;
     protected final ComponentType<O, O> originIdentity;
+    protected final TargetType<ClockworkCore> targetType;
     protected final ClockworkCore core;
 
-    public CoreEventType(EventType<E, O> origin, ClockworkCore core) {
-        super(Arguments.notNull(origin, "origin").getEventClassType(),
-                Arguments.notNull(core, "core").getTargetType());
+    public CoreEventDispatcher(EventDispatcher<E, O> origin, ClockworkCore core) {
+        this.origin = Arguments.notNull(origin, "origin");
         this.originIdentity = origin.getTargetType().getIdentityComponentType();
-        this.origin = origin;
-        this.core = core;
+        this.core = Arguments.notNull(core, "core");
+        this.targetType = core.getTargetType();
     }
 
     @Override
@@ -35,12 +38,22 @@ public class CoreEventType<E extends Event, O extends ComponentTarget> extends E
     @Override
     @SuppressWarnings("unchecked")
     public <S extends ClockworkCore> List<EventListener<E, S, ?>> getListeners(TargetType<S> target) {
+        return getRawListeners(target);
+    }
+
+    @Override
+    @SuppressWarnings("unchecked")
+    public List<EventListener<E, ? extends ClockworkCore, ?>> getEffectiveListeners(TargetType<? extends ClockworkCore> target) {
+        return getRawListeners(target);
+    }
+
+    protected List getRawListeners(TargetType<?> target) {
         if (target != targetType) checkCompatibility(target);
         return origin.getListeners(originIdentity.getTargetType()).stream()
                 .filter(l -> l instanceof CoreEventListener)
                 .map(l -> (CoreEventListener) l)
                 .filter(l -> l.getComponentType() == originIdentity)
-                .map(l -> (EventListener<E, S, ?>) l.getInnerListener())
+                .map(CoreEventListener::getInnerListener)
                 .collect(Collectors.toUnmodifiableList());
     }
 
@@ -69,6 +82,20 @@ public class CoreEventType<E extends Event, O extends ComponentTarget> extends E
     }
 
     @Override
+    public TypeRef<E> getEventClassType() {
+        return origin.getEventClassType();
+    }
+
+    @Override
+    public TargetType<ClockworkCore> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public Collection<TargetType<? extends ClockworkCore>> getCompatibleTargetTypes() {
+        return List.of(targetType);
+    }
+
     protected void checkCompatibility(TargetType<?> otherType) {
         if (otherType != targetType) {
             final var msg = "Cannot post event [] to different target []";
