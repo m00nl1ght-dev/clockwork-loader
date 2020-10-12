@@ -3,8 +3,8 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.debug.DebugUtils;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
-import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
@@ -21,7 +21,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
-import java.util.List;
 import java.util.Set;
 
 public class TestLauncher {
@@ -33,6 +32,7 @@ public class TestLauncher {
 
     private static ClockworkCore clockworkCore;
     private static TargetType<ClockworkCore> coreTargetType;
+    private static EventBusImpl eventBus;
 
     public static void main(String... args) {
         PLUGIN_DATA_DIR.mkdirs();
@@ -62,17 +62,18 @@ public class TestLauncher {
 
         clockworkCore = loader.load();
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
+        eventBus = new EventBusImpl(clockworkCore);
 
         loader.init();
 
-        CWLAnnotationsExtension.buildListeners(clockworkCore, List.of(PluginInitEvent.TYPE, SimpleTestEvent.TYPE, GenericTestEvent.TYPE_STRING, GenericTestEvent.TYPE_RAW));
+        PluginInitEvent.TYPE.getClass(); // TODO better way
+        SimpleTestEvent.TYPE.getClass();
+        GenericTestEvent.TYPE_RAW.getClass();
+        GenericTestEvent.TYPE_STRING.getClass();
+        CWLAnnotationsExtension.buildListeners(eventBus);
 
         final var profiler = new DebugProfiler();
-        profiler.addGroup(new EventDispatcherProfilerGroup<>(PluginInitEvent.TYPE, coreTargetType).attach());
-        profiler.addGroup(new EventDispatcherProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_A.TARGET_TYPE).attach());
-        profiler.addGroup(new EventDispatcherProfilerGroup<>(SimpleTestEvent.TYPE, TestTarget_B.TARGET_TYPE).attach());
-        profiler.addGroup(new EventDispatcherProfilerGroup<>(GenericTestEvent.TYPE_STRING, TestTarget_B.TARGET_TYPE).attach());
-        profiler.addGroup(new EventDispatcherProfilerGroup<>(GenericTestEvent.TYPE_RAW, TestTarget_B.TARGET_TYPE).attach());
+        profiler.addGroups(eventBus.attachDefaultProfilers());
 
         PluginInitEvent.TYPE.post(clockworkCore, new PluginInitEvent(clockworkCore, PLUGIN_DATA_DIR));
 
@@ -87,6 +88,11 @@ public class TestLauncher {
     public static TargetType<ClockworkCore> coreTargetType() {
         if (clockworkCore == null) throw new IllegalStateException("class has been initialised before clockwork core is ready");
         return coreTargetType;
+    }
+
+    public static EventBusImpl eventBus() {
+        if (eventBus == null) throw new IllegalStateException("class has been initialised before clockwork core is ready");
+        return eventBus;
     }
 
     public static <T extends ComponentTarget> TargetType<T> targetType(Class<T> targetClass) {

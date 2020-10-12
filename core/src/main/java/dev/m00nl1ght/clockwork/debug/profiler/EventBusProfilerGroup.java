@@ -1,11 +1,29 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
+import dev.m00nl1ght.clockwork.events.EventBus;
+import dev.m00nl1ght.clockwork.events.EventDispatcher;
+
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
+
 public class EventBusProfilerGroup extends ProfilerGroup {
 
-    public EventBusProfilerGroup(String name) {
+    protected final EventBus<?> eventBus;
+    protected final Set<EventDispatcherProfilerGroup<?, ?>> groups = new LinkedHashSet<>();
+
+    public EventBusProfilerGroup(String name, EventBus<?> eventBus) {
         super(name);
+        this.eventBus = eventBus;
     }
 
-    // TODO
+    public void attachToDispatcher(EventDispatcher<?, ?> eventDispatcher) {
+        this.groups.addAll(eventDispatcher.attachDefaultProfilers());
+    }
+
+    @Override
+    public List<ProfilerGroup> getGroups() {
+        return List.copyOf(groups);
+    }
 
 }

@@ -6,6 +6,7 @@ import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
+import dev.m00nl1ght.clockwork.events.AbstractEventBus;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventDispatcher;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -29,6 +30,10 @@ public final class CWLAnnotationsExtension {
         this.attachEventListener();
     }
 
+    public static void buildListeners(AbstractEventBus<?> eventBus) {
+        buildListeners(eventBus.getCore(), eventBus.getEventDispatchers());
+    }
+
     public static void buildListeners(EventDispatcher<?, ?> eventDispatcher) {
         if (!(eventDispatcher.getTargetType() instanceof RegisteredTargetType)) return;
         final var target = (RegisteredTargetType) eventDispatcher.getTargetType();
@@ -37,10 +42,7 @@ public final class CWLAnnotationsExtension {
     }
 
     public static void buildListeners(ClockworkCore core, Iterable<? extends EventDispatcher<?, ?>> eventTypes) {
-        final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class);
-        if (componentType.isEmpty()) throw new IllegalStateException("component type does not exist");
-        final var ehc = componentType.get().get(core);
-        if (ehc == null) throw new IllegalStateException("component missing");
+        final var ehc = getInstance(core);
         eventTypes.forEach(e -> buildListeners(ehc.collectedHandlers, e));
     }
 
@@ -69,6 +71,15 @@ public final class CWLAnnotationsExtension {
         if (!found) {
             LOGGER.warn("Event handler {} is not compatible with EventType {}", method, eventDispatcher);
         }
+    }
+
+    public static CWLAnnotationsExtension getInstance(ClockworkCore core) {
+        core.getState().requireOrAfter(ClockworkCore.State.INITIALISED);
+        final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class);
+        if (componentType.isEmpty()) throw new IllegalStateException("component type does not exist");
+        final var ehc = componentType.get().get(core);
+        if (ehc == null) throw new IllegalStateException("component missing");
+        return ehc;
     }
 
     private void attachEventListener() {

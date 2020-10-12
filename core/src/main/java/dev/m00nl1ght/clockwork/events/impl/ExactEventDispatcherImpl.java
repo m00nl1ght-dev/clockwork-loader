@@ -8,6 +8,8 @@ import dev.m00nl1ght.clockwork.events.AbstractExactEventDispatcher;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
+import java.util.Set;
+
 public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractExactEventDispatcher<E, T> {
 
     protected ListenerList groupedListeners = ListenerList.EMPTY;
@@ -65,6 +67,13 @@ public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends Com
         checkCompatibility(profilerGroup.getTargetType());
         this.profilerGroup = (EventDispatcherProfilerGroup<E, T>) profilerGroup;
         onListenersChanged();
+    }
+
+    @Override
+    public Set<? extends EventDispatcherProfilerGroup<E, ? extends T>> attachDefaultProfilers() {
+        final var group = new EventDispatcherProfilerGroup<>(this, targetType);
+        this.attachProfiler(group);
+        return Set.of(group);
     }
 
     @Override

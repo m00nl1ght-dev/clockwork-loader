@@ -11,14 +11,16 @@ import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class EventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractEventDispatcher<E, T> {
 
     protected final ListenerList[] groupedListeners;
     protected EventDispatcherProfilerGroup[] profilerGroups;
 
-    public EventDispatcherImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
-        super(eventClassType, targetType);
+    public EventDispatcherImpl(TypeRef<E> eventType, TargetType<T> targetType) {
+        super(eventType, targetType);
         final int cnt = targetType.getSubtargetIdxLast() - idxOffset + 1;
         this.groupedListeners = new ListenerList[cnt];
         Arrays.fill(groupedListeners, ListenerList.EMPTY);
@@ -75,6 +77,15 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
         checkCompatibility(profilerGroup.getTargetType());
         this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;
         onListenersChanged(profilerGroup.getTargetType());
+    }
+
+    @Override
+    public Set<? extends EventDispatcherProfilerGroup<E, ? extends T>> attachDefaultProfilers() {
+        final var groups = targetType.getAllSubtargets().stream()
+                .map(t -> new EventDispatcherProfilerGroup<>(this, t))
+                .collect(Collectors.toUnmodifiableSet());
+        groups.forEach(this::attachProfiler);
+        return groups;
     }
 
     @Override

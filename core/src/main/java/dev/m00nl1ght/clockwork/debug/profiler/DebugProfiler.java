@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
+import java.util.Collection;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -11,6 +12,10 @@ public class DebugProfiler {
     public void addGroup(ProfilerGroup group) {
         final var existing = groups.putIfAbsent(group.getName(), group);
         if (existing != null) throw new IllegalArgumentException("group name duplicate");
+    }
+
+    public void addGroups(Collection<? extends ProfilerGroup> groups) {
+        for (var group : groups) addGroup(group);
     }
 
     public void addGroups(ProfilerGroup... groups) {
