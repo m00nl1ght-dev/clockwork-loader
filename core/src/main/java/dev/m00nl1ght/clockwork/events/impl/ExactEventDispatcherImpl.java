@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractExactEventDispatcher<E, T> {
 
-    protected ListenerList groupedListeners = ListenerList.EMPTY;
+    protected ListenerList<E, T> groupedListeners = ListenerList.empty();
     protected EventDispatcherProfilerGroup<E, T> profilerGroup;
 
     public ExactEventDispatcherImpl(TypeRef<E> eventClassType, TargetType<T> targetType) {
@@ -26,7 +26,7 @@ public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends Com
     @Override
     @SuppressWarnings("unchecked")
     protected void onListenersChanged() {
-        groupedListeners = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(listeners, profilerGroup);
+        groupedListeners = (listeners == null || listeners.isEmpty()) ? ListenerList.empty() : new ListenerList<>(listeners, profilerGroup);
     }
 
     @Override

@@ -46,14 +46,14 @@ public abstract class AbstractEventDispatcher<E extends Event, T extends Compone
     }
 
     @Override
-    public List<EventListener<E, ? extends T, ?>> getEffectiveListeners(TargetType<? extends T> target) {
+    public <S extends T> List<EventListener<E, ? super S, ?>> getEffectiveListeners(TargetType<S> target) {
         if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
-            final var list = new ArrayList<EventListener<E, ? extends T, ?>>();
+            final var list = new ArrayList<EventListener<E, ? super S, ?>>();
             TargetType<?> type = target;
             while (type != null) {
                 @SuppressWarnings("unchecked")
-                final List<EventListener<E, ? extends T, ?>> got = listeners[target.getSubtargetIdxFirst() - idxOffset];
+                final List<EventListener<E, ? super S, ?>> got = listeners[target.getSubtargetIdxFirst() - idxOffset];
                 if (got != null) list.addAll(got);
                 if (type == this.targetType) break;
                 final var castedType = type.getParent();
@@ -104,7 +104,7 @@ public abstract class AbstractEventDispatcher<E extends Event, T extends Compone
         }
     }
 
-    protected abstract void onListenersChanged(TargetType<? extends T> targetType);
+    protected abstract <L extends T> void onListenersChanged(TargetType<L> targetType);
 
     @Override
     public TypeRef<E> getEventClassType() {

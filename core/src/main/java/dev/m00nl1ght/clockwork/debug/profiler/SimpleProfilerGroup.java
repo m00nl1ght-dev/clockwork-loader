@@ -1,8 +1,5 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
-import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
-import dev.m00nl1ght.clockwork.debug.profiler.ProfilerGroup;
-
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;

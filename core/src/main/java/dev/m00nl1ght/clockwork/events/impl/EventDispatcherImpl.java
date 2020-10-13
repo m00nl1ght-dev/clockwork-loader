@@ -23,7 +23,7 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
         super(eventType, targetType);
         final int cnt = targetType.getSubtargetIdxLast() - idxOffset + 1;
         this.groupedListeners = new ListenerList[cnt];
-        Arrays.fill(groupedListeners, ListenerList.EMPTY);
+        Arrays.fill(groupedListeners, ListenerList.empty());
     }
 
     public EventDispatcherImpl(Class<E> eventClass, TargetType<T> targetType) {
@@ -31,11 +31,12 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
     }
 
     @Override
-    protected void onListenersChanged(TargetType<? extends T> targetType) {
-        final List<EventListener<E, ? extends T, ?>> listeners = getEffectiveListeners(targetType);
+    protected <L extends T> void onListenersChanged(TargetType<L> targetType) {
+        final List<EventListener<E, ? super L, ?>> listeners = getEffectiveListeners(targetType);
         final int idx = targetType.getSubtargetIdxFirst() - idxOffset;
-        final var profiler = profilerGroups == null ? null : profilerGroups[idx];
-        groupedListeners[idx] = listeners.isEmpty() ? ListenerList.EMPTY : new ListenerList(listeners, profiler);
+        @SuppressWarnings("unchecked")
+        final var profiler = (EventDispatcherProfilerGroup<E, L>) (profilerGroups == null ? null : profilerGroups[idx]);
+        groupedListeners[idx] = listeners.isEmpty() ? ListenerList.empty() : new ListenerList<>(listeners, profiler);
     }
 
     @Override
@@ -44,7 +45,7 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
         final TargetType<?> target = object.getTargetType();
         if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
-            final ListenerList group = groupedListeners[target.getSubtargetIdxFirst() - idxOffset];
+            final ListenerList<E, ? super T> group = groupedListeners[target.getSubtargetIdxFirst() - idxOffset];
             if (event.currentContext != null) throw new IllegalStateException();
             event.currentContext = group;
             for (int i = 0; i < group.consumers.length; i++) {

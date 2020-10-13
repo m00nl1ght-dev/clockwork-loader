@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 public abstract class ContextAwareEvent extends Event {
 
-    ListenerList currentContext;
+    ListenerList<?, ?> currentContext;
     int currentListenerIdx = -1;
 
     protected EventListener<?, ?, ?> getCurrentListener() {

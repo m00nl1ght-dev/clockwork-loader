@@ -4,14 +4,19 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventDispatcher;
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class EventDispatcherProfilerGroup<E extends Event, T extends ComponentTarget> extends ProfilerGroup {
 
     protected final EventDispatcher<E, ? super T> eventDispatcher;
     protected final TargetType<T> targetType;
-    protected EventProfilerEntry[] listenerEntries;
+    protected final int bufferSize;
+
+    protected final Map<EventListener<E, ?, ?>, EventProfilerEntry<E, ?, ?>> entryMap = new HashMap<>();
 
     public EventDispatcherProfilerGroup(EventDispatcher<E, ? super T> eventDispatcher, TargetType<T> targetType) {
         this(eventDispatcher, targetType, 100);
@@ -21,20 +26,18 @@ public class EventDispatcherProfilerGroup<E extends Event, T extends ComponentTa
         super(eventDispatcher.getEventClassType() + "@" + targetType.toString());
         this.eventDispatcher = eventDispatcher;
         this.targetType = targetType;
-        final var listeners = eventDispatcher.getEffectiveListeners(targetType);
-        this.listenerEntries = new EventProfilerEntry[listeners.size()];
-        for (int i = 0; i < listeners.size(); i++) {
-            listenerEntries[i] = new EventProfilerEntry<>(listeners.get(i), bufferSize);
-        }
+        this.bufferSize = bufferSize;
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C, L extends ComponentTarget>
+    EventProfilerEntry<E, L, C> getEntry(EventListener<E, L, C> listener) {
+        return (EventProfilerEntry<E, L, C>) entryMap.computeIfAbsent(listener, l -> new EventProfilerEntry<>(l, bufferSize));
     }
 
     @Override
     public List<ProfilerEntry> getEntries() {
-        return List.of(listenerEntries);
-    }
-
-    public EventProfilerEntry<?, ?, ?> getEntry(int idx) {
-        return listenerEntries[idx];
+        return List.copyOf(entryMap.values());
     }
 
     public EventDispatcher<E, ? super T> getEventType() {
@@ -43,11 +46,6 @@ public class EventDispatcherProfilerGroup<E extends Event, T extends ComponentTa
 
     public TargetType<T> getTargetType() {
         return targetType;
-    }
-
-    public EventDispatcherProfilerGroup<E, T> attach() {
-        eventDispatcher.attachProfiler(this);
-        return this;
     }
 
 }

@@ -5,8 +5,8 @@ import dev.m00nl1ght.clockwork.debug.DebugUtils;
 import dev.m00nl1ght.clockwork.debug.profiler.DebugProfiler;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
-import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
+import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
@@ -14,9 +14,7 @@ import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
 import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.NetworkPermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.PropertyPermissionEntry;
-import dev.m00nl1ght.clockwork.test.event.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
-import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -32,7 +30,7 @@ public class TestLauncher {
 
     private static ClockworkCore clockworkCore;
     private static TargetType<ClockworkCore> coreTargetType;
-    private static EventBusImpl eventBus;
+    private static ExtEventBusImpl eventBus;
 
     public static void main(String... args) {
         PLUGIN_DATA_DIR.mkdirs();
@@ -62,15 +60,10 @@ public class TestLauncher {
 
         clockworkCore = loader.load();
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
-        eventBus = new EventBusImpl(clockworkCore);
+        eventBus = new ExtEventBusImpl(clockworkCore);
 
         loader.init();
-
-        PluginInitEvent.TYPE.getClass(); // TODO better way
-        SimpleTestEvent.TYPE.getClass();
-        GenericTestEvent.TYPE_RAW.getClass();
-        GenericTestEvent.TYPE_STRING.getClass();
-        CWLAnnotationsExtension.buildListeners(eventBus);
+        eventBus.bind();
 
         final var profiler = new DebugProfiler();
         profiler.addGroups(eventBus.attachDefaultProfilers());

@@ -37,7 +37,7 @@ public abstract class AbstractNestedEventDispatcher<E extends Event, T extends C
 
     @Override
     @SuppressWarnings("unchecked")
-    public List<EventListener<E, ? extends T, ?>> getEffectiveListeners(TargetType<? extends T> target) {
+    public <S extends T> List<EventListener<E, ? super S, ?>> getEffectiveListeners(TargetType<S> target) {
         return getRawListeners(target);
     }
 

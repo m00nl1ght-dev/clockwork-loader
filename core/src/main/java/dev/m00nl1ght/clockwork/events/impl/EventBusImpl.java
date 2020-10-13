@@ -28,9 +28,9 @@ public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
         final var target = core.getTargetType(targetClass)
                 .orElseThrow(() -> FormatUtil.illArgExc("No target registered for class []", targetClass));
         if (target.getDirectSubtargets().isEmpty()) {
-            return new ExactEventDispatcherImpl<>(eventType, target);
+            return attachProfiler(new ExactEventDispatcherImpl<>(eventType, target));
         } else {
-            return new EventDispatcherImpl<>(eventType, target);
+            return attachProfiler(new EventDispatcherImpl<>(eventType, target));
         }
     }
 
@@ -42,14 +42,14 @@ public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
                 .orElseThrow(() -> FormatUtil.illArgExc("No target registered for class []", targetClass));
         final var originComponent = origin.getTargetType().getOwnComponentType(targetClass)
                 .orElseThrow(() -> FormatUtil.illArgExc("No component registered for class [] in origin []", targetClass, origin.getTargetType()));
-        return new NestedEventDispatcherImpl<>(origin, originComponent, target);
+        return attachProfiler(new NestedEventDispatcherImpl<>(origin, originComponent, target));
     }
 
     @Override
     protected <E extends ContextAwareEvent, O extends ComponentTarget, T extends ComponentTarget>
     StaticEventDispatcher<E, T, O> buildStaticDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target) {
         final var origin = getEventDispatcher(eventType, originClass);
-        return new StaticEventDispatcherImpl<>(origin, target);
+        return attachProfiler(new StaticEventDispatcherImpl<>(origin, target));
     }
 
     @Override
@@ -57,6 +57,11 @@ public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
         Arguments.notNull(profilerGroup, "profilerGroup");
         this.profilerGroup = profilerGroup;
         getEventDispatchers().forEach(profilerGroup::attachToDispatcher);
+    }
+
+    private <D extends EventDispatcher<?, ?>> D attachProfiler(D dispatcher) {
+        if (profilerGroup != null) profilerGroup.attachToDispatcher(dispatcher);
+        return dispatcher;
     }
 
     @Override
