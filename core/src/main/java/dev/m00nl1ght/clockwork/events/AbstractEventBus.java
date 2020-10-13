@@ -40,8 +40,62 @@ public abstract class AbstractEventBus<B extends Event> implements EventBus<B> {
         }
     }
 
+    @Override
+    public <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    NestedEventDispatcher<E, T, O> getNestedEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass) {
+        final var eventMap = dispatchers.computeIfAbsent(eventType, e -> new LinkedHashMap<>());
+        final var existing = eventMap.get(targetClass);
+        if (existing != null) {
+            if (existing instanceof NestedEventDispatcher) {
+                @SuppressWarnings("unchecked")
+                final var nested = (NestedEventDispatcher<E, T, O>) existing;
+                if (nested.getOrigin().getTargetType().getTargetClass() == originClass) {
+                    return nested;
+                } else {
+                    throw FormatUtil.rtExc("A nested event dispatcher [] with the same target but a different origin is already present", existing);
+                }
+            } else {
+                throw FormatUtil.rtExc("An event dispatcher [] with the same target is already present", existing);
+            }
+        } else {
+            final var dispatcher = buildNestedDispatcher(eventType, targetClass, originClass);
+            eventMap.put(targetClass, dispatcher);
+            return dispatcher;
+        }
+    }
+
+    @Override
+    public <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    StaticEventDispatcher<E, T, O> getStaticEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target) {
+        final var eventMap = dispatchers.computeIfAbsent(eventType, e -> new LinkedHashMap<>());
+        final var existing = eventMap.get(targetClass);
+        if (existing != null) {
+            if (existing instanceof StaticEventDispatcher) {
+                @SuppressWarnings("unchecked")
+                final var staticEx = (StaticEventDispatcher<E, T, O>) existing;
+                if (staticEx.getOrigin().getTargetType().getTargetClass() == originClass) {
+                    return staticEx;
+                } else {
+                    throw FormatUtil.rtExc("A static event dispatcher [] with the same target but a different origin is already present", existing);
+                }
+            } else {
+                throw FormatUtil.rtExc("An event dispatcher [] with the same target is already present", existing);
+            }
+        } else {
+            final var dispatcher = buildStaticDispatcher(eventType, targetClass, originClass, target);
+            eventMap.put(targetClass, dispatcher);
+            return dispatcher;
+        }
+    }
+
     protected abstract <E extends B, T extends ComponentTarget>
     EventDispatcher<E, T> buildDispatcher(TypeRef<E> eventType, Class<T> targetClass);
+
+    protected abstract <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    NestedEventDispatcher<E, T, O> buildNestedDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass);
+
+    protected abstract <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    StaticEventDispatcher<E, T, O> buildStaticDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target);
 
     @Override
     public final <E extends B, T extends ComponentTarget, C>

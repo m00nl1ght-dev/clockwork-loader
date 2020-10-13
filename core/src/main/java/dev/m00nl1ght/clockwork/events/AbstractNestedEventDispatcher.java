@@ -1,27 +1,24 @@
-package dev.m00nl1ght.clockwork.events.impl;
+package dev.m00nl1ght.clockwork.events;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventDispatcher;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.NestedEventListener;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collection;
 import java.util.List;
 import java.util.stream.Collectors;
 
-public class NestedEventDispatcher<E extends Event, T extends ComponentTarget, O extends ComponentTarget> implements EventDispatcher<E, T> {
+public abstract class AbstractNestedEventDispatcher<E extends Event, T extends ComponentTarget, O extends ComponentTarget> implements NestedEventDispatcher<E, T, O> {
 
     protected final EventDispatcher<E, O> origin;
     protected final ComponentType<T, O> componentOrigin;
     protected final TargetType<T> targetType;
 
-    public NestedEventDispatcher(EventDispatcher<E, O> origin, ComponentType<T, O> componentOrigin, TargetType<T> targetType) {
+    protected AbstractNestedEventDispatcher(EventDispatcher<E, O> origin, ComponentType<T, O> componentOrigin, TargetType<T> targetType) {
         this.origin = Arguments.notNull(origin, "origin");
         this.componentOrigin = Arguments.notNull(componentOrigin, "componentOrigin");
         this.targetType = Arguments.notNull(targetType, "targetType");
@@ -44,15 +41,7 @@ public class NestedEventDispatcher<E extends Event, T extends ComponentTarget, O
         return getRawListeners(target);
     }
 
-    protected List getRawListeners(TargetType<?> target) {
-        if (target != targetType) checkCompatibility(target);
-        return origin.getListeners(componentOrigin.getTargetType()).stream()
-                .filter(l -> l instanceof NestedEventListener)
-                .map(l -> (NestedEventListener) l)
-                .filter(l -> l.getComponentType() == componentOrigin)
-                .map(NestedEventListener::getInnerListener)
-                .collect(Collectors.toUnmodifiableList());
-    }
+    protected abstract List getRawListeners(TargetType<?> target);
 
     @Override
     public void addListeners(Collection<EventListener<E, ? extends T, ?>> eventListeners) {
@@ -61,11 +50,7 @@ public class NestedEventDispatcher<E extends Event, T extends ComponentTarget, O
                 .collect(Collectors.toUnmodifiableList()));
     }
 
-    private <I> NestedEventListener<E, O, T, I> buildNestedListener(EventListener<E, ? extends T, I> listener) {
-        final var target = listener.getComponentType().getTargetType();
-        if (target != targetType) checkCompatibility(target);
-        return new NestedEventListener<>(listener, componentOrigin);
-    }
+    protected abstract <I> NestedEventListener<E, O, T, I> buildNestedListener(EventListener<E, ? extends T, I> listener);
 
     @Override
     @SuppressWarnings("unchecked")
@@ -77,18 +62,18 @@ public class NestedEventDispatcher<E extends Event, T extends ComponentTarget, O
     }
 
     @Override
-    public TypeRef<E> getEventClassType() {
-        return origin.getEventClassType();
+    public EventDispatcher<E, O> getOrigin() {
+        return origin;
+    }
+
+    @Override
+    public ComponentType<T, O> getComponentOrigin() {
+        return componentOrigin;
     }
 
     @Override
     public TargetType<T> getTargetType() {
         return targetType;
-    }
-
-    @Override
-    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
-        return List.of(targetType);
     }
 
     protected void checkCompatibility(TargetType<?> otherType) {

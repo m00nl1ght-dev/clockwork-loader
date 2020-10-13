@@ -6,4 +6,9 @@ public interface ComponentTarget {
 
     Object getComponent(int internalID);
 
+    @SuppressWarnings("unchecked")
+    static <T extends ComponentTarget> TargetType<T> typeOf(T target) {
+        return (TargetType<T>) target.getTargetType();
+    }
+
 }

@@ -22,6 +22,22 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
         return getEventDispatcher(TypeRef.of(eventClass), targetClass);
     }
 
+    <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    NestedEventDispatcher<E, T, O> getNestedEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass);
+
+    default <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    NestedEventDispatcher<E, T, O> getNestedEventDispatcher(Class<E> eventClass, Class<T> targetClass, Class<O> originClass) {
+        return getNestedEventDispatcher(TypeRef.of(eventClass), targetClass, originClass);
+    }
+
+    <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    StaticEventDispatcher<E, T, O> getStaticEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target);
+
+    default <E extends B, O extends ComponentTarget, T extends ComponentTarget>
+    StaticEventDispatcher<E, T, O> getStaticEventDispatcher(Class<E> eventClass, Class<T> targetClass, Class<O> originClass, T target) {
+        return getStaticEventDispatcher(TypeRef.of(eventClass), targetClass, originClass, target);
+    }
+
     <E extends B, T extends ComponentTarget, C> EventListener<E, T, C>
     addListener(TypeRef<E> eventType, Class<T> targetClass, Class<C> componentClass, BiConsumer<C, E> consumer, EventListenerPriority priority);
 

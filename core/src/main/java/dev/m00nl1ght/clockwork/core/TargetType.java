@@ -80,6 +80,14 @@ public class TargetType<T extends ComponentTarget> {
                 .findFirst();
     }
 
+    @SuppressWarnings("unchecked")
+    public <C> Optional<? extends ComponentType<C, T>> getOwnComponentType(Class<C> componentClass) {
+        return ownComponentTypes.stream()
+                .filter(c -> c.getComponentClass() == componentClass)
+                .map(c -> (ComponentType<C, T>) c)
+                .findFirst();
+    }
+
     public final ComponentType<T, T> getIdentityComponentType() {
         return identityComponentType;
     }
