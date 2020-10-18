@@ -1,18 +1,18 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.core.LoadingContext;
-import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.version.Version;
 
-import java.lang.module.ModuleFinder;
-import java.util.Collection;
+import java.util.Optional;
+import java.util.Set;
 
 public interface PluginFinder {
 
-    Collection<PluginReference> findAll(LoadingContext context);
+    Set<String> getAvailablePlugins(LoadingContext context);
 
-    Collection<PluginReference> find(LoadingContext context, DependencyDescriptor target);
+    Set<Version> getAvailableVersions(LoadingContext context, String pluginId);
 
-    ModuleFinder getModuleFinder(LoadingContext context);
+    Optional<PluginReference> find(LoadingContext context, String pluginId, Version version);
 
 }

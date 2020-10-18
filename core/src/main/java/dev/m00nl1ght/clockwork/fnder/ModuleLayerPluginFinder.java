@@ -1,17 +1,19 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.core.LoadingContext;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig.Builder;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.reader.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.Registry;
 
-import java.lang.module.ModuleFinder;
 import java.lang.module.ResolvedModule;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
+import java.util.stream.Collectors;
 
 public class ModuleLayerPluginFinder extends AbstractPluginFinder {
 
@@ -26,16 +28,8 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
         registry.register(NAME, FACTORY);
     }
 
-    public static PluginFinderConfig newConfig(String name) {
-        return newConfig(name, false);
-    }
-
-    public static PluginFinderConfig newConfig(String name, boolean wildcard) {
-        return newConfig(name, null, wildcard);
-    }
-
-    public static PluginFinderConfig newConfig(String name, Set<String> readers, boolean wildcard) {
-        return new PluginFinderConfig(name, NAME, Map.of(), readers, wildcard);
+    public static Builder configBuilder(String name) {
+        return PluginFinderConfig.builder(name, NAME);
     }
 
     protected ModuleLayerPluginFinder(ModuleLayer moduleLayer, Predicate<ResolvedModule> filter, PluginFinderConfig config) {
@@ -49,21 +43,16 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
     }
 
     @Override
-    protected void scan(LoadingContext context, Collection<PluginReader> readers) {
-        moduleLayer.configuration().modules().stream().filter(filter)
-                .map(m -> tryReadFromModule(readers, m.reference(), null))
+    protected Set<PluginReference> scan(LoadingContext context, Collection<PluginReader> readers) {
+        return moduleLayer.configuration().modules().stream().filter(filter)
+                .map(m -> PluginReaderUtil.tryReadFromModule(readers, m.reference()))
                 .filter(Optional::isPresent).map(Optional::get)
-                .forEach(this::found);
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     private static boolean systemModuleFilter(ResolvedModule module) {
         final var location = module.reference().location();
         return location.isPresent() && !location.get().getScheme().equals("jrt");
-    }
-
-    @Override
-    public ModuleFinder getModuleFinder(LoadingContext context) {
-        return null;
     }
 
 }

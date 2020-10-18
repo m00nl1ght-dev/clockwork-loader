@@ -1,110 +1,59 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.core.LoadingContext;
-import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.version.Version;
 
-import java.io.IOException;
-import java.lang.module.ModuleFinder;
-import java.lang.module.ModuleReference;
-import java.nio.file.FileSystemNotFoundException;
-import java.nio.file.FileSystems;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.util.*;
-import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public abstract class AbstractPluginFinder implements PluginFinder {
 
-    private static final Logger LOGGER = LogManager.getLogger();
-
     protected final PluginFinderConfig config;
 
-    private Map<String, PluginReference> cache;
+    private Map<String, Optional<PluginReference>> cache;
 
     protected AbstractPluginFinder(PluginFinderConfig config) {
         this.config = Arguments.notNull(config, "config");
     }
 
     @Override
-    public Collection<PluginReference> findAll(LoadingContext context) {
+    public Set<String> getAvailablePlugins(LoadingContext context) {
         scanIfNeeded(context);
-        return Set.copyOf(cache.values());
+        return Set.copyOf(cache.keySet());
     }
 
     @Override
-    public Collection<PluginReference> find(LoadingContext context, DependencyDescriptor target) {
+    public Set<Version> getAvailableVersions(LoadingContext context, String pluginId) {
         scanIfNeeded(context);
-        final var found = cache.get(target.getPlugin());
-        if (found != null && target.acceptsVersion(found.getVersion())) {
-            return Collections.singleton(found);
-        } else {
-            return Collections.emptySet();
-        }
+        final var ref = cache.getOrDefault(pluginId, Optional.empty());
+        return ref.isEmpty() ? Collections.emptySet() : Collections.singleton(ref.get().getVersion());
+    }
+
+    @Override
+    public Optional<PluginReference> find(LoadingContext context, String pluginId, Version version) {
+        scanIfNeeded(context);
+        final var ref = cache.getOrDefault(pluginId, Optional.empty());
+        return ref.isPresent() && ref.get().getVersion().equals(version) ? ref : Optional.empty();
     }
 
     protected void scanIfNeeded(LoadingContext context) {
-        if (cache == null) {
-            cache = new HashMap<>();
-            if (config.getReaders() != null) {
-                scan(context, config.getReaders().stream().map(context::getReader).collect(Collectors.toUnmodifiableList()));
-            } else {
-                scan(context, context.getReaders());
-            }
-        }
+        if (cache != null) return;
+        final var readers = config.getReaders() == null ? context.getReaders() : config.getReaders().stream()
+                .map(context::getReader)
+                .collect(Collectors.toUnmodifiableList());
+        cache = scan(context, readers).stream()
+                .collect(Collectors.groupingBy(PluginReference::getId,
+                        Collectors.reducing(this::onDuplicate)));
     }
 
-    protected void found(PluginReference def) {
-        final var prev = cache.putIfAbsent(def.getId(), def);
-        if (prev != null) throw PluginLoadingException.pluginDuplicate(def.getDescriptor(), prev.getDescriptor());
-    }
+    protected abstract Set<PluginReference> scan(LoadingContext context, Collection<PluginReader> readers);
 
-    protected abstract void scan(LoadingContext context, Collection<PluginReader> readers);
-
-    protected Optional<PluginDescriptor> tryReadDirect(Collection<PluginReader> readers, Path path) {
-        return readers.stream()
-                .map(reader -> reader.read(path))
-                .filter(Optional::isPresent)
-                .map(Optional::get).findFirst();
-    }
-
-    protected Optional<PluginDescriptor> tryRead(Collection<PluginReader> readers, Path path) {
-        return tryAsModuleRoot(path, p -> tryReadDirect(readers, p));
-    }
-
-    protected Optional<PluginReference> tryReadFromModule(Collection<PluginReader> readers, ModuleReference moduleReference, ModuleFinder finder) {
-        if (moduleReference.location().isEmpty()) return Optional.empty();
-        try {
-            final var path = Path.of(moduleReference.location().get());
-            return tryRead(readers, path).map(descriptor -> PluginReference.of(descriptor, moduleReference));
-        } catch (PluginLoadingException e) {
-            throw e;
-        } catch (Exception e) {
-            LOGGER.debug("Failed to find plugin from module [" + moduleReference.descriptor().name() + "]", e);
-            return Optional.empty();
-        }
-    }
-
-    protected <T> Optional<T> tryAsModuleRoot(Path path, Function<Path, Optional<T>> function) {
-        if (Files.isDirectory(path)) {
-            return function.apply(path);
-        } else if (Files.isRegularFile(path)) {
-            try (final var fs = FileSystems.newFileSystem(path, (ClassLoader) null)) {
-                return function.apply(fs.getPath(""));
-            } catch (IOException | FileSystemNotFoundException e) {
-                LOGGER.error("Failed to open as filesystem: " + path, e);
-                return Optional.empty();
-            }
-        } else {
-            return Optional.empty();
-        }
+    protected PluginReference onDuplicate(PluginReference a, PluginReference b) {
+        throw FormatUtil.rtExc("[] found multiple versions of the same plugin: [] and []", this, a, b);
     }
 
     @Override

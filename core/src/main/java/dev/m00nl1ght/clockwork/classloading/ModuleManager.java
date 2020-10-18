@@ -4,9 +4,9 @@ import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 
 import java.lang.module.ModuleFinder;
+import java.nio.file.Path;
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -28,12 +28,12 @@ public class ModuleManager {
      */
     public ModuleManager(LoadingContext loadingContext, Collection<PluginReference> plugins, ModuleLayer parent) {
         try {
-            final var pluginModules = plugins.stream()
-                    .map(p -> p.getMainModule().descriptor().name()).collect(Collectors.toUnmodifiableList());
-            final var comp = loadingContext.getFinders().stream()
-                    .map(finder -> finder.getModuleFinder(loadingContext)).filter(Objects::nonNull);
-            final var finder = ModuleFinder.compose(comp.toArray(ModuleFinder[]::new));
-            final var config = parent.configuration().resolveAndBind(ModuleFinder.of(), finder, pluginModules);
+            final var modules = plugins.stream().map(PluginReference::getModuleName).collect(Collectors.toUnmodifiableList());
+            final var finders = plugins.stream().map(PluginReference::getModuleFinder).collect(Collectors.toUnmodifiableList());
+            final var pluginMF = ModuleFinder.compose(finders.toArray(ModuleFinder[]::new));
+            final var libraryMF = ModuleFinder.of(loadingContext.getConfig().getLibModulePath().toArray(Path[]::new));
+            final var combinedMF = ModuleFinder.compose(pluginMF, libraryMF);
+            final var config = parent.configuration().resolveAndBind(ModuleFinder.of(), combinedMF, modules);
             classloader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);
             classloader.initRemotePackageMap(config, List.of(parent));
             plugins.forEach(classloader::bindPlugin);

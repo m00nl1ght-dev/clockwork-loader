@@ -30,7 +30,8 @@ public final class CWLPluginRepoExtension {
     }
 
     private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {
-        // TODO
+        LocalRepoPluginFinder.registerTo(event.getFinderTypeRegistry());
+        RemoteRepoPluginFinder.registerTo(event.getFinderTypeRegistry());
     }
 
 }

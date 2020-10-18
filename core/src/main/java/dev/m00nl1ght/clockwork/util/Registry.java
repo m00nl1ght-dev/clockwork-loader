@@ -14,7 +14,7 @@ public class Registry<T> {
 
     public synchronized void register(String id, T object) {
         final var existing = registered.putIfAbsent(id, object);
-        if (existing != null) throw FormatUtil.rtExc("A [] with id [] is already registered", regType.getSimpleName(), id);
+        if (existing != null) throw FormatUtil.rtExc("[] with id [] is already registered", regType.getSimpleName(), id);
     }
 
     public T get(String id) {

@@ -9,10 +9,7 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
-import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.fnder.NestedPluginFinder;
-import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.fnder.*;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
@@ -20,6 +17,7 @@ import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.verifier.PluginVerifierType;
+import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
@@ -62,7 +60,7 @@ public final class ClockworkLoader {
     public static ClockworkLoader buildBootLayerDefault() {
         final var configBuilder = ClockworkConfig.builder();
         configBuilder.addPluginReader(ManifestPluginReader.newConfig("manifest"));
-        configBuilder.addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", true));
+        configBuilder.addPluginFinder(ModuleLayerPluginFinder.configBuilder("boot").wildcard().build());
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         return build(configBuilder.build());
     }
@@ -118,7 +116,6 @@ public final class ClockworkLoader {
         if (core != null) throw new IllegalStateException("Already loaded");
 
         final var pluginReferences = new LinkedList<PluginReference>();
-        final var versionSorter = Comparator.comparing(PluginReference::getVersion).reversed();
         final var componentSorter = new ComponentSorter();
         final var targetSorter = new TargetSorter();
 
@@ -137,8 +134,8 @@ public final class ClockworkLoader {
         for (final var config : config.getFinders()) {
             if (config.isWildcard()) {
                 final var finder = loadingContext.getFinder(config.getName());
-                for (final var located : finder.findAll(loadingContext)) {
-                    wantedPlugins.computeIfAbsent(located.getId(), k -> DependencyDescriptor.buildAnyVersion(located.getId()));
+                for (final var plugin : finder.getAvailablePlugins(loadingContext)) {
+                    wantedPlugins.computeIfAbsent(plugin, DependencyDescriptor::buildAnyVersion);
                 }
             }
         }
@@ -157,20 +154,22 @@ public final class ClockworkLoader {
             }
 
             // Otherwise, try to find it using the PluginFinders from the config.
-            final var located = new LinkedList<PluginReference>();
+            final var found = new HashMap<Version, PluginFinder>();
             for (var finder : loadingContext.getFinders()) {
-                for (var ref : finder.find(loadingContext, wanted)) {
-                    located.add(ref);
-                    LOGGER.debug("Located plugin [" + ref + "] using finder [" + finder + "].");
+                for (final var version : finder.getAvailableVersions(loadingContext, wanted.getPlugin())) {
+                    if (wanted.acceptsVersion(version)) found.putIfAbsent(version, finder);
                 }
             }
 
             // If anything was found, add it to the sorters.
-            if (located.isEmpty()) {
+            final var bestMatch = found.keySet().stream().max(Comparator.naturalOrder());
+            if (bestMatch.isEmpty()) {
                 addProblem(PluginLoadingProblem.pluginNotFound(wanted));
             } else {
-                located.sort(versionSorter);
-                final var ref = located.get(0);
+                final var finder = found.get(bestMatch.get());
+                final var ref = finder.find(loadingContext, wanted.getPlugin(), bestMatch.get())
+                        .orElseThrow(() -> FormatUtil.rtExc("PluginFinder [] failed to find []", finder, wanted));
+                LOGGER.info("Plugin [" + ref + "] was located by [" + finder + "]");
                 loadingContext.getVerifiers().forEach(v -> v.verifyPlugin(ref));
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
@@ -215,8 +214,7 @@ public final class ClockworkLoader {
 
         // Then add the new ones that were located using the config.
         for (final var pluginReference : pluginReferences) {
-            final var mainModule = moduleManager.getModuleLayer()
-                    .findModule(pluginReference.getMainModule().descriptor().name()).orElseThrow();
+            final var mainModule = moduleManager.getModuleLayer().findModule(pluginReference.getModuleName()).orElseThrow();
             final var plugin = new LoadedPlugin(pluginReference.getDescriptor(), core, mainModule);
             moduleManager.patchModule(mainModule);
             core.addLoadedPlugin(plugin);
@@ -241,6 +239,7 @@ public final class ClockworkLoader {
             final var targetClass = moduleManager.loadClassForPlugin(targetDescriptor.getTargetClass(), plugin);
             if (!ComponentTarget.class.isAssignableFrom(targetClass))
                 throw PluginLoadingException.invalidTargetClass(targetDescriptor, targetClass);
+
             @SuppressWarnings("unchecked")
             final var targetCasted = (Class<? extends ComponentTarget>) targetClass;
             buildTarget(plugin, targetDescriptor, targetCasted);
@@ -301,7 +300,7 @@ public final class ClockworkLoader {
             if (processors.isEmpty()) continue;
 
             // Now apply the processors.
-            final var reflectiveAccess = new PluginProcessorContext(plugin, INTERNAL_LOOKUP);
+            final var context = new PluginProcessorContext(plugin, INTERNAL_LOOKUP);
             for (var name : processors) {
                 final var optional = name.startsWith("?");
                 if (optional) name = name.substring(1);
@@ -310,7 +309,7 @@ public final class ClockworkLoader {
                     if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
                 } else {
                     try {
-                        processor.process(reflectiveAccess);
+                        processor.process(context);
                     } catch (Throwable t) {
                         throw PluginLoadingException.inProcessor(plugin, name, t);
                     }

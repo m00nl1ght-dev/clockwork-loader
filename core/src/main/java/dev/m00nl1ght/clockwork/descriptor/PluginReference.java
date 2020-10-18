@@ -3,20 +3,32 @@ package dev.m00nl1ght.clockwork.descriptor;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
-import java.lang.module.ModuleReference;
+import java.lang.module.ModuleFinder;
 
 public final class PluginReference {
 
     private final PluginDescriptor descriptor;
-    private final ModuleReference mainModule;
+    private final ModuleFinder moduleFinder;
+    private final String moduleName;
 
-    public static PluginReference of(PluginDescriptor descriptor, ModuleReference mainModule) {
-        return new PluginReference(descriptor, mainModule);
+    public static PluginReference of(PluginDescriptor descriptor, ModuleFinder moduleFinder, String moduleName) {
+        Arguments.notNull(descriptor, "descriptor");
+        Arguments.notNull(moduleFinder, "moduleFinder");
+        Arguments.notNullOrEmpty(moduleName, "moduleName");
+        return new PluginReference(descriptor, moduleFinder, moduleName);
     }
 
-    private PluginReference(PluginDescriptor descriptor, ModuleReference mainModule) {
-        this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.mainModule = Arguments.notNull(mainModule, "mainModule");
+    public static PluginReference of(PluginReference other, ModuleFinder additionalModules) {
+        Arguments.notNull(other, "other");
+        Arguments.notNull(additionalModules, "additionalModules");
+        final var newFinder = ModuleFinder.compose(other.moduleFinder, additionalModules);
+        return new PluginReference(other.descriptor, newFinder, other.moduleName);
+    }
+
+    private PluginReference(PluginDescriptor descriptor, ModuleFinder moduleFinder, String moduleName) {
+        this.descriptor = descriptor;
+        this.moduleFinder = moduleFinder;
+        this.moduleName = moduleName;
     }
 
     public PluginDescriptor getDescriptor() {
@@ -31,8 +43,12 @@ public final class PluginReference {
         return descriptor.getVersion();
     }
 
-    public ModuleReference getMainModule() {
-        return mainModule;
+    public ModuleFinder getModuleFinder() {
+        return moduleFinder;
+    }
+
+    public String getModuleName() {
+        return moduleName;
     }
 
     @Override

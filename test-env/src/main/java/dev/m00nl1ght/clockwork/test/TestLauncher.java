@@ -23,6 +23,8 @@ import java.util.Set;
 
 public class TestLauncher {
 
+    // TODO rework all of this to actual junit tests
+
     private static final Logger LOGGER = LogManager.getLogger();
 
     private static final File TEST_PLUGIN_JAR = new File("test-plugin/build/libs/");
@@ -43,8 +45,13 @@ public class TestLauncher {
         ClockworkSecurityPolicy.install(securityConfig);
 
         final var configBuilder = ClockworkConfig.builder();
-        configBuilder.addPluginReader(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml"));
-        configBuilder.addPluginFinder(ModulePathPluginFinder.newConfig("testJar", TEST_PLUGIN_JAR, Set.of("toml")));
+
+        configBuilder.addPluginReader(NightconfigPluginReader
+                .newConfig("toml", "META-INF/plugin.toml"));
+        configBuilder.addPluginFinder(ModulePathPluginFinder
+                .configBuilder("testJar", TEST_PLUGIN_JAR)
+                .withReaders(Set.of("toml")).build());
+
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));

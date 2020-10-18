@@ -1,27 +1,33 @@
 package dev.m00nl1ght.clockwork.reader;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
-import dev.m00nl1ght.clockwork.util.ImmutableConfig;
+import dev.m00nl1ght.clockwork.util.config.Config;
+import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
 
-import java.util.Map;
-
-public final class PluginReaderConfig extends ImmutableConfig {
+public final class PluginReaderConfig {
 
     private final String name;
     private final String type;
+    private final Config params;
 
-    public static Builder builder(String name, String type) {
-        return new Builder(Arguments.notNullOrBlank(name, "name"), Arguments.notNullOrBlank(type, "type"));
-    }
-
-    private PluginReaderConfig(Builder builder) {
-        this(builder.name, builder.type, builder.getEntries());
-    }
-
-    public PluginReaderConfig(String name, String type, Map<String, String> params) {
-        super(params, "ReaderConfig[" + name + "]");
+    private PluginReaderConfig(String name, String type, Config params) {
         this.name = Arguments.notNullOrBlank(name, "name");
         this.type = Arguments.notNullOrBlank(type, "type");
+        this.params = Arguments.notNull(params, "params");
+    }
+
+    private PluginReaderConfig(Config data) {
+        this.name = data.get("name");
+        this.type = data.get("type");
+        this.params = data.getSubconfigOrDefault("params", Config.EMPTY);
+    }
+
+    public Config asRaw() {
+        return ImmutableConfig.builder()
+                .put("name", name)
+                .put("type", type)
+                .put("params", params)
+                .build();
     }
 
     public String getName() {
@@ -32,22 +38,20 @@ public final class PluginReaderConfig extends ImmutableConfig {
         return type;
     }
 
-    public static class Builder extends ImmutableConfig.Builder {
+    public Config getParams() {
+        return params;
+    }
 
-        private final String name;
-        private final String type;
+    public static PluginReaderConfig from(Config data) {
+        return new PluginReaderConfig(data);
+    }
 
-        private Builder(String name, String type) {
-            this.name = name;
-            this.type = type;
-            configName("ReaderConfig[" + name + "]");
-        }
+    public static PluginReaderConfig of(String name, String type) {
+        return new PluginReaderConfig(name, type, Config.EMPTY);
+    }
 
-        @Override
-        public PluginReaderConfig build() {
-            return new PluginReaderConfig(this);
-        }
-
+    public static PluginReaderConfig of(String name, String type, Config params) {
+        return new PluginReaderConfig(name, type, params);
     }
 
 }

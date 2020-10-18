@@ -79,6 +79,7 @@ public final class EventHandlerMethod<E extends Event, C> {
     }
 
     private BiConsumer<C, E> buildConsumer() {
+        // TODO this breaks in JVM 1.15+ because of new hidden classes mechanics
         try {
             final var handle = lookup.unreflect(method);
             final var callsite = LambdaMetafactory.metafactory(lookup,

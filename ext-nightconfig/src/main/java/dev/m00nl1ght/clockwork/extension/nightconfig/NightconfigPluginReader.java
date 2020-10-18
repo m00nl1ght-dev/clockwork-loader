@@ -13,12 +13,12 @@ import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
+import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Map;
 import java.util.Optional;
 
 public class NightconfigPluginReader implements PluginReader {
@@ -31,7 +31,7 @@ public class NightconfigPluginReader implements PluginReader {
 
     protected NightconfigPluginReader(PluginReaderConfig config) {
         this.config = Arguments.notNull(config, "config");
-        this.descriptorFilePath = config.get("descriptorPath");
+        this.descriptorFilePath = config.getParams().get("descriptorPath");
     }
 
     public static void registerTo(Registry<PluginReaderType> registry) {
@@ -40,7 +40,9 @@ public class NightconfigPluginReader implements PluginReader {
     }
 
     public static PluginReaderConfig newConfig(String name, String descriptorPath) {
-        return new PluginReaderConfig(name, NAME, Map.of("descriptorPath", descriptorPath));
+        return PluginReaderConfig.of(name, NAME, ImmutableConfig.builder()
+                .put("descriptorPath", descriptorPath)
+                .build());
     }
 
     @Override

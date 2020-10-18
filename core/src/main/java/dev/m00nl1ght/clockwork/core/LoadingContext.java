@@ -1,8 +1,12 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.fnder.PluginFinder;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.reader.PluginReaderType;
+import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.verifier.PluginVerifier;
+import dev.m00nl1ght.clockwork.verifier.PluginVerifierType;
 
 import java.util.Collection;
 import java.util.HashMap;
@@ -10,10 +14,13 @@ import java.util.Map;
 
 public class LoadingContext {
 
-    protected final ClockworkConfig config;
-    protected final Map<String, PluginReader> readers;
-    protected final Map<String, PluginFinder> finders;
-    protected final Map<String, PluginVerifier> verifiers;
+    private final ClockworkConfig config;
+    private final Map<String, PluginReader> readers;
+    private final Map<String, PluginFinder> finders;
+    private final Map<String, PluginVerifier> verifiers;
+    private final Registry<PluginReaderType> readerTypeRegistry;
+    private final Registry<PluginFinderType> finderTypeRegistry;
+    private final Registry<PluginVerifierType> verifierTypeRegistry;
 
     public static LoadingContext of(ClockworkConfig clockworkConfig, ClockworkLoader loader) {
 
@@ -35,15 +42,27 @@ public class LoadingContext {
             verifiers.put(config.getName(), verifier);
         }
 
-        return new LoadingContext(clockworkConfig, readers, finders, verifiers);
+        return new LoadingContext(clockworkConfig, readers, finders, verifiers,
+                loader.getReaderTypeRegistry(),
+                loader.getFinderTypeRegistry(),
+                loader.getVerifierTypeRegistry());
 
     }
 
-    protected LoadingContext(ClockworkConfig config, Map<String, PluginReader> readers, Map<String, PluginFinder> finders, HashMap<String, PluginVerifier> verifiers) {
+    protected LoadingContext(ClockworkConfig config,
+                             Map<String, PluginReader> readers,
+                             Map<String, PluginFinder> finders,
+                             Map<String, PluginVerifier> verifiers,
+                             Registry<PluginReaderType> readerTypeRegistry,
+                             Registry<PluginFinderType> finderTypeRegistry,
+                             Registry<PluginVerifierType> verifierTypeRegistry) {
         this.config = config;
         this.readers = Map.copyOf(readers);
         this.finders = Map.copyOf(finders);
         this.verifiers = Map.copyOf(verifiers);
+        this.readerTypeRegistry = readerTypeRegistry;
+        this.finderTypeRegistry = finderTypeRegistry;
+        this.verifierTypeRegistry = verifierTypeRegistry;
     }
 
     public ClockworkConfig getConfig() {
@@ -78,6 +97,18 @@ public class LoadingContext {
         final var verifier = verifiers.get(name);
         if (verifier == null) throw PluginLoadingException.missingVerifier(name);
         return verifier;
+    }
+
+    public PluginReaderType getReaderType(String id) {
+        return readerTypeRegistry.get(id);
+    }
+
+    public PluginFinderType getFinderType(String id) {
+        return finderTypeRegistry.get(id);
+    }
+
+    public PluginVerifierType getVerifierType(String id) {
+        return verifierTypeRegistry.get(id);
     }
 
 }

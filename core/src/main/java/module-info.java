@@ -18,6 +18,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.security;
     exports dev.m00nl1ght.clockwork.security.permissions;
     exports dev.m00nl1ght.clockwork.util;
+    exports dev.m00nl1ght.clockwork.util.config;
 
     requires org.apache.logging.log4j;
 

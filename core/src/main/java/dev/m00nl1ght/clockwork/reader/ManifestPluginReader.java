@@ -6,13 +6,14 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.util.*;
+import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.util.config.StrictConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Map;
 import java.util.Optional;
 import java.util.jar.Manifest;
 
@@ -46,7 +47,7 @@ public class ManifestPluginReader implements PluginReader {
 
     protected ManifestPluginReader(PluginReaderConfig config) {
         this.config = Arguments.notNull(config, "config");
-        this.manifestFilePath = config.get("manifestPath");
+        this.manifestFilePath = config.getParams().get("manifestPath");
     }
 
     public static void registerTo(Registry<PluginReaderType> registry) {
@@ -59,7 +60,9 @@ public class ManifestPluginReader implements PluginReader {
     }
 
     public static PluginReaderConfig newConfig(String name, String manifestPath) {
-        return new PluginReaderConfig(name, NAME, Map.of("manifestPath", manifestPath));
+        return PluginReaderConfig.of(name, NAME, ImmutableConfig.builder()
+                .put("manifestPath", manifestPath)
+                .build());
     }
 
     @Override
@@ -75,7 +78,7 @@ public class ManifestPluginReader implements PluginReader {
     }
 
     public Optional<PluginDescriptor> read(Manifest manifest) {
-        final var mainConfig = new ConsumingConfig(ImmutableConfig.fromAttributes(manifest.getMainAttributes()));
+        final var mainConfig = new StrictConfig(new AttributesWrapper(manifest.getMainAttributes()));
         final String pluginId = mainConfig.getOrNull(HEADER_PLUGIN_ID);
         if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
@@ -90,7 +93,7 @@ public class ManifestPluginReader implements PluginReader {
         for (final var entry : manifest.getEntries().entrySet()) {
             final var className = extractClassName(entry.getKey());
             if (className == null) continue;
-            final var entryConfig = new ConsumingConfig(ImmutableConfig.fromAttributes(entry.getValue()));
+            final var entryConfig = new StrictConfig(new AttributesWrapper(entry.getValue()));
             final var componentId = entryConfig.getOrNull(HEADER_COMPONENT_ID);
             if (componentId != null) {
                 if (componentId.equals(pluginId)) {

@@ -1,17 +1,21 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.core.LoadingContext;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig.Builder;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
+import dev.m00nl1ght.clockwork.reader.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.util.Registry;
 
 import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
 import java.util.Collection;
-import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public class ModulePathPluginFinder extends AbstractPluginFinder {
 
@@ -25,34 +29,24 @@ public class ModulePathPluginFinder extends AbstractPluginFinder {
         registry.register(NAME, FACTORY);
     }
 
-    public static PluginFinderConfig newConfig(String name, File modulePath) {
-        return newConfig(name, modulePath, null);
-    }
-
-    public static PluginFinderConfig newConfig(String name, File modulePath, Set<String> readers) {
-        return newConfig(name, modulePath, readers, false);
-    }
-
-    public static PluginFinderConfig newConfig(String name, File modulePath, Set<String> readers, boolean wildcard) {
-        return new PluginFinderConfig(name, NAME, Map.of("modulePath", modulePath.getPath()), readers, wildcard);
+    public static Builder configBuilder(String name, File modulePath) {
+        return PluginFinderConfig.builder(name, NAME)
+                .withParams(ImmutableConfig.builder()
+                .put("modulePath", modulePath.getPath())
+                .build());
     }
 
     protected ModulePathPluginFinder(PluginFinderConfig config) {
         super(config);
-        this.moduleFinder = ModuleFinder.of(Path.of(config.get("modulePath")));
+        this.moduleFinder = ModuleFinder.of(Path.of(config.getParams().get("modulePath")));
     }
 
     @Override
-    protected void scan(LoadingContext context, Collection<PluginReader> readers) {
-        moduleFinder.findAll().stream()
-                .map(m -> tryReadFromModule(readers, m, moduleFinder))
+    protected Set<PluginReference> scan(LoadingContext context, Collection<PluginReader> readers) {
+        return moduleFinder.findAll().stream()
+                .map(m -> PluginReaderUtil.tryReadFromModule(readers, m))
                 .filter(Optional::isPresent).map(Optional::get)
-                .forEach(this::found);
-    }
-
-    @Override
-    public ModuleFinder getModuleFinder(LoadingContext context) {
-        return moduleFinder;
+                .collect(Collectors.toUnmodifiableSet());
     }
 
 }
