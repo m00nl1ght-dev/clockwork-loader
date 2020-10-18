@@ -89,4 +89,8 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
         }
     }
 
+    public Path getRootPath() {
+        return rootPath;
+    }
+
 }
