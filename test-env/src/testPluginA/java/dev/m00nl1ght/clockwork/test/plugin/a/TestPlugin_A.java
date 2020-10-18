@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.test.plugin;
+package dev.m00nl1ght.clockwork.test.plugin.a;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
@@ -12,12 +12,12 @@ import org.apache.logging.log4j.Logger;
 import java.io.File;
 import java.io.FileWriter;
 
-public class TestPlugin {
+public class TestPlugin_A {
 
     private static final Logger LOGGER = LogManager.getLogger();
     private final ClockworkCore core;
 
-    public TestPlugin(ClockworkCore core) {
+    public TestPlugin_A(ClockworkCore core) {
         this.core = core;
     }
 

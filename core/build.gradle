@@ -8,15 +8,13 @@ targetCompatibility = targetJDK
 
 java {
     withSourcesJar()
-    withJavadocJar()
+    // withJavadocJar()
     modularity.getInferModulePath() set true
 }
 
-sourceSets {
-    main {
-        output.resourcesDir = file('build/bin')
-        java.outputDir = file('build/bin')
-        jar { manifest { from(new File(resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF')) } }
+jar {
+    manifest {
+        from(new File(sourceSets.main.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF'))
     }
 }
 

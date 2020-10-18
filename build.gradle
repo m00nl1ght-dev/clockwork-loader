@@ -48,20 +48,6 @@ publishing {
             from project('core').components.java
         }
 
-        testEnv(MavenPublication) {
-            groupId = 'dev.m00nl1ght.clockwork'
-            artifactId = 'test-env'
-            version = rootProject.version
-            from project('test-env').components.java
-        }
-
-        testPlugin(MavenPublication) {
-            groupId = 'dev.m00nl1ght.clockwork'
-            artifactId = 'test-plugin'
-            version = rootProject.version
-            from project('test-plugin').components.java
-        }
-
     }
 
 }

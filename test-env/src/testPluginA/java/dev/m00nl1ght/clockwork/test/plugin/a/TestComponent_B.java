@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.test.plugin;
+package dev.m00nl1ght.clockwork.test.plugin.a;
 
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.TestInterface;

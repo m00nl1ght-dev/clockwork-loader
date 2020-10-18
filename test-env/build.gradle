@@ -14,25 +14,44 @@ java {
 }
 
 sourceSets {
-    main {
-        output.resourcesDir = file('build/bin')
-        java.outputDir = file('build/bin')
-        jar { manifest { from(new File(resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF')) } }
+    testPluginA
+}
+
+jar {
+    manifest {
+        from(new File(sourceSets.main.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF'))
     }
 }
 
+task testPluginAJar(type: Jar) {
+    archiveClassifier.set 'testPluginA'
+    from sourceSets.testPluginA.output
+    manifest { from(new File(sourceSets.testPluginA.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF')) }
+}
+
 dependencies {
+
     api project(':core')
     implementation project(':ext-annotations')
     implementation project(':ext-nightconfig')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+
+    testPluginACompile project(':core')
+    testPluginACompile project(':test-env')
+    testPluginACompile project(':ext-annotations')
+    testPluginACompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+
 }
 
 application {
     getMainModule() set "dev.m00nl1ght.clockwork.test"
 }
 
+build {
+    dependsOn testPluginAJar
+}
+
 run {
     workingDir rootProject.rootDir
-    dependsOn(':test-plugin:build')
+    dependsOn testPluginAJar
 }

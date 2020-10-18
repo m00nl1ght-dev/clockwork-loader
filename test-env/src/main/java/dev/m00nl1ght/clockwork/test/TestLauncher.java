@@ -27,7 +27,7 @@ public class TestLauncher {
 
     private static final Logger LOGGER = LogManager.getLogger();
 
-    private static final File TEST_PLUGIN_JAR = new File("test-plugin/build/libs/");
+    private static final File TEST_PLUGIN_JAR = new File("test-env/build/libs/");
     private static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");
 
     private static ClockworkCore clockworkCore;
@@ -56,7 +56,7 @@ public class TestLauncher {
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
-        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin"));
+        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
 
         final var bootLayerLoader = ClockworkLoader.buildBootLayerDefault();
         EventHandlerAnnotationProcessor.registerTo(bootLayerLoader.getProcessorRegistry());

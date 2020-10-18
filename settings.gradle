@@ -3,7 +3,6 @@ rootProject.name = 'clockwork'
 
 include 'core'
 include 'test-env'
-include 'test-plugin'
 include 'ext-annotations'
 include 'ext-nightconfig'
 include 'ext-plugin-repo'
