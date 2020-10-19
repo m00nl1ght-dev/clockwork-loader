@@ -1,70 +1,47 @@
 package dev.m00nl1ght.clockwork.security;
 
-import dev.m00nl1ght.clockwork.classloading.PluginClassloader;
-import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
-import java.security.*;
+import java.lang.ref.WeakReference;
+import java.security.PermissionCollection;
+import java.security.Permissions;
+import java.security.Policy;
+import java.security.ProtectionDomain;
+import java.util.Map;
+import java.util.WeakHashMap;
 
 public final class ClockworkSecurityPolicy extends Policy {
 
     private static final Logger LOGGER = LogManager.getLogger();
-    private static final SecurityPermission GET_POLICY_PERMISSION = new SecurityPermission("getPolicy");
 
-    private static ClockworkSecurityPolicy INSTALLED;
-
-    private final SecurityConfiguration config;
-
-    private ClockworkSecurityPolicy(SecurityConfiguration config) {
-        this.config = config;
+    public static void install() {
+        Policy.setPolicy(new ClockworkSecurityPolicy());
+        System.setSecurityManager(new SecurityManager());
+        LOGGER.info("Sucessfully installed security manager and policy.");
     }
 
-    public PermissionCollection getTrusted(ProtectionDomain domain) {
-        final var perms = new Permissions();
-        perms.add(new AllPermission());
-        return perms;
-    }
+    private final Map<ClassLoader, WeakReference<SecurityConfiguration>> configMap = new WeakHashMap<>();
 
-    public PermissionCollection getUntrusted() {
-        return new Permissions();
-    }
-
-    public PermissionCollection getUntrusted(PluginDescriptor plugin) {
-        return config.getPermissionsFor(plugin);
-    }
+    private ClockworkSecurityPolicy() {}
 
     @Override
     public final PermissionCollection getPermissions(ProtectionDomain domain) {
-        if (domain.getClassLoader() instanceof PluginClassloader) {
-            return new Permissions();
-        } else {
-            return getTrusted(domain);
+
+        final var classloader = domain.getClassLoader();
+
+        if (classloader != null) {
+            final var configRef = configMap.get(classloader);
+            if (configRef != null) {
+                final var config = configRef.get();
+                if (config != null) {
+                    return config.getPermissions(domain);
+                }
+            }
         }
-    }
 
-    @Override
-    public final boolean implies(ProtectionDomain domain, Permission permission) {
-        if (domain.getClassLoader() instanceof PluginClassloader) {
-            return false; // fastpath for plugins
-        } else {
-            return super.implies(domain, permission);
-        }
-    }
+        return new Permissions();
 
-    public static ClockworkSecurityPolicy getActivePolicy() {
-        final var sm = System.getSecurityManager();
-        if (sm != null) sm.checkPermission(GET_POLICY_PERMISSION);
-        return INSTALLED;
-    }
-
-    public static void install(SecurityConfiguration config) {
-        Arguments.notNull(config, "config");
-        final var policy = new ClockworkSecurityPolicy(config);
-        Policy.setPolicy(policy); INSTALLED = policy;
-        System.setSecurityManager(new SecurityManager());
-        LOGGER.info("Sucessfully installed security manager and policy.");
     }
 
 }

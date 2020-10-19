@@ -4,12 +4,13 @@ import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.security.permissions.PluginPermissionEntry;
 
 import java.security.Permissions;
+import java.security.ProtectionDomain;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public final class SecurityConfiguration {
+public class SecurityConfiguration {
 
     private final List<PluginPermissionEntry> simplePerms = new ArrayList<>(3);
     private final Map<String, PluginPermissionEntry> declaredPerms = new HashMap<>(3);
@@ -23,7 +24,11 @@ public final class SecurityConfiguration {
         }
     }
 
-    public Permissions getPermissionsFor(PluginDescriptor plugin) {
+    public Permissions getPermissions(ProtectionDomain domain) {
+        return new Permissions(); // TODO
+    }
+
+    public Permissions getPermissions(PluginDescriptor plugin) {
         final var perms = new Permissions();
 
         for (var entry : simplePerms) {

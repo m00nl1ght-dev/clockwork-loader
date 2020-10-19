@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.container.ImmutableComponentContainer;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
@@ -202,7 +201,7 @@ public final class ClockworkLoader {
         // Create the new ModuleLayer and the ClockworkCore instance.
         final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
         final var moduleManager = new ModuleManager(loadingContext, pluginReferences, parentLayer);
-        core = new ClockworkCore(moduleManager);
+        core = new ClockworkCore(moduleManager.getModuleLayer());
 
         // First add the plugins inherited from the parent.
         if (parent != null) {
@@ -236,7 +235,7 @@ public final class ClockworkLoader {
             }
 
             // Otherwise, get the target class from the ModuleManager, then verify and cast it.
-            final var targetClass = moduleManager.loadClassForPlugin(targetDescriptor.getTargetClass(), plugin);
+            final var targetClass = loadClassForPlugin(targetDescriptor.getTargetClass(), plugin);
             if (!ComponentTarget.class.isAssignableFrom(targetClass))
                 throw PluginLoadingException.invalidTargetClass(targetDescriptor, targetClass);
 
@@ -265,7 +264,7 @@ public final class ClockworkLoader {
             }
 
             // Otherwise, get the component class from the ModuleManager.
-            final var componentClass = moduleManager.loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
+            final var componentClass = loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
             buildComponent(plugin, componentDescriptor, target.get(), componentClass);
 
         }
@@ -274,7 +273,7 @@ public final class ClockworkLoader {
         for (final var targetType : core.getLoadedTargetTypes()) {
             final var classes = targetType.getDescriptor().getInternalComponents();
             for (final var className : classes) {
-                final var compClass = moduleManager.loadClassOrNull(className);
+                final var compClass = loadClassOrNull(className, targetType.getPlugin());
                 if (compClass == null)
                     throw PluginLoadingException.pluginClassNotFound(className, targetType.getPlugin().getDescriptor());
                 buildInternalComponent(targetType, compClass);
@@ -387,6 +386,40 @@ public final class ClockworkLoader {
         final var casted = scOpt.isEmpty() ? null : (ComponentType<? super C, ? super T>) scOpt.get();
         new ComponentType<>(casted, compClass, targetType);
 
+    }
+
+    /**
+     * Loads the class with the given name from the internal module layer or any parent layers
+     * and verifies that it was loaded from the main module of the specified plugin.
+     *
+     * @param className the qualified name of the class to be loaded
+     * @param plugin    the plugin the class should be loaded from
+     * @throws PluginLoadingException if the class is in a module other than
+     *                                the main module of the plugin, or the class was not found
+     */
+    public static Class<?> loadClassForPlugin(String className, LoadedPlugin plugin) {
+        try {
+            final var clazz = Class.forName(className, false, plugin.getMainModule().getClassLoader());
+            if (clazz.getModule() != plugin.getMainModule())
+                throw PluginLoadingException.pluginClassIllegal(clazz, plugin);
+            return clazz;
+        } catch (ClassNotFoundException e) {
+            throw PluginLoadingException.pluginClassNotFound(className, plugin.getDescriptor());
+        }
+    }
+
+    /**
+     * Loads the class with the given name from the internal module layer or any parent layers.
+     *
+     * @param className the qualified name of the class to be loaded
+     * @return the loaded class, or null if no such class was found
+     */
+    public static Class<?> loadClassOrNull(String className, LoadedPlugin plugin) {
+        try {
+            return Class.forName(className, false, plugin.getMainModule().getClassLoader());
+        } catch (ClassNotFoundException e) {
+            return null;
+        }
     }
 
     /**

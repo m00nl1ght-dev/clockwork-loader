@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.classloading.ModuleManager;
 import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.*;
@@ -20,13 +19,13 @@ public class ClockworkCore implements ComponentTarget {
     private final Map<String, RegisteredComponentType<?, ?>> loadedComponents = new LinkedHashMap<>();
     private final Map<Class<?>, RegisteredComponentType<?, ?>> classToComponentMap = new LinkedHashMap<>();
 
-    private final ModuleManager moduleManager;
+    private final ModuleLayer moduleLayer;
 
     private volatile State state = State.POPULATING;
     private ComponentContainer<ClockworkCore> coreContainer;
 
-    ClockworkCore(ModuleManager moduleManager) {
-        this.moduleManager = moduleManager;
+    ClockworkCore(ModuleLayer moduleLayer) {
+        this.moduleLayer = Arguments.notNull(moduleLayer, "moduleLayer");
     }
 
     /**
@@ -153,7 +152,7 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     public ModuleLayer getModuleLayer() {
-        return moduleManager.getModuleLayer();
+        return moduleLayer;
     }
 
     /**

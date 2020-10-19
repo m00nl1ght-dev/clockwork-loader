@@ -1,6 +1,5 @@
-package dev.m00nl1ght.clockwork.classloading;
+package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 
 import java.lang.module.ModuleFinder;
@@ -15,7 +14,6 @@ import java.util.stream.Collectors;
  */
 public class ModuleManager {
 
-    private final PluginClassloader classloader;
     private final ModuleLayer.Controller layerController;
     private final Module localModule = ModuleManager.class.getModule();
 
@@ -34,10 +32,7 @@ public class ModuleManager {
             final var libraryMF = ModuleFinder.of(loadingContext.getConfig().getLibModulePath().toArray(Path[]::new));
             final var combinedMF = ModuleFinder.compose(pluginMF, libraryMF);
             final var config = parent.configuration().resolveAndBind(ModuleFinder.of(), combinedMF, modules);
-            classloader = new PluginClassloader(config.modules(), ClassLoader.getSystemClassLoader(), this);
-            classloader.initRemotePackageMap(config, List.of(parent));
-            plugins.forEach(classloader::bindPlugin);
-            layerController = ModuleLayer.defineModules(config, List.of(parent), m -> classloader);
+            layerController = ModuleLayer.defineModulesWithOneLoader(config, List.of(parent), null);
         } catch (Exception e) {
             throw PluginLoadingException.resolvingModules(e, null);
         }
@@ -52,40 +47,6 @@ public class ModuleManager {
             for (var pn : module.getPackages()) {
                 layerController.addOpens(module, pn, localModule);
             }
-        }
-    }
-
-    /**
-     * Loads the class with the given name from the internal module layer or any parent layers
-     * and verifies that it was loaded from the main module of the specified plugin.
-     *
-     * @param className the qualified name of the class to be loaded
-     * @param plugin    the plugin the class should be loaded from
-     * @throws PluginLoadingException if the class is in a module other than
-     *                                the main module of the plugin, or the class was not found
-     */
-    public Class<?> loadClassForPlugin(String className, LoadedPlugin plugin) {
-        try {
-            final var clazz = Class.forName(className, false, classloader);
-            if (clazz.getModule() != plugin.getMainModule())
-                throw PluginLoadingException.pluginClassIllegal(clazz, plugin);
-            return clazz;
-        } catch (ClassNotFoundException e) {
-            throw PluginLoadingException.pluginClassNotFound(className, plugin.getDescriptor());
-        }
-    }
-
-    /**
-     * Loads the class with the given name from the internal module layer or any parent layers.
-     *
-     * @param className the qualified name of the class to be loaded
-     * @return the loaded class, or null if no such class was found
-     */
-    public Class<?> loadClassOrNull(String className) {
-        try {
-            return Class.forName(className, false, classloader);
-        } catch (ClassNotFoundException e) {
-            return null;
         }
     }
 

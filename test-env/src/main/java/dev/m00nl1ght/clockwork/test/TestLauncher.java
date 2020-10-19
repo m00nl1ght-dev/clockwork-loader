@@ -9,7 +9,6 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProce
 import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfiguration;
 import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.NetworkPermissionEntry;
@@ -42,7 +41,8 @@ public class TestLauncher {
         securityConfig.addPermission(new FilePermissionEntry(new File(PLUGIN_DATA_DIR, "$plugin-id$"), FilePermissionEntry.ACTIONS_RWD));
         securityConfig.addPermission(new FilePermissionEntry("file", new File("."), FilePermissionEntry.ACTIONS_RWD));
         securityConfig.addPermission(new NetworkPermissionEntry("network", NetworkPermissionEntry.ACTIONS_CONNECT_ACCEPT));
-        ClockworkSecurityPolicy.install(securityConfig);
+
+        // ClockworkSecurityPolicy.install(); // TODO fully implement policy and permission system
 
         final var configBuilder = ClockworkConfig.builder();
 
