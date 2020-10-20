@@ -146,7 +146,7 @@ public class ClockworkCore implements ComponentTarget {
         try {
             return coreContainer.getComponent(internalID);
         } catch (Exception e) {
-            state.requireOrAfter(State.POPULATED);
+            state.requireOrAfter(State.PROCESSED);
             throw e;
         }
     }
@@ -170,16 +170,15 @@ public class ClockworkCore implements ComponentTarget {
         POPULATING,
 
         /**
-         *
-         */
-        PROCESSING,
-
-        /**
          * All plugins have been located and dependencies have been resolved.
-         * Component and target types are now available, and the core components
-         * can be initialised by calling {@link ClockworkLoader#init()}.
+         * Component and target types are now available.
          */
         POPULATED,
+
+        /**
+         * The core components can now be initialised by calling {@link ClockworkLoader#init()}.
+         */
+        PROCESSED,
 
         /**
          * Plugin loading is complete and all core components have been initialised.

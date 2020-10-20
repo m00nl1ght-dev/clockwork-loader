@@ -14,13 +14,13 @@ public class PluginProcessorContext {
     PluginProcessorContext(LoadedPlugin plugin, Lookup rootLookup) {
         this.plugin = Arguments.notNull(plugin, "plugin");
         this.rootLookup = Arguments.notNullAnd(rootLookup, Lookup::hasFullPrivilegeAccess, "rootLookup");
-        plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
+        plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         if (rootLookup.lookupClass() != ClockworkLoader.class) throw new IllegalArgumentException();
     }
 
     public Lookup getReflectiveAccess(Class<?> targetClass) throws IllegalAccessException {
         Arguments.notNull(targetClass, "targetClass");
-        plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
+        plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         final var targetModule = targetClass.getModule();
         if (targetModule != plugin.getMainModule()) throw new IllegalAccessException();
         ClockworkLoader.class.getModule().addReads(targetClass.getModule());
@@ -30,7 +30,7 @@ public class PluginProcessorContext {
     public <C, T extends ComponentTarget> ComponentFactory<T, C>
     getComponentFactory(RegisteredComponentType<C, T> componentType) {
         Arguments.notNull(componentType, "componentType");
-        plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
+        plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         this.checkPluginAccess(componentType.getPlugin());
         return componentType.getFactoryInternal();
     }
@@ -39,7 +39,7 @@ public class PluginProcessorContext {
     setComponentFactory(RegisteredComponentType<C, T> componentType, ComponentFactory<T, C> factory) {
         Arguments.notNull(componentType, "componentType");
         Arguments.notNull(factory, "factory");
-        plugin.getClockworkCore().getState().require(ClockworkCore.State.PROCESSING);
+        plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         this.checkPluginAccess(componentType.getPlugin());
         componentType.setFactoryInternal(factory);
     }

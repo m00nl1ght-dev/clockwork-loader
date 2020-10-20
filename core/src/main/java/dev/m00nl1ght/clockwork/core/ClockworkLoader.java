@@ -11,6 +11,8 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.*;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
+import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
+import dev.m00nl1ght.clockwork.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -20,8 +22,11 @@ import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
+import java.lang.ModuleLayer.Controller;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
+import java.lang.module.ModuleFinder;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -35,7 +40,10 @@ import java.util.stream.Collectors;
 public final class ClockworkLoader {
 
     private static final Logger LOGGER = LogManager.getLogger();
+
+    private static final Module LOCAL_MODULE = ClockworkLoader.class.getModule();
     private static final Lookup INTERNAL_LOOKUP = MethodHandles.lookup();
+
     private static final int TARGET_JAVA_VERSION = 14;
 
     static {
@@ -66,7 +74,9 @@ public final class ClockworkLoader {
 
     private final ClockworkCore parent;
     private final ClockworkConfig config;
+
     private ClockworkCore core;
+    private SecurityConfig securityConfig;
 
     private final Registry<PluginReaderType> readerTypeRegistry = new Registry<>(PluginReaderType.class);
     private final Registry<PluginFinderType> finderTypeRegistry = new Registry<>(PluginFinderType.class);
@@ -187,7 +197,7 @@ public final class ClockworkLoader {
 
         // If there were any fatal problems, print them and throw an exception.
         if (!fatalProblems.isEmpty()) {
-            LOGGER.error("The following fatal problems occurred during dependency resolution:");
+            LOGGER.error("The following fatal problems occurred while resolving dependencies:");
             for (var p : fatalProblems) LOGGER.error(p.format());
             throw PluginLoadingException.fatalLoadingProblems(fatalProblems);
         }
@@ -199,9 +209,8 @@ public final class ClockworkLoader {
         }
 
         // Create the new ModuleLayer and the ClockworkCore instance.
-        final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
-        final var moduleManager = new ModuleManager(loadingContext, pluginReferences, parentLayer);
-        core = new ClockworkCore(moduleManager.getModuleLayer());
+        final var layerController = buildModuleLayer(pluginReferences);
+        core = new ClockworkCore(layerController.layer());
 
         // First add the plugins inherited from the parent.
         if (parent != null) {
@@ -213,10 +222,19 @@ public final class ClockworkLoader {
 
         // Then add the new ones that were located using the config.
         for (final var pluginReference : pluginReferences) {
-            final var mainModule = moduleManager.getModuleLayer().findModule(pluginReference.getModuleName()).orElseThrow();
+
+            // Find the main module of the plugin, build the LoadedPlugin object and add it to the core.
+            final var mainModule = layerController.layer().findModule(pluginReference.getModuleName()).orElseThrow();
             final var plugin = new LoadedPlugin(pluginReference.getDescriptor(), core, mainModule);
-            moduleManager.patchModule(mainModule);
             core.addLoadedPlugin(plugin);
+
+            // Patch the module to give PluginProcessors access to its classes via deep reflection.
+            if (mainModule.getLayer() == layerController.layer()) {
+                for (var pn : mainModule.getPackages()) {
+                    layerController.addOpens(mainModule, pn, LOCAL_MODULE);
+                }
+            }
+
         }
 
         // Next, prepare and add all targets provided by the plugins.
@@ -234,7 +252,7 @@ public final class ClockworkLoader {
                 }
             }
 
-            // Otherwise, get the target class from the ModuleManager, then verify and cast it.
+            // Otherwise, get the target class from the ModuleLayer, then verify and cast it.
             final var targetClass = loadClassForPlugin(targetDescriptor.getTargetClass(), plugin);
             if (!ComponentTarget.class.isAssignableFrom(targetClass))
                 throw PluginLoadingException.invalidTargetClass(targetDescriptor, targetClass);
@@ -263,7 +281,7 @@ public final class ClockworkLoader {
                 }
             }
 
-            // Otherwise, get the component class from the ModuleManager.
+            // Otherwise, get the component class from the ModuleLayer.
             final var componentClass = loadClassForPlugin(componentDescriptor.getComponentClass(), plugin);
             buildComponent(plugin, componentDescriptor, target.get(), componentClass);
 
@@ -280,7 +298,18 @@ public final class ClockworkLoader {
             }
         }
 
-        core.setState(State.PROCESSING);
+        // The core now contains all the loaded plugins, targets and components.
+        core.setState(State.POPULATED);
+
+        // If any SecurityConfig is present, register the new core to the policy.
+        if (securityConfig != null) {
+            final var policy = ClockworkSecurityPolicy.getPolicy();
+            if (policy != null) {
+                policy.registerContext(core, securityConfig);
+            } else {
+                throw FormatUtil.rtExc("No ClockworkSecurityPolicy is active");
+            }
+        }
 
         // Notify all registered plugin processors.
         for (final var entry : processorRegistry.getRegistered().entrySet()) {
@@ -321,8 +350,28 @@ public final class ClockworkLoader {
         core.getLoadedTargetTypes().forEach(TargetType::init);
 
         // The core is now ready for use.
-        core.setState(State.POPULATED);
+        core.setState(State.PROCESSED);
         return core;
+    }
+
+    /**
+     * Constructs a new ModuleManager for the specific set of plugin definitions.
+     * This constructor is called during plugin loading, after all definitions have been located,
+     * but before any components or classes are loaded.
+     */
+    private Controller buildModuleLayer(Collection<PluginReference> plugins) {
+        try {
+            final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
+            final var modules = plugins.stream().map(PluginReference::getModuleName).collect(Collectors.toUnmodifiableList());
+            final var finders = plugins.stream().map(PluginReference::getModuleFinder).collect(Collectors.toUnmodifiableList());
+            final var pluginMF = ModuleFinder.compose(finders.toArray(ModuleFinder[]::new));
+            final var libraryMF = ModuleFinder.of(config.getLibModulePath().toArray(Path[]::new));
+            final var combinedMF = ModuleFinder.compose(pluginMF, libraryMF);
+            final var config = parentLayer.configuration().resolveAndBind(ModuleFinder.of(), combinedMF, modules);
+            return ModuleLayer.defineModulesWithOneLoader(config, List.of(parentLayer), null);
+        } catch (Exception e) {
+            throw PluginLoadingException.resolvingModules(e, null);
+        }
     }
 
     private <T extends ComponentTarget> void
@@ -378,6 +427,7 @@ public final class ClockworkLoader {
     private <C, T extends ComponentTarget> void
     buildInternalComponent(RegisteredTargetType<T> targetType, Class<C> compClass) {
 
+        // Try to find any supercomponent by searching the target.
         final var scOpt = targetType.getComponentTypes().stream()
                 .filter(c -> c.componentClass.isAssignableFrom(compClass))
                 .findFirst();
@@ -390,7 +440,7 @@ public final class ClockworkLoader {
 
     /**
      * Loads the class with the given name from the internal module layer or any parent layers
-     * and verifies that it was loaded from the main module of the specified plugin.
+     * and verifies that it was loaded from the main module of the given plugin.
      *
      * @param className the qualified name of the class to be loaded
      * @param plugin    the plugin the class should be loaded from
@@ -412,6 +462,7 @@ public final class ClockworkLoader {
      * Loads the class with the given name from the internal module layer or any parent layers.
      *
      * @param className the qualified name of the class to be loaded
+     * @param plugin    any plugin from the classloader to be used
      * @return the loaded class, or null if no such class was found
      */
     public static Class<?> loadClassOrNull(String className, LoadedPlugin plugin) {
@@ -433,7 +484,7 @@ public final class ClockworkLoader {
     public synchronized void init() {
 
         if (core == null) throw new IllegalStateException("Not loaded yet");
-        core.getState().require(State.POPULATED);
+        core.getState().require(State.PROCESSED);
 
         // Get the core target.
         final var coreTarget = core.getTargetType(ClockworkCore.class);
@@ -472,6 +523,10 @@ public final class ClockworkLoader {
 
     public Registry<PluginProcessor> getProcessorRegistry() {
         return processorRegistry;
+    }
+
+    public void setSecurityConfig(SecurityConfig securityConfig) {
+        this.securityConfig = securityConfig;
     }
 
     private void addProblem(PluginLoadingProblem problem) {

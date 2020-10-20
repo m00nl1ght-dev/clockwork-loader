@@ -22,7 +22,7 @@ public abstract class AbstractEventBus<B extends Event> implements EventBus<B> {
 
     protected AbstractEventBus(ClockworkCore core) {
         this.core = Arguments.notNull(core, "core");
-        core.getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        core.getState().requireOrAfter(ClockworkCore.State.PROCESSED);
     }
 
     @Override
