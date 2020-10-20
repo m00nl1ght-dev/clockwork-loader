@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.test.TestTarget_A;
 import dev.m00nl1ght.clockwork.test.TestTarget_B;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
-import org.apache.logging.log4j.LogManager;
+import dev.m00nl1ght.clockwork.util.Loggers;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
@@ -14,7 +14,7 @@ import java.io.FileWriter;
 
 public class TestPlugin_A {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = Loggers.getLogger(TestPlugin_A.class);
     private final ClockworkCore core;
 
     public TestPlugin_A(ClockworkCore core) {

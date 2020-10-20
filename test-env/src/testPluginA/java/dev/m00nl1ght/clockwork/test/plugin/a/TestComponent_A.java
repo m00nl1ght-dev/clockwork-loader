@@ -4,12 +4,12 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.TestInterface;
 import dev.m00nl1ght.clockwork.test.TestTarget_A;
 import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
-import org.apache.logging.log4j.LogManager;
+import dev.m00nl1ght.clockwork.util.Loggers;
 import org.apache.logging.log4j.Logger;
 
 public class TestComponent_A implements TestInterface {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = Loggers.getLogger(TestComponent_A.class);
 
     private final TestTarget_A target;
 

@@ -9,6 +9,7 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProce
 import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
+import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
 import dev.m00nl1ght.clockwork.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
 import dev.m00nl1ght.clockwork.security.permissions.NetworkPermissionEntry;
@@ -36,7 +37,7 @@ public class TestLauncher {
     public static void main(String... args) {
 
         PLUGIN_DATA_DIR.mkdirs();
-        // ClockworkSecurityPolicy.install(); // TODO
+        ClockworkSecurityPolicy.install();
 
         final var securityConfig = new SecurityConfig();
 
@@ -64,7 +65,7 @@ public class TestLauncher {
         final var bootLayerCore = bootLayerLoader.loadAndInit();
 
         final var loader = ClockworkLoader.build(bootLayerCore, configBuilder.build());
-        // loader.setSecurityConfig(securityConfig); // TODO
+        loader.setSecurityConfig(securityConfig);
         loader.collectExtensionsFromParent();
 
         clockworkCore = loader.load();
