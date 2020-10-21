@@ -21,8 +21,8 @@ public class TestLauncher {
 
     // TODO rework all of this to actual junit tests
 
-    private static final File TEST_PLUGIN_JAR = new File("test-env/build/libs/");
-    private static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");
+    public static final File TEST_PLUGIN_JAR = new File("test-env/build/libs/");
+    public static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");
 
     private static ClockworkCore clockworkCore;
     private static TargetType<ClockworkCore> coreTargetType;
@@ -35,8 +35,8 @@ public class TestLauncher {
 
         final var securityConfigBuilder = SecurityConfig.builder();
 
-        securityConfigBuilder.addUnconditionalPermission(new PropertyPermission("*", "read"));
-        // securityConfig.addPermission(new FilePermissionEntry(new File(PLUGIN_DATA_DIR, "$plugin-id$"), FilePermissionEntry.ACTIONS_RWD));
+        securityConfigBuilder.addSharedPermission(new PropertyPermission("*", "read"));
+        securityConfigBuilder.addDeclarablePermission("plugin-data", new TestPermissionFactory());
 
         final var clockworkConfigBuilder = ClockworkConfig.builder();
 

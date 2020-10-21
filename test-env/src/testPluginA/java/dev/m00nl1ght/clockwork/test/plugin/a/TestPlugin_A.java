@@ -9,6 +9,9 @@ import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
 import dev.m00nl1ght.clockwork.util.Loggers;
 import org.apache.logging.log4j.Logger;
 
+import java.io.File;
+import java.io.FileWriter;
+
 public class TestPlugin_A {
 
     private static final Logger LOGGER = Loggers.getLogger("TestPlugin_A");
@@ -21,7 +24,6 @@ public class TestPlugin_A {
     @EventHandler
     public void onInit(PluginInitEvent event) {
         LOGGER.info("Init event received.");
-        /* TODO fix perms
         final var dataDir = event.getDataDirectory(this);
         dataDir.mkdirs();
         final var file = new File(dataDir, "test.txt");
@@ -31,7 +33,6 @@ public class TestPlugin_A {
         } catch (Exception e) {
             throw new RuntimeException(e);
         }
-         */
     }
 
     @EventHandler

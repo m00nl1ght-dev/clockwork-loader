@@ -59,13 +59,13 @@ public final class ClockworkSecurity {
         if (optClassLoader.isEmpty()) return;
         final var classLoader = optClassLoader.get();
 
-        final var unconditionalPerms = securityConfig.buildUnconditionalPermissions();
+        final var unconditionalPerms = securityConfig.buildSharedPermissions();
         final var declaredPerms = new HashMap<ProtectionDomain, Permissions>();
 
         for (final var plugin : core.getLoadedPlugins()) {
             final var mainClass = plugin.getMainComponent().getComponentClass();
             if (mainClass.getClassLoader() != classLoader) continue;
-            final var permissions = securityConfig.buildDeclaredPermissions(plugin);
+            final var permissions = securityConfig.buildPluginPermissions(plugin);
             if (permissions != EMPTY_PERMISSIONS) {
                 declaredPerms.put(mainClass.getProtectionDomain(), permissions);
             }
