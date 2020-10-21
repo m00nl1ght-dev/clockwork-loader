@@ -5,12 +5,13 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.util.*;
+import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.Registry;
+import dev.m00nl1ght.clockwork.util.config.AttributesWrapper;
 import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.util.config.StrictConfig;
 import dev.m00nl1ght.clockwork.version.Version;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -21,8 +22,6 @@ public class ManifestPluginReader implements PluginReader {
 
     public static final String NAME = "internal.pluginreader.manifest";
     public static final PluginReaderType FACTORY = ManifestPluginReader::new;
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private static final String HEADER_PREFIX = "CWL-";
     private static final String HEADER_PLUGIN_ID = HEADER_PREFIX + "Plugin-Id";
@@ -72,8 +71,7 @@ public class ManifestPluginReader implements PluginReader {
         try (final var fis = Files.newInputStream(manifestPath)) {
             return read(new Manifest(fis));
         } catch (Exception e) {
-            LOGGER.warn("Failed to read manifest: " + manifestPath, e);
-            return Optional.empty();
+            throw new RuntimeException("Failed to read manifest: " + manifestPath, e);
         }
     }
 

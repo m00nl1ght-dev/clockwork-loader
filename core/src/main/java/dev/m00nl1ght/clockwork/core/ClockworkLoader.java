@@ -9,18 +9,17 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.*;
+import dev.m00nl1ght.clockwork.internal.AbstractTopologicalSorter;
+import dev.m00nl1ght.clockwork.internal.InternalLoggers;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
 import dev.m00nl1ght.clockwork.security.SecurityConfig;
-import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.verifier.PluginVerifierType;
 import dev.m00nl1ght.clockwork.version.Version;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.lang.ModuleLayer.Controller;
 import java.lang.invoke.MethodHandles;
@@ -39,8 +38,6 @@ import java.util.stream.Collectors;
  */
 public final class ClockworkLoader {
 
-    private static final Logger LOGGER = LogManager.getLogger();
-
     private static final Module LOCAL_MODULE = ClockworkLoader.class.getModule();
     private static final Lookup INTERNAL_LOOKUP = MethodHandles.lookup();
 
@@ -49,8 +46,9 @@ public final class ClockworkLoader {
     static {
         final var version = Runtime.version();
         if (version.feature() != TARGET_JAVA_VERSION)
-            LOGGER.warn("The current Java version {} is not fully supported. CWL was developed for Java {}. " +
-                    "Using any other version can cause instability and crashes.", version, TARGET_JAVA_VERSION);
+            InternalLoggers.LOADER.warn("The current Java version {} is not fully supported. " +
+                    "CWL was developed for Java {}. Using any other version can cause instability and crashes.",
+                    version, TARGET_JAVA_VERSION);
         if (ClockworkLoader.class.getModule().getName() == null)
             throw FormatUtil.rtExc("Core module was not loaded correctly (the module is unnamed)");
     }
@@ -178,7 +176,7 @@ public final class ClockworkLoader {
                 final var finder = found.get(bestMatch.get());
                 final var ref = finder.find(loadingContext, wanted.getPlugin(), bestMatch.get())
                         .orElseThrow(() -> FormatUtil.rtExc("PluginFinder [] failed to find []", finder, wanted));
-                LOGGER.info("Plugin [" + ref + "] was located by [" + finder + "]");
+                InternalLoggers.LOADER.info("Plugin {} was located by {}", ref, finder);
                 loadingContext.getVerifiers().forEach(v -> v.verifyPlugin(ref));
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
@@ -197,15 +195,15 @@ public final class ClockworkLoader {
 
         // If there were any fatal problems, print them and throw an exception.
         if (!fatalProblems.isEmpty()) {
-            LOGGER.error("The following fatal problems occurred while resolving dependencies:");
-            for (var p : fatalProblems) LOGGER.error(p.format());
+            InternalLoggers.LOADER.error("The following fatal problems occurred while resolving dependencies:");
+            for (var p : fatalProblems) InternalLoggers.LOADER.error(p.format());
             throw PluginLoadingException.fatalLoadingProblems(fatalProblems);
         }
 
         // If there were any other problems, just print them.
         if (!skippedProblems.isEmpty()) {
-            LOGGER.info("The following optional components have been skipped, because their dependencies are not present:");
-            for (var p : skippedProblems) LOGGER.info(p.format());
+            InternalLoggers.LOADER.info("The following optional components have been skipped because requirements are not met:");
+            for (var p : skippedProblems) InternalLoggers.LOADER.info(p.format());
         }
 
         // Create the new ModuleLayer and the ClockworkCore instance.

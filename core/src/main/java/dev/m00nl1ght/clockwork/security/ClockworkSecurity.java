@@ -1,11 +1,10 @@
 package dev.m00nl1ght.clockwork.security;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.internal.InternalLoggers;
 import dev.m00nl1ght.clockwork.security.internal.PolicyImpl;
 import dev.m00nl1ght.clockwork.security.internal.ProviderImpl;
 import dev.m00nl1ght.clockwork.util.Arguments;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.security.*;
 import java.util.HashMap;
@@ -13,8 +12,6 @@ import java.util.HashMap;
 public final class ClockworkSecurity {
 
     private ClockworkSecurity() {}
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final Permissions ALL_PERMISSIONS = allPermissions();
     private static Permissions allPermissions() {
@@ -40,7 +37,7 @@ public final class ClockworkSecurity {
             Security.addProvider(new ProviderImpl());
             Policy.setPolicy(Policy.getInstance(ProviderImpl.NAME, null));
             System.setSecurityManager(new SecurityManager());
-            LOGGER.info("Sucessfully installed security manager, provider and policy.");
+            InternalLoggers.SECURITY.info("Sucessfully installed security manager, provider and policy.");
         } catch (Exception e) {
             throw new RuntimeException("Failed to install security provider", e);
         }

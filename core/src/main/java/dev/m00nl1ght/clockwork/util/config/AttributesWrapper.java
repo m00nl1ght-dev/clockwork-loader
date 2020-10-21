@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.util;
+package dev.m00nl1ght.clockwork.util.config;
 
 import dev.m00nl1ght.clockwork.util.config.Config;
 

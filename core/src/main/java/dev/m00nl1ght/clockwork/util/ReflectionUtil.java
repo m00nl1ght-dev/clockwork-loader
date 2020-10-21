@@ -1,8 +1,5 @@
 package dev.m00nl1ght.clockwork.util;
 
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
@@ -10,8 +7,6 @@ import java.lang.reflect.Type;
 import java.util.Arrays;
 
 public class ReflectionUtil {
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static MethodHandle tryFindConstructor(MethodHandles.Lookup lookup, Class<?> targetClass, Class<?>... params) {
         try {

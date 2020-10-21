@@ -12,8 +12,6 @@ import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
 import dev.m00nl1ght.clockwork.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.File;
 import java.util.PropertyPermission;
@@ -22,8 +20,6 @@ import java.util.Set;
 public class TestLauncher {
 
     // TODO rework all of this to actual junit tests
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private static final File TEST_PLUGIN_JAR = new File("test-env/build/libs/");
     private static final File PLUGIN_DATA_DIR = new File("test-env/plugin-data/");

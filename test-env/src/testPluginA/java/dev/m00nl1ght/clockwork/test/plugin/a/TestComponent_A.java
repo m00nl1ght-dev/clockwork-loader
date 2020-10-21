@@ -9,7 +9,7 @@ import org.apache.logging.log4j.Logger;
 
 public class TestComponent_A implements TestInterface {
 
-    private static final Logger LOGGER = Loggers.getLogger(TestComponent_A.class);
+    private static final Logger LOGGER = Loggers.getLogger("TestComponent_A");
 
     private final TestTarget_A target;
 

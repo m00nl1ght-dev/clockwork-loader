@@ -7,14 +7,10 @@ import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.lang.invoke.MethodHandles;
 
 public final class EventHandlerAnnotationProcessor implements PluginProcessor {
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     public static final String NAME = "extension.annotations.eventhandler";
 
@@ -76,7 +72,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
                 if (handler != null) {
                     this.registryBuilder.add(handler);
                 } else {
-                    LOGGER.error("Invalid event handler [" + handlerClass + "#" + method.getName() + "]");
+                    CWLAnnotationsExtension.LOGGER.error("Invalid event handler {}#{}", handlerClass, method.getName());
                 }
             }
         }

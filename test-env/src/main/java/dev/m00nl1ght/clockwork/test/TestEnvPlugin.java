@@ -4,12 +4,12 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.event.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import dev.m00nl1ght.clockwork.test.event.SimpleTestEvent;
-import org.apache.logging.log4j.LogManager;
+import dev.m00nl1ght.clockwork.util.Loggers;
 import org.apache.logging.log4j.Logger;
 
 public class TestEnvPlugin {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    private static final Logger LOGGER = Loggers.getLogger("TestEnvPlugin");
 
     private TestTarget_A TEST_TARGET_A;
     private TestTarget_B TEST_TARGET_B;

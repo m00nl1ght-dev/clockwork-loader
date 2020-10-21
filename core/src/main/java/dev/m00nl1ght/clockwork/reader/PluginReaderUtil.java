@@ -1,10 +1,7 @@
 package dev.m00nl1ght.clockwork.reader;
 
-import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 
 import java.io.IOException;
 import java.lang.module.ModuleFinder;
@@ -18,8 +15,6 @@ import java.util.Optional;
 import java.util.function.Function;
 
 public class PluginReaderUtil {
-
-    private static final Logger LOGGER = LogManager.getLogger();
 
     private PluginReaderUtil() {}
 
@@ -36,15 +31,9 @@ public class PluginReaderUtil {
 
     public static Optional<PluginReference> tryReadFromModule(Collection<PluginReader> readers, ModuleReference moduleReference) {
         if (moduleReference.location().isEmpty()) return Optional.empty();
-        try {
-            final var path = Path.of(moduleReference.location().get());
-            return tryRead(readers, path).map(descriptor -> PluginReference.of(descriptor, ModuleFinder.of(path), moduleReference.descriptor().name()));
-        } catch (PluginLoadingException e) {
-            throw e;
-        } catch (Exception e) {
-            LOGGER.debug("Failed to find plugin from module [" + moduleReference.descriptor().name() + "]", e);
-            return Optional.empty();
-        }
+        final var path = Path.of(moduleReference.location().get());
+        return tryRead(readers, path).map(descriptor ->
+                PluginReference.of(descriptor, ModuleFinder.of(path), moduleReference.descriptor().name()));
     }
 
     public static <T> Optional<T> tryAsModuleRoot(Path path, Function<Path, Optional<T>> function) {
@@ -54,8 +43,7 @@ public class PluginReaderUtil {
             try (final var fs = FileSystems.newFileSystem(path, (ClassLoader) null)) {
                 return function.apply(fs.getPath(""));
             } catch (IOException | FileSystemNotFoundException e) {
-                LOGGER.error("Failed to open as filesystem: " + path, e);
-                return Optional.empty();
+                throw new RuntimeException("Failed to open as filesystem: " + path, e);
             }
         } else {
             return Optional.empty();

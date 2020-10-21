@@ -18,7 +18,7 @@ import java.util.List;
 
 public final class CWLAnnotationsExtension {
 
-    private static final Logger LOGGER = LogManager.getLogger();
+    static final Logger LOGGER = LogManager.getLogger("Clockwork-Ext-Annotations");
     static final MethodHandles.Lookup LOCAL_LOOKUP = MethodHandles.lookup();
 
     private final ClockworkCore core;
@@ -69,7 +69,7 @@ public final class CWLAnnotationsExtension {
             }
         }
         if (!found) {
-            LOGGER.warn("Event handler {} is not compatible with EventType {}", method, eventDispatcher);
+            LOGGER.warn("Event handler {} is not compatible with dispatcher {}", method, eventDispatcher);
         }
     }
 
