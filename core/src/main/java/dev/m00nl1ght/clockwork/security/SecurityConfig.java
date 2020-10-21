@@ -1,51 +1,95 @@
 package dev.m00nl1ght.clockwork.security;
 
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
-import dev.m00nl1ght.clockwork.security.permissions.PluginPermissionEntry;
+import dev.m00nl1ght.clockwork.util.config.Config;
 
+import java.security.Permission;
 import java.security.Permissions;
-import java.util.ArrayList;
 import java.util.HashMap;
-import java.util.List;
+import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
-public class SecurityConfig {
+public final class SecurityConfig {
 
-    // TODO refactor
+    private final Permissions unconditionalPermissions;
+    private final Map<String, PermissionsFactory> declarablePermissions;
 
-    private final List<PluginPermissionEntry> simplePerms = new ArrayList<>(3);
-    private final Map<String, PluginPermissionEntry> declaredPerms = new HashMap<>(3);
+    private SecurityConfig(Builder builder) {
+        this.unconditionalPermissions = builder.unconditionalPermissions;
+        this.unconditionalPermissions.setReadOnly();
+        this.declarablePermissions = Map.copyOf(builder.declarablePermissions);
+    }
 
-    public void addPermission(PluginPermissionEntry perm) {
-        final var def = perm.getDefName();
-        if (def == null) {
-            simplePerms.add(perm);
-        } else {
-            declaredPerms.put(def, perm);
-        }
+    private SecurityConfig(Config data) { // TODO
+        this.unconditionalPermissions = null;
+        this.declarablePermissions = null;
     }
 
     public Permissions buildUnconditionalPermissions() {
-        return ClockworkSecurityPolicy.EMPTY_PERMISSIONS;
+        return unconditionalPermissions;
     }
 
     public Permissions buildDeclaredPermissions(LoadedPlugin plugin) {
-        final var perms = new Permissions();
-
-        for (var entry : simplePerms) {
-            entry.getPermissions(perms::add, plugin.getDescriptor(), "");
-        }
+        final var perms = new HashSet<Permission>();
 
         for (var str : plugin.getDescriptor().getPermissions()) {
             var i = str.indexOf(':');
             var perm = i < 0 ? str : str.substring(0, i);
-            var value = i < 0 ? "" : str.substring(i + 1);
-            var entry = declaredPerms.get(perm);
-            if (entry == null) continue;
-            entry.getPermissions(perms::add, plugin.getDescriptor(), value);
+            var value = i < 0 ? null : str.substring(i + 1);
+            var entry = declarablePermissions.get(perm);
+            if (entry != null) {
+                perms.addAll(entry.buildPermission(value));
+            }
         }
 
-        return perms;
+        if (perms.isEmpty()) {
+            return ClockworkSecurity.EMPTY_PERMISSIONS;
+        } else {
+            final var ret = new Permissions();
+            perms.forEach(ret::add);
+            return ret;
+        }
+    }
+
+    public static SecurityConfig from(Config data) {
+        return new SecurityConfig(data);
+    }
+
+    public static Builder builder() {
+        return new Builder();
+    }
+
+    public static class Builder {
+
+        private final Permissions unconditionalPermissions = new Permissions();
+        private final Map<String, PermissionsFactory> declarablePermissions = new HashMap<>();
+
+        private Builder() {}
+
+        public SecurityConfig build() {
+            return new SecurityConfig(this);
+        }
+
+        public Builder addUnconditionalPermission(Permission permission) {
+            unconditionalPermissions.add(permission);
+            return this;
+        }
+
+        public Builder addDeclarablePermission(String name, PermissionsFactory factory) {
+            declarablePermissions.put(name, factory);
+            return this;
+        }
+
+        public Builder addDeclarablePermission(String name, Set<Permission> permissions) {
+            final var perms = Set.copyOf(permissions);
+            return addDeclarablePermission(name, p -> perms);
+        }
+
+        public Builder addDeclarablePermission(String name, Permission permission) {
+            return addDeclarablePermission(name, Set.of(permission));
+        }
+
     }
 
 }

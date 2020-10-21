@@ -11,7 +11,7 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.*;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
+import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
 import dev.m00nl1ght.clockwork.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.Arguments;
@@ -303,12 +303,7 @@ public final class ClockworkLoader {
 
         // If any SecurityConfig is present, register the new core to the policy.
         if (securityConfig != null) {
-            final var policy = ClockworkSecurityPolicy.getPolicy();
-            if (policy != null) {
-                policy.registerContext(core, securityConfig);
-            } else {
-                throw FormatUtil.rtExc("No ClockworkSecurityPolicy is active");
-            }
+            ClockworkSecurity.registerContext(core, securityConfig);
         }
 
         // Notify all registered plugin processors.

@@ -9,16 +9,14 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProce
 import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.security.ClockworkSecurityPolicy;
+import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
 import dev.m00nl1ght.clockwork.security.SecurityConfig;
-import dev.m00nl1ght.clockwork.security.permissions.FilePermissionEntry;
-import dev.m00nl1ght.clockwork.security.permissions.NetworkPermissionEntry;
-import dev.m00nl1ght.clockwork.security.permissions.PropertyPermissionEntry;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.io.File;
+import java.util.PropertyPermission;
 import java.util.Set;
 
 public class TestLauncher {
@@ -37,35 +35,33 @@ public class TestLauncher {
     public static void main(String... args) {
 
         PLUGIN_DATA_DIR.mkdirs();
-        ClockworkSecurityPolicy.install();
+        ClockworkSecurity.install();
 
-        final var securityConfig = new SecurityConfig();
+        final var securityConfigBuilder = SecurityConfig.builder();
 
-        securityConfig.addPermission(new PropertyPermissionEntry(PropertyPermissionEntry.ACTIONS_READ));
-        securityConfig.addPermission(new FilePermissionEntry(new File(PLUGIN_DATA_DIR, "$plugin-id$"), FilePermissionEntry.ACTIONS_RWD));
-        securityConfig.addPermission(new FilePermissionEntry("file", new File("."), FilePermissionEntry.ACTIONS_RWD));
-        securityConfig.addPermission(new NetworkPermissionEntry("network", NetworkPermissionEntry.ACTIONS_CONNECT_ACCEPT));
+        securityConfigBuilder.addUnconditionalPermission(new PropertyPermission("*", "read"));
+        // securityConfig.addPermission(new FilePermissionEntry(new File(PLUGIN_DATA_DIR, "$plugin-id$"), FilePermissionEntry.ACTIONS_RWD));
 
-        final var configBuilder = ClockworkConfig.builder();
+        final var clockworkConfigBuilder = ClockworkConfig.builder();
 
-        configBuilder.addPluginReader(NightconfigPluginReader
+        clockworkConfigBuilder.addPluginReader(NightconfigPluginReader
                 .newConfig("toml", "META-INF/plugin.toml"));
-        configBuilder.addPluginFinder(ModulePathPluginFinder
+        clockworkConfigBuilder.addPluginFinder(ModulePathPluginFinder
                 .configBuilder("testJar", TEST_PLUGIN_JAR)
                 .withReaders(Set.of("toml")).build());
 
-        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
-        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
-        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
-        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
-        configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
+        clockworkConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
+        clockworkConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"));
+        clockworkConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
+        clockworkConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"));
+        clockworkConfigBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
 
         final var bootLayerLoader = ClockworkLoader.buildBootLayerDefault();
         EventHandlerAnnotationProcessor.registerTo(bootLayerLoader.getProcessorRegistry());
         final var bootLayerCore = bootLayerLoader.loadAndInit();
 
-        final var loader = ClockworkLoader.build(bootLayerCore, configBuilder.build());
-        loader.setSecurityConfig(securityConfig);
+        final var loader = ClockworkLoader.build(bootLayerCore, clockworkConfigBuilder.build());
+        loader.setSecurityConfig(securityConfigBuilder.build());
         loader.collectExtensionsFromParent();
 
         clockworkCore = loader.load();

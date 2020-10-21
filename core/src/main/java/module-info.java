@@ -1,5 +1,7 @@
 module dev.m00nl1ght.clockwork {
 
+    provides java.security.Provider with dev.m00nl1ght.clockwork.security.internal.ProviderImpl;
+
     exports dev.m00nl1ght.clockwork.core;
     exports dev.m00nl1ght.clockwork.core.plugin;
     exports dev.m00nl1ght.clockwork.descriptor;
@@ -16,7 +18,6 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.debug;
     exports dev.m00nl1ght.clockwork.debug.profiler;
     exports dev.m00nl1ght.clockwork.security;
-    exports dev.m00nl1ght.clockwork.security.permissions;
     exports dev.m00nl1ght.clockwork.util;
     exports dev.m00nl1ght.clockwork.util.config;
 
