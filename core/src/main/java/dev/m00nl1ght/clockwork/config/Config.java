@@ -71,6 +71,14 @@ public interface Config {
         return value == null ? List.of() : value;
     }
 
+    default List<String> getListOrSingletonOrEmpty(String key) {
+        final var list = getListOrNull(key);
+        if (list != null) return list;
+        final var value = getOrNull(key);
+        if (value != null) return List.of(value);
+        return List.of();
+    }
+
     default List<Config> getSubconfigList(String key) {
         final var value = getSubconfigListOrNull(key);
         if (value == null) throw FormatUtil.rtExc("Missing list [] in config []", key, this);
@@ -84,6 +92,14 @@ public interface Config {
     default List<Config> getSubconfigListOrEmpty(String key) {
         final var value = getSubconfigListOrNull(key);
         return value == null ? List.of() : value;
+    }
+
+    default List<Config> getSubconfigListOrSingletonOrEmpty(String key) {
+        final var list = getSubconfigListOrNull(key);
+        if (list != null) return list;
+        final var value = getSubconfigOrNull(key);
+        if (value != null) return List.of(value);
+        return List.of();
     }
 
     default int getInt(String key) {

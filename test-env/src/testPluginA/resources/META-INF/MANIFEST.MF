@@ -8,7 +8,7 @@ CWL-Plugin-Processors: extension.annotations.eventhandler
 
 Name: dev/m00nl1ght/clockwork/test/plugin/a/TestPlugin_A.class
 CWL-Component-Id: test-plugin-a
-CWL-Component-Requires: cwl-annotations test-env
+CWL-Component-Requires: [cwl-annotations, test-env]
 
 Name: dev/m00nl1ght/clockwork/test/plugin/a/TestComponent_A.class
 CWL-Component-Id: test-component-a

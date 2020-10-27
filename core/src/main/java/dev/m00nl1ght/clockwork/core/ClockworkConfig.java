@@ -42,7 +42,7 @@ public final class ClockworkConfig {
         this.verifiers = Set.copyOf(data.getSubconfigListOrEmpty("verifiers")
                 .stream().map(PluginVerifierConfig::from)
                 .collect(Collectors.toUnmodifiableSet()));
-        this.libModulePath = Set.copyOf(data.getListOrEmpty("libModulePath")
+        this.libModulePath = Set.copyOf(data.getListOrSingletonOrEmpty("libModulePath")
                 .stream().map(Path::of)
                 .collect(Collectors.toUnmodifiableSet()));
     }

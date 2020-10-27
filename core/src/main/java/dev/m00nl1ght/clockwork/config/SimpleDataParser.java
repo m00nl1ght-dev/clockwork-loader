@@ -100,7 +100,7 @@ public class SimpleDataParser {
 
         void applyToBuilder(T parsed, String key, Builder builder);
 
-        Set<Character> getSpecialChars();
+        Collection<Character> getSpecialChars();
 
     }
 
@@ -143,8 +143,8 @@ public class SimpleDataParser {
         }
 
         @Override
-        public Set<Character> getSpecialChars() {
-            return Set.of(QUOTE_START, QUOTE_END);
+        public Collection<Character> getSpecialChars() {
+            return List.of(QUOTE_START, QUOTE_END);
         }
 
     }
@@ -205,8 +205,8 @@ public class SimpleDataParser {
         }
 
         @Override
-        public Set<Character> getSpecialChars() {
-            return Set.of(TAG_START, TAG_END, MAPPING, DELIMETER);
+        public Collection<Character> getSpecialChars() {
+            return List.of(TAG_START, TAG_END, MAPPING, DELIMETER);
         }
 
     }
@@ -243,8 +243,8 @@ public class SimpleDataParser {
         }
 
         @Override
-        public Set<Character> getSpecialChars() {
-            return Set.of(LIST_START, LIST_END, DELIMETER);
+        public Collection<Character> getSpecialChars() {
+            return List.of(LIST_START, LIST_END, DELIMETER);
         }
 
     }

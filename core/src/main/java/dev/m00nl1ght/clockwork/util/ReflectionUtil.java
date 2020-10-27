@@ -5,6 +5,7 @@ import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.List;
 
 public class ReflectionUtil {
 
@@ -31,6 +32,20 @@ public class ReflectionUtil {
                     .anyMatch(i -> tryFindSupertype(i, supertype));
         }
         return false;
+    }
+
+    public static <T> T buildInstance(Class<T> baseClass, String className, List<String> params) {
+        try {
+            final var clazz = Class.forName(className);
+            final var desc = new Class[params.size()];
+            Arrays.fill(desc, String.class);
+            final var constr = clazz.getConstructor(desc);
+            @SuppressWarnings("unchecked")
+            final T instance = (T) constr.newInstance(params.toArray());
+            return instance;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to create instance of " + className + " with params " + params);
+        }
     }
 
 }

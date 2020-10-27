@@ -158,7 +158,7 @@ public final class PluginDescriptor {
         }
 
         public void extData(Config extData) {
-            this.extData = Objects.requireNonNull(extData);
+            this.extData = Objects.requireNonNull(extData).immutable();
         }
 
     }

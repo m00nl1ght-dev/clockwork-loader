@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.extension.security;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.extension.security.permissions.PermissionsFactory;
+import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 
 import java.security.Permission;
 import java.security.Permissions;
@@ -72,11 +73,23 @@ public final class SecurityConfig {
     }
 
     public static Permission permissionFromConfig(Config config) {
-        return null; // TODO
+        final var className = config.get("permissionClass");
+        final var params = config.getListOrSingletonOrEmpty("params");
+        return ReflectionUtil.buildInstance(Permission.class, className, params);
     }
 
     public static PermissionsFactory permissionsFactoryFromConfig(Config config) {
-        return null; // TODO
+        final var reqDecl = config.getBooleanOrDefault("declared", false);
+        final var perm = config.getSubconfigOrNull("permission");
+        if (perm != null) {
+            return new PermissionsFactory.Fixed(Set.of(permissionFromConfig(perm)), reqDecl);
+        } else {
+            final var perms = config.getSubconfigListOrSingletonOrEmpty("permissions");
+            final var constructed = perms.stream()
+                    .map(SecurityConfig::permissionFromConfig)
+                    .collect(Collectors.toUnmodifiableSet());
+            return new PermissionsFactory.Fixed(constructed, reqDecl);
+        }
     }
 
     public static Builder builder() {
@@ -104,9 +117,12 @@ public final class SecurityConfig {
             return this;
         }
 
+        public Builder addDeclarablePermission(String name, Set<Permission> permissions, boolean mustBeDeclared) {
+            return addDeclarablePermission(name, new PermissionsFactory.Fixed(permissions, mustBeDeclared));
+        }
+
         public Builder addDeclarablePermission(String name, Set<Permission> permissions) {
-            final var perms = Set.copyOf(permissions);
-            return addDeclarablePermission(name, (d, p) -> perms);
+            return addDeclarablePermission(name, permissions, true);
         }
 
         public Builder addDeclarablePermission(String name, Permission permission) {

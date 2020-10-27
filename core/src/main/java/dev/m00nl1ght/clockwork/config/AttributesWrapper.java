@@ -8,19 +8,35 @@ import java.util.stream.Collectors;
 public class AttributesWrapper implements Config {
 
     protected final Attributes attributes;
+    protected final String keyPrefix;
 
     public AttributesWrapper(Attributes attributes) {
+        this(attributes, "");
+    }
+
+    public AttributesWrapper(Attributes attributes, String keyPrefix) {
         this.attributes = attributes;
+        this.keyPrefix = keyPrefix;
     }
 
     @Override
     public Set<String> getKeys() {
-        return attributes.keySet().stream().map(Object::toString).collect(Collectors.toUnmodifiableSet());
+        if (keyPrefix.isEmpty()) {
+            return attributes.keySet().stream()
+                    .map(Object::toString)
+                    .collect(Collectors.toUnmodifiableSet());
+        } else {
+            return attributes.keySet().stream()
+                    .map(Object::toString)
+                    .filter(k -> k.startsWith(keyPrefix))
+                    .map(k -> k.substring(keyPrefix.length()))
+                    .collect(Collectors.toUnmodifiableSet());
+        }
     }
 
     @Override
     public String getOrNull(String key) {
-        final var raw = attributes.getValue(key);
+        final var raw = attributes.getValue(keyPrefix + key);
         if (raw == null) return null;
         final var val = raw.strip();
         if (isList(val) || isConfig(val)) return null;
@@ -29,21 +45,21 @@ public class AttributesWrapper implements Config {
 
     @Override
     public Config getSubconfigOrNull(String key) {
-        final var raw = attributes.getValue(key);
+        final var raw = attributes.getValue(keyPrefix + key);
         if (raw == null || !isConfig(raw.strip())) return null;
         return SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, raw);
     }
 
     @Override
     public List<String> getListOrNull(String key) {
-        final var raw = attributes.getValue(key);
+        final var raw = attributes.getValue(keyPrefix + key);
         if (raw == null || !isList(raw.strip())) return null;
         return SimpleDataParser.parse(SimpleDataParser.DEFAULT_STRING_LIST, raw);
     }
 
     @Override
     public List<Config> getSubconfigListOrNull(String key) {
-        final var raw = attributes.getValue(key);
+        final var raw = attributes.getValue(keyPrefix + key);
         if (raw == null || !isList(raw.strip())) return null;
         return SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG_LIST, raw);
     }
@@ -54,6 +70,7 @@ public class AttributesWrapper implements Config {
 
         for (final var entry : attributes.entrySet()) {
             final var key = entry.getKey().toString().strip();
+            if (!key.startsWith(keyPrefix)) continue;
             final var value = entry.getValue().toString().strip();
             if (isConfig(value)) {
                 final var config = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, value);
