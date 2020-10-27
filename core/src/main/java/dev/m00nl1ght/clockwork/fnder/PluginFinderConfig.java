@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.fnder;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
-import dev.m00nl1ght.clockwork.util.config.Config;
-import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 
 import java.util.Set;
 
@@ -35,12 +35,12 @@ public final class PluginFinderConfig {
 
     public Config asRaw() {
         return ImmutableConfig.builder()
-                .put("name", name)
-                .put("type", type)
-                .putList("readers", readers)
-                .putList("verifiers", verifiers)
-                .put("wildcard", wildcard)
-                .put("params", params)
+                .putString("name", name)
+                .putString("type", type)
+                .putStrings("readers", readers)
+                .putStrings("verifiers", verifiers)
+                .putString("wildcard", wildcard)
+                .putSubconfig("params", params)
                 .build();
     }
 

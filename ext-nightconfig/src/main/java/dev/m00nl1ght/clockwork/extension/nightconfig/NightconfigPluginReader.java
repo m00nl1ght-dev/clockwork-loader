@@ -13,7 +13,8 @@ import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
-import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
@@ -41,7 +42,7 @@ public class NightconfigPluginReader implements PluginReader {
 
     public static PluginReaderConfig newConfig(String name, String descriptorPath) {
         return PluginReaderConfig.of(name, NAME, ImmutableConfig.builder()
-                .put("descriptorPath", descriptorPath)
+                .putString("descriptorPath", descriptorPath)
                 .build());
     }
 
@@ -59,10 +60,10 @@ public class NightconfigPluginReader implements PluginReader {
         descriptorBuilder.description(config.getOrElse("description", ""));
         final Optional<List<String>> authors = config.getOptional("authors");
         authors.ifPresent(l -> l.forEach(descriptorBuilder::author));
-        final Optional<List<UnmodifiableConfig>> perms = config.getOptional("permission");
-        perms.ifPresent(l -> l.forEach(p -> descriptorBuilder.permission(buildPerm(p))));
         final Optional<List<String>> processors = config.getOptional("processors");
         processors.ifPresent(l -> l.forEach(descriptorBuilder::markForProcessor));
+        final UnmodifiableConfig extData = config.get("ext");
+        descriptorBuilder.extData(extData == null ? Config.EMPTY : new NightconfigWrapper(extData).immutable());
 
         final var mainCompBuilder = ComponentDescriptor.builder(pluginId);
         mainCompBuilder.version(version);
@@ -87,6 +88,8 @@ public class NightconfigPluginReader implements PluginReader {
             optional.ifPresent(builder::optional);
             final Optional<Boolean> factoryAccess = conf.getOptional("factoryAccess");
             factoryAccess.ifPresent(builder::factoryAccessEnabled);
+            final UnmodifiableConfig componentExtData = conf.get("ext");
+            builder.extData(componentExtData == null ? Config.EMPTY : new NightconfigWrapper(componentExtData).immutable());
             descriptorBuilder.component(builder.build());
         }
 
@@ -98,6 +101,8 @@ public class NightconfigPluginReader implements PluginReader {
             builder.parent(conf.get("parent"));
             final Optional<List<String>> internalComps = conf.getOptional("internalComponent");
             internalComps.ifPresent(l -> l.forEach(builder::internalComponent));
+            final UnmodifiableConfig targetExtData = conf.get("ext");
+            builder.extData(targetExtData == null ? Config.EMPTY : new NightconfigWrapper(targetExtData).immutable());
             descriptorBuilder.target(builder.build());
         }
 

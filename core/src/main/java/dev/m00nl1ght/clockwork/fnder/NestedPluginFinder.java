@@ -7,7 +7,7 @@ import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.Registry;
-import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.io.IOException;
@@ -46,8 +46,8 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
     public static Builder configBuilder(String name, PluginFinderConfig innerFinder, String pathInModule) {
         return PluginFinderConfig.builder(name, NAME)
                 .withParams(ImmutableConfig.builder()
-                        .put("innerFinder", innerFinder.asRaw())
-                        .put("pathInModule", pathInModule)
+                        .putSubconfig("innerFinder", innerFinder.asRaw())
+                        .putString("pathInModule", pathInModule)
                         .build());
     }
 

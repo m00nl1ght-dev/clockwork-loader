@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.util.config;
+package dev.m00nl1ght.clockwork.config;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
 
@@ -6,11 +6,9 @@ import java.util.*;
 
 public class ImmutableConfig implements Config {
 
-    private final String configName;
     private final Map<String, Object> map;
 
     protected ImmutableConfig(Builder builder) {
-        this.configName = builder.configName;
         this.map = Map.copyOf(builder.map);
     }
 
@@ -44,8 +42,8 @@ public class ImmutableConfig implements Config {
     }
 
     @Override
-    public String toString() {
-        return configName;
+    public Config immutable() {
+        return this;
     }
 
     public static Builder builder() {
@@ -55,32 +53,26 @@ public class ImmutableConfig implements Config {
     public static class Builder {
 
         protected final Map<String, Object> map = new HashMap<>();
-        protected String configName = "ImmutableConfig";
 
-        protected Builder() {}
+        private Builder() {}
 
         public ImmutableConfig build() {
             return new ImmutableConfig(this);
         }
 
-        public Builder withName(String configName) {
-            this.configName = Arguments.notNull(configName, "configName");
-            return this;
-        }
-
-        public Builder put(String key, Object value) {
+        public Builder putString(String key, Object value) {
             Arguments.notNull(value, "value");
             map.put(key, value.toString());
             return this;
         }
 
-        public Builder put(String key, Config value) {
+        public Builder putSubconfig(String key, Config value) {
             Arguments.notNull(value, "value");
-            map.put(key, value);
+            map.put(key, value.immutable());
             return this;
         }
 
-        public Builder putList(String key, Collection<String> value) {
+        public Builder putStrings(String key, Collection<String> value) {
             Arguments.notNull(value, "value");
             map.put(key, value.toArray(String[]::new));
             return this;
@@ -88,7 +80,7 @@ public class ImmutableConfig implements Config {
 
         public Builder putSubconfigs(String key, Collection<? extends Config> value) {
             Arguments.notNull(value, "value");
-            map.put(key, value.toArray(Config[]::new));
+            map.put(key, value.stream().map(Config::immutable).toArray(Config[]::new));
             return this;
         }
 

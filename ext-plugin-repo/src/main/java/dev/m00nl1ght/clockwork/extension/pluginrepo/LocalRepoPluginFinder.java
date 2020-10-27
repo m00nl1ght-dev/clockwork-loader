@@ -9,7 +9,7 @@ import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.util.*;
-import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.io.File;
@@ -36,7 +36,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     public static Builder configBuilder(String name, File rootPath) {
         return PluginFinderConfig.builder(name, NAME)
                 .withParams(ImmutableConfig.builder()
-                        .put("rootPath", rootPath.getPath())
+                        .putString("rootPath", rootPath.getPath())
                         .build());
     }
 

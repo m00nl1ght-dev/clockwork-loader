@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.reader;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
-import dev.m00nl1ght.clockwork.util.config.Config;
-import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 
 public final class PluginReaderConfig {
 
@@ -24,9 +24,9 @@ public final class PluginReaderConfig {
 
     public Config asRaw() {
         return ImmutableConfig.builder()
-                .put("name", name)
-                .put("type", type)
-                .put("params", params)
+                .putString("name", name)
+                .putString("type", type)
+                .putSubconfig("params", params)
                 .build();
     }
 

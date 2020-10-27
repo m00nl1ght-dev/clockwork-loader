@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
-import dev.m00nl1ght.clockwork.util.config.Config;
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.verifier.PluginVerifierConfig;
 
 import java.nio.file.Path;

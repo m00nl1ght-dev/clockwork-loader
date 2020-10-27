@@ -2,10 +2,12 @@ package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 
 public final class TargetDescriptor {
@@ -16,6 +18,7 @@ public final class TargetDescriptor {
     private final String parent;
     private final String targetClass;
     private final List<String> internalComponents;
+    private final Config extData;
 
     TargetDescriptor(Builder builder) {
         this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
@@ -24,6 +27,7 @@ public final class TargetDescriptor {
         this.parent = builder.parentId;
         this.targetClass = Arguments.notNullOrBlank(builder.targetClass, "targetClass");
         this.internalComponents = Arguments.snapshot(builder.internalComponents, "internalComponents");
+        this.extData = Objects.requireNonNull(builder.extData);
     }
 
     public String getPluginId() {
@@ -50,6 +54,10 @@ public final class TargetDescriptor {
         return internalComponents;
     }
 
+    public Config getExtData() {
+        return extData;
+    }
+
     @Override
     public String toString() {
         return getId();
@@ -72,6 +80,7 @@ public final class TargetDescriptor {
         private String targetClass;
         private String parentId;
         private final Set<String> internalComponents = new LinkedHashSet<>();
+        private Config extData = Config.EMPTY;
 
         private Builder(String pluginId, String targetId) {
             this.pluginId = pluginId;
@@ -100,6 +109,10 @@ public final class TargetDescriptor {
         public void internalComponent(String componentClass) {
             if (componentClass == null) return;
             internalComponents.add(componentClass);
+        }
+
+        public void extData(Config extData) {
+            this.extData = Objects.requireNonNull(extData);
         }
 
     }

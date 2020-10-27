@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.util.config;
+package dev.m00nl1ght.clockwork.config;
 
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -43,6 +43,19 @@ public class StrictConfig implements Config {
     public List<Config> getSubconfigListOrNull(String key) {
         queried.add(key);
         return config.getSubconfigListOrNull(key);
+    }
+
+    @Override
+    public Config immutable() {
+        return config.immutable();
+    }
+
+    public Set<String> getQueried() {
+        return Set.copyOf(queried);
+    }
+
+    public void throwOnRemaining() {
+        throwOnRemaining(s -> true);
     }
 
     public void throwOnRemaining(Predicate<String> condition) {

@@ -32,7 +32,7 @@ public final class SecurityConfig {
                         e -> e.getValue().buildPermission(plugin.getDescriptor(), null),
                         (a, b) -> b, HashMap::new));
 
-        for (final var str : plugin.getDescriptor().getPermissions()) {
+        for (final var str : plugin.getDescriptor().getExtData().getListOrEmpty("permissions")) {
             var i = str.indexOf(':');
             var perm = i < 0 ? str : str.substring(0, i);
             var value = i < 0 ? null : str.substring(i + 1);

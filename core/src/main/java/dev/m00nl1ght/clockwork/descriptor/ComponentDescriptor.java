@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.descriptor;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.util.Arguments;
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.*;
@@ -18,6 +19,7 @@ public final class ComponentDescriptor {
     private final List<DependencyDescriptor> dependencies;
     private final boolean factoryAccessEnabled;
     private final boolean optional;
+    private final Config extData;
 
     ComponentDescriptor(Builder builder) {
         this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
@@ -29,6 +31,7 @@ public final class ComponentDescriptor {
         this.dependencies = List.copyOf(Arguments.notNull(builder.dependencies, "dependencies").values());
         this.factoryAccessEnabled = builder.factoryAccessEnabled;
         this.optional = builder.optional;
+        this.extData = Objects.requireNonNull(builder.extData);
     }
 
     public String getPluginId() {
@@ -67,6 +70,10 @@ public final class ComponentDescriptor {
         return factoryAccessEnabled;
     }
 
+    public Config getExtData() {
+        return extData;
+    }
+
     @Override
     public String toString() {
         return getId();
@@ -99,6 +106,7 @@ public final class ComponentDescriptor {
         private final Map<String, DependencyDescriptor> dependencies = new LinkedHashMap<>();
         private boolean factoryAccessEnabled = false;
         private boolean optional = false;
+        private Config extData = Config.EMPTY;
 
         private Builder(String pluginId, String componentId) {
             this.pluginId = pluginId;
@@ -156,6 +164,10 @@ public final class ComponentDescriptor {
 
         public void factoryAccessEnabled(boolean factoryAccessEnabled) {
             this.factoryAccessEnabled = factoryAccessEnabled;
+        }
+
+        public void extData(Config extData) {
+            this.extData = Objects.requireNonNull(extData);
         }
 
     }

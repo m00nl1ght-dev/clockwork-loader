@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.util.config;
+package dev.m00nl1ght.clockwork.config;
 
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
@@ -44,6 +44,11 @@ public interface Config {
 
     default Optional<Config> getOptionalSubconfig(String key) {
         return Optional.ofNullable(getSubconfigOrNull(key));
+    }
+
+    default Config getSubconfigOrEmpty(String key) {
+        final var value = getSubconfigOrNull(key);
+        return value == null ? Config.EMPTY : value;
     }
 
     default Config getSubconfigOrDefault(String key, Config defaultValue) {
@@ -147,6 +152,8 @@ public interface Config {
         return found.orElseThrow(() -> FormatUtil.rtExc("Inavalid value [] in config [] (enum constant [] does not exist)", key, this, value));
     }
 
+    Config immutable();
+
     default StrictConfig strict() {
         return new StrictConfig(this);
     }
@@ -178,6 +185,11 @@ public interface Config {
         @Override
         public List<Config> getSubconfigListOrNull(String key) {
             return null;
+        }
+
+        @Override
+        public Config immutable() {
+            return this;
         }
 
     }

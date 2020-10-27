@@ -10,7 +10,7 @@ import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
-import dev.m00nl1ght.clockwork.util.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.io.File;
@@ -42,8 +42,8 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     public static Builder configBuilder(String name, URL rootURL, File cachePath) {
         return PluginFinderConfig.builder(name, NAME)
                 .withParams(ImmutableConfig.builder()
-                        .put("rootURL", rootURL.toString())
-                        .put("cachePath", cachePath.getPath())
+                        .putString("rootURL", rootURL.toString())
+                        .putString("cachePath", cachePath.getPath())
                         .build());
     }
 
