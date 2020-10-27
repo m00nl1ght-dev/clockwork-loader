@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.security.PermissionsFactory;
+import dev.m00nl1ght.clockwork.extension.security.permissions.PermissionsFactory;
 
 import java.io.File;
 import java.io.FilePermission;

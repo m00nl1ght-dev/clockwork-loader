@@ -1,6 +1,8 @@
-package dev.m00nl1ght.clockwork.security;
+package dev.m00nl1ght.clockwork.extension.security;
 
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
+import dev.m00nl1ght.clockwork.extension.security.permissions.PermissionsFactory;
 
 import java.security.Permission;
 import java.security.Permissions;
@@ -43,7 +45,7 @@ public final class SecurityConfig {
         }
 
         if (perms.isEmpty()) {
-            return ClockworkSecurity.EMPTY_PERMISSIONS;
+            return CWLSecurityExtension.EMPTY_PERMISSIONS;
         } else {
             final var ret = new Permissions();
             perms.values().forEach(s -> s.forEach(ret::add));
@@ -52,7 +54,30 @@ public final class SecurityConfig {
 
     }
 
-    // TODO add way to read instance from config
+    public static SecurityConfig from(Config config) {
+        final var builder = builder();
+
+        final var shared = config.getSubconfigListOrEmpty("sharedPermissions");
+        for (final var permConf : shared) {
+            builder.addSharedPermission(permissionFromConfig(permConf));
+        }
+
+        final var declarable = config.getSubconfigListOrEmpty("declarablePermissions");
+        for (final var permConf : declarable) {
+            final var name = permConf.get("name");
+            builder.addDeclarablePermission(name, permissionsFactoryFromConfig(permConf));
+        }
+
+        return builder.build();
+    }
+
+    public static Permission permissionFromConfig(Config config) {
+        return null; // TODO
+    }
+
+    public static PermissionsFactory permissionsFactoryFromConfig(Config config) {
+        return null; // TODO
+    }
 
     public static Builder builder() {
         return new Builder();
@@ -61,7 +86,6 @@ public final class SecurityConfig {
     public static class Builder {
 
         private final Permissions sharedPermissions = new Permissions();
-        private final Map<String, PermissionsFactory> unconditionalPermissions = new HashMap<>();
         private final Map<String, PermissionsFactory> declarablePermissions = new HashMap<>();
 
         private Builder() {}

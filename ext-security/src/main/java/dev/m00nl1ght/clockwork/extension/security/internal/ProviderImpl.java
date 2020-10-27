@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.security.internal;
+package dev.m00nl1ght.clockwork.extension.security.internal;
 
 import java.security.NoSuchAlgorithmException;
 import java.security.Provider;

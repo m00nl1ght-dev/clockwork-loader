@@ -1,6 +1,6 @@
-package dev.m00nl1ght.clockwork.security.internal;
+package dev.m00nl1ght.clockwork.extension.security.internal;
 
-import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
+import dev.m00nl1ght.clockwork.extension.security.CWLSecurityExtension;
 
 import java.lang.ref.WeakReference;
 import java.security.*;
@@ -66,11 +66,11 @@ public final class PolicyImpl extends PolicySpi {
         final var classloader = domain.getClassLoader();
 
         if (classloader == platformClassLoader) {
-            return ClockworkSecurity.ALL_PERMISSIONS;
+            return CWLSecurityExtension.ALL_PERMISSIONS;
         }
 
         if (classloader == systemClassLoader) {
-            return ClockworkSecurity.ALL_PERMISSIONS;
+            return CWLSecurityExtension.ALL_PERMISSIONS;
         }
 
         if (classloader != null) {
@@ -87,7 +87,7 @@ public final class PolicyImpl extends PolicySpi {
             }
         }
 
-        return ClockworkSecurity.EMPTY_PERMISSIONS;
+        return CWLSecurityExtension.EMPTY_PERMISSIONS;
 
     }
 
@@ -110,7 +110,7 @@ public final class PolicyImpl extends PolicySpi {
         }
 
         public Permissions getPerPluginPerms(ProtectionDomain domain) {
-            return perPluginPerms.getOrDefault(domain, ClockworkSecurity.EMPTY_PERMISSIONS);
+            return perPluginPerms.getOrDefault(domain, CWLSecurityExtension.EMPTY_PERMISSIONS);
         }
 
     }

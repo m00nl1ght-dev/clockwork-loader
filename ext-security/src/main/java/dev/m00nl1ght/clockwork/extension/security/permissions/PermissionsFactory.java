@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.security;
+package dev.m00nl1ght.clockwork.extension.security.permissions;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 

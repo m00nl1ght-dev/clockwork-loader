@@ -8,9 +8,9 @@ import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandlerAnnotationProcessor;
 import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
+import dev.m00nl1ght.clockwork.extension.security.CWLSecurityExtension;
+import dev.m00nl1ght.clockwork.extension.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
-import dev.m00nl1ght.clockwork.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.test.event.PluginInitEvent;
 
 import java.io.File;
@@ -31,7 +31,7 @@ public class TestLauncher {
     public static void main(String... args) {
 
         PLUGIN_DATA_DIR.mkdirs();
-        ClockworkSecurity.install();
+        CWLSecurityExtension.install();
 
         final var securityConfigBuilder = SecurityConfig.builder();
 
@@ -57,12 +57,13 @@ public class TestLauncher {
         final var bootLayerCore = bootLayerLoader.loadAndInit();
 
         final var loader = ClockworkLoader.build(bootLayerCore, clockworkConfigBuilder.build());
-        loader.setSecurityConfig(securityConfigBuilder.build());
         loader.collectExtensionsFromParent();
 
         clockworkCore = loader.load();
         coreTargetType = clockworkCore.getTargetType(ClockworkCore.class).orElseThrow();
         eventBus = new ExtEventBusImpl(clockworkCore);
+
+        CWLSecurityExtension.registerContext(clockworkCore, securityConfigBuilder.build());
 
         loader.init();
         eventBus.bind();

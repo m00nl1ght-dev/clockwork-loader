@@ -13,8 +13,6 @@ import dev.m00nl1ght.clockwork.internal.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.internal.InternalLoggers;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.security.ClockworkSecurity;
-import dev.m00nl1ght.clockwork.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
@@ -74,7 +72,6 @@ public final class ClockworkLoader {
     private final ClockworkConfig config;
 
     private ClockworkCore core;
-    private SecurityConfig securityConfig;
 
     private final Registry<PluginReaderType> readerTypeRegistry = new Registry<>(PluginReaderType.class);
     private final Registry<PluginFinderType> finderTypeRegistry = new Registry<>(PluginFinderType.class);
@@ -299,11 +296,6 @@ public final class ClockworkLoader {
         // The core now contains all the loaded plugins, targets and components.
         core.setState(State.POPULATED);
 
-        // If any SecurityConfig is present, register the new core to the policy.
-        if (securityConfig != null) {
-            ClockworkSecurity.registerContext(core, securityConfig);
-        }
-
         // Notify all registered plugin processors.
         for (final var entry : processorRegistry.getRegistered().entrySet()) {
             try {
@@ -516,10 +508,6 @@ public final class ClockworkLoader {
 
     public Registry<PluginProcessor> getProcessorRegistry() {
         return processorRegistry;
-    }
-
-    public void setSecurityConfig(SecurityConfig securityConfig) {
-        this.securityConfig = securityConfig;
     }
 
     private void addProblem(PluginLoadingProblem problem) {
