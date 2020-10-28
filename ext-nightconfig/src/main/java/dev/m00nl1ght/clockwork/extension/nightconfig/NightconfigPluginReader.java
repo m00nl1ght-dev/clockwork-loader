@@ -10,7 +10,6 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.config.Config;
@@ -20,6 +19,7 @@ import dev.m00nl1ght.clockwork.version.Version;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 
 public class NightconfigPluginReader implements PluginReader {
@@ -31,13 +31,12 @@ public class NightconfigPluginReader implements PluginReader {
     protected final String descriptorFilePath;
 
     protected NightconfigPluginReader(PluginReaderConfig config) {
-        this.config = Arguments.notNull(config, "config");
+        this.config = Objects.requireNonNull(config);
         this.descriptorFilePath = config.getParams().get("descriptorPath");
     }
 
     public static void registerTo(Registry<PluginReaderType> registry) {
-        Arguments.notNull(registry, "registry");
-        registry.register(NAME, FACTORY);
+        Objects.requireNonNull(registry).register(NAME, FACTORY);
     }
 
     public static PluginReaderConfig newConfig(String name, String descriptorPath) {

@@ -7,9 +7,10 @@ import dev.m00nl1ght.clockwork.events.NestedEventDispatcher;
 import dev.m00nl1ght.clockwork.events.StaticEventDispatcher;
 import dev.m00nl1ght.clockwork.events.impl.ContextAwareEvent;
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+
+import java.util.Objects;
 
 public class ExtEventBusImpl extends EventBusImpl {
 
@@ -25,7 +26,7 @@ public class ExtEventBusImpl extends EventBusImpl {
 
     public void bind(EventHandlerRegistry registry) {
         if (this.registry != null) throw FormatUtil.illStateExc("already bound");
-        this.registry = Arguments.notNull(registry, "registry");
+        this.registry = Objects.requireNonNull(registry);
         getEventDispatchers().forEach(d -> CWLAnnotationsExtension.buildListeners(registry, d));
     }
 

@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Objects;
@@ -16,7 +15,7 @@ public class StaticEventListener<E extends Event, T extends ComponentTarget, I e
     protected final C innerComponent;
 
     public StaticEventListener(EventListener<E, I, C> innerListener, TargetType<T> targetType, I target) {
-        super(Arguments.notNull(innerListener, "innerListener").getEventType(),
+        super(Objects.requireNonNull(innerListener).getEventType(),
                 targetType.getIdentityComponentType(), innerListener.getPriority());
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();

@@ -1,7 +1,5 @@
 package dev.m00nl1ght.clockwork.config;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
-
 import java.util.*;
 
 public class ImmutableConfig implements Config {
@@ -61,25 +59,25 @@ public class ImmutableConfig implements Config {
         }
 
         public Builder putString(String key, Object value) {
-            Arguments.notNull(value, "value");
+            Objects.requireNonNull(value);
             map.put(key, value.toString());
             return this;
         }
 
         public Builder putSubconfig(String key, Config value) {
-            Arguments.notNull(value, "value");
+            Objects.requireNonNull(value);
             map.put(key, value.immutable());
             return this;
         }
 
         public Builder putStrings(String key, Collection<String> value) {
-            Arguments.notNull(value, "value");
+            Objects.requireNonNull(value);
             map.put(key, value.toArray(String[]::new));
             return this;
         }
 
         public Builder putSubconfigs(String key, Collection<? extends Config> value) {
-            Arguments.notNull(value, "value");
+            Objects.requireNonNull(value);
             map.put(key, value.stream().map(Config::immutable).toArray(Config[]::new));
             return this;
         }

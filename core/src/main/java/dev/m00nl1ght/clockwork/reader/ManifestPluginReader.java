@@ -7,13 +7,13 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.Manifest;
 
@@ -44,13 +44,12 @@ public class ManifestPluginReader implements PluginReader {
     protected final String manifestFilePath;
 
     protected ManifestPluginReader(PluginReaderConfig config) {
-        this.config = Arguments.notNull(config, "config");
+        this.config = Objects.requireNonNull(config);
         this.manifestFilePath = config.getParams().get("manifestPath");
     }
 
     public static void registerTo(Registry<PluginReaderType> registry) {
-        Arguments.notNull(registry, "registry");
-        registry.register(NAME, FACTORY);
+        Objects.requireNonNull(registry).register(NAME, FACTORY);
     }
 
     public static PluginReaderConfig newConfig(String name) {

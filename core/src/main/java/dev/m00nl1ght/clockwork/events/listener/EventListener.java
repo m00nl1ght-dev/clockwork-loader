@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Comparator;
@@ -19,9 +18,9 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
     protected final TypeRef<E> eventType;
 
     protected EventListener(TypeRef<E> eventType, ComponentType<C, T> componentType, EventListenerPriority priority) {
-        this.componentType = Arguments.notNull(componentType, "componentType");
-        this.priority = Arguments.notNull(priority, "priority");
-        this.eventType = Arguments.notNull(eventType, "eventType");
+        this.componentType = Objects.requireNonNull(componentType);
+        this.priority = Objects.requireNonNull(priority);
+        this.eventType = Objects.requireNonNull(eventType);
         componentType.getTargetType().requireInitialised();
     }
 

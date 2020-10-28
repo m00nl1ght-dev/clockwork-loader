@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.config;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.*;
@@ -12,8 +11,7 @@ public class StrictConfig implements Config {
     private final Set<String> queried = new HashSet<>();
 
     public StrictConfig(Config config) {
-        Arguments.notNull(config, "config");
-        this.config = config;
+        this.config = Objects.requireNonNull(config);
     }
 
     @Override

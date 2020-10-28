@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.util.Arguments;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -15,7 +14,7 @@ public class NestedEventListener<E extends Event, T extends ComponentTarget, C e
     protected final int cIdx;
 
     public NestedEventListener(EventListener<E, ? extends C, I> innerListener, ComponentType<C, T> componentType) {
-        super(Arguments.notNull(innerListener, "innerListener").getEventType(), componentType, innerListener.getPriority());
+        super(Objects.requireNonNull(innerListener).getEventType(), componentType, innerListener.getPriority());
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();
         this.cIdx = innerListener.getComponentType().getInternalIdx();

@@ -6,11 +6,11 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.events.AbstractEventDispatcher;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -72,7 +72,7 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
 
     @Override
     public synchronized void attachProfiler(EventDispatcherProfilerGroup<E, ? extends T> profilerGroup) {
-        Arguments.notNull(profilerGroup, "profilerGroup");
+        Objects.requireNonNull(profilerGroup);
         if (this.profilerGroups == null) this.profilerGroups = new EventDispatcherProfilerGroup[groupedListeners.length];
         if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());

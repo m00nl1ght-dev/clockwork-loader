@@ -2,7 +2,6 @@ package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -23,15 +22,15 @@ public final class PluginDescriptor {
     private final Config extData;
 
     PluginDescriptor(Builder builder) {
-        this.id = Arguments.notNullOrBlank(builder.id, "id");
-        this.displayName = Arguments.notNullOrBlank(builder.displayName, "displayName");
-        this.description = Arguments.notNull(builder.description, "description");
-        this.authors = List.copyOf(Arguments.notNull(builder.authors, "authors"));
-        this.processors = List.copyOf(Arguments.notNull(builder.processors, "processors"));
-        this.mainComponent = Arguments.notNull(builder.mainComponent, "mainComponent");
-        this.components = List.copyOf(Arguments.notNull(builder.components, "components"));
-        this.targets = List.copyOf(Arguments.notNull(builder.targets, "targets"));
-        this.extData = Objects.requireNonNull(builder.extData);
+        this.id = builder.id;
+        this.displayName = Objects.requireNonNull(builder.displayName);
+        this.description = Objects.requireNonNull(builder.description);
+        this.authors = List.copyOf(builder.authors);
+        this.processors = List.copyOf(builder.processors);
+        this.mainComponent = Objects.requireNonNull(builder.mainComponent);
+        this.components = List.copyOf(builder.components);
+        this.targets = List.copyOf(builder.targets);
+        this.extData = builder.extData;
     }
 
     public String getId() {
@@ -80,7 +79,7 @@ public final class PluginDescriptor {
     }
 
     public static Builder builder(String id) {
-        Arguments.notNull(id, "id");
+        Objects.requireNonNull(id);
         if (!DependencyDescriptor.PLUGIN_ID_PATTERN.matcher(id).matches())
             throw PluginLoadingException.invalidId(id);
         return new Builder(id);

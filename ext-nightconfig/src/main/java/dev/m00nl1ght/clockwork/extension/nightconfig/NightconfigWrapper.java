@@ -2,12 +2,12 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 
 import java.io.File;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -22,7 +22,7 @@ public class NightconfigWrapper implements Config {
     private final UnmodifiableConfig config;
 
     public NightconfigWrapper(UnmodifiableConfig config) {
-        this.config = Arguments.notNull(config, "config");
+        this.config = Objects.requireNonNull(config);
     }
 
     @Override

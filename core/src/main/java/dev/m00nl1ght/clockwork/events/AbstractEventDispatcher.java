@@ -3,14 +3,10 @@ package dev.m00nl1ght.clockwork.events;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public abstract class AbstractEventDispatcher<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
 
@@ -22,8 +18,8 @@ public abstract class AbstractEventDispatcher<E extends Event, T extends Compone
     protected final int idxOffset;
 
     protected AbstractEventDispatcher(TypeRef<E> eventClassType, TargetType<T> targetType) {
-        this.eventClassType = Arguments.notNull(eventClassType, "eventClassType");
-        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.eventClassType = Objects.requireNonNull(eventClassType);
+        this.targetType = Objects.requireNonNull(targetType);
         targetType.requireInitialised();
         this.rootTarget = targetType.getRoot();
         this.idxOffset = targetType.getSubtargetIdxFirst();

@@ -1,11 +1,11 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class ComponentType<C, T extends ComponentTarget> {
 
@@ -20,13 +20,15 @@ public class ComponentType<C, T extends ComponentTarget> {
     ComponentFactory<T, C> factory = ComponentFactory.emptyFactory();
 
     public ComponentType(ComponentType<? super C, ? super T> parent, Class<C> componentClass, TargetType<T> targetType) {
-        this.parent = Arguments.nullOr(parent, p -> targetType.isEquivalentTo(p.targetType) && targetType != p.targetType,"parent");
-        this.targetType = Arguments.notNull(targetType, "targetType");
-        this.componentClass = Arguments.notNull(componentClass, "componentClass");
+        this.parent = parent;
+        this.targetType = Objects.requireNonNull(targetType);
+        this.componentClass = Objects.requireNonNull(componentClass);
         this.rootType = targetType.getRoot();
         this.targetType.registerComponentType(this);
         if (parent != null) {
             synchronized (this.parent) {
+                if (!targetType.isEquivalentTo(parent.targetType) || targetType == parent.targetType)
+                    throw FormatUtil.illStateExc("Parent ComponentType [] is incompatible", this.parent);
                 if (!this.parent.componentClass.isAssignableFrom(componentClass))
                     throw FormatUtil.illArgExc("Heap pollution: Incompatible parent component [] for []", parent, this);
                 if (this.parent.isInitialised())
@@ -78,7 +80,7 @@ public class ComponentType<C, T extends ComponentTarget> {
     }
 
     public void setFactory(ComponentFactory<T, C> factory) {
-        this.factory = Arguments.notNull(factory, "factory");
+        this.factory = Objects.requireNonNull(factory);
     }
 
     public final boolean isInitialised() {
@@ -110,9 +112,10 @@ public class ComponentType<C, T extends ComponentTarget> {
     }
 
     protected final synchronized void init(int internalIdx) {
+        if (internalIdx < 0) throw new IllegalArgumentException();
         this.requireNotInitialised();
         targetType.requireNotInitialised();
-        this.internalIdx = Arguments.inRange(internalIdx, 0, Integer.MAX_VALUE, "internalIdx");
+        this.internalIdx = internalIdx;
         if (parent != null) verifySiblings();
     }
 

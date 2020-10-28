@@ -4,11 +4,11 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginProcessor;
 import dev.m00nl1ght.clockwork.core.PluginProcessorContext;
 import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 
 import java.lang.invoke.MethodHandles;
+import java.util.Objects;
 
 public final class EventHandlerAnnotationProcessor implements PluginProcessor {
 
@@ -20,8 +20,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
     private EventHandlerAnnotationProcessor() {}
 
     public static void registerTo(Registry<PluginProcessor> registry) {
-        Arguments.notNull(registry, "registry");
-        registry.register(NAME, new EventHandlerAnnotationProcessor());
+        Objects.requireNonNull(registry).register(NAME, new EventHandlerAnnotationProcessor());
     }
 
     @Override

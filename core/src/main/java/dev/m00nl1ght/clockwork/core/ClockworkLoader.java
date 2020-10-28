@@ -13,7 +13,6 @@ import dev.m00nl1ght.clockwork.internal.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.internal.InternalLoggers;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.verifier.PluginVerifierType;
@@ -52,12 +51,14 @@ public final class ClockworkLoader {
     }
 
     public static ClockworkLoader build(ClockworkConfig config) {
-        return new ClockworkLoader(null, Arguments.notNull(config, "config"));
+        Objects.requireNonNull(config);
+        return new ClockworkLoader(null, config);
     }
 
     public static ClockworkLoader build(ClockworkCore parent, ClockworkConfig config) {
-        Arguments.notNull(parent, "parent").getState().requireOrAfter(State.INITIALISED);
-        return new ClockworkLoader(parent, Arguments.notNull(config, "config"));
+        Objects.requireNonNull(config);
+        Objects.requireNonNull(parent).getState().requireOrAfter(State.INITIALISED);
+        return new ClockworkLoader(parent, config);
     }
 
     public static ClockworkLoader buildBootLayerDefault() {

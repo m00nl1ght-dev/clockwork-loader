@@ -5,7 +5,6 @@ import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig.Builder;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderUtil;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.util.Registry;
 
@@ -13,6 +12,7 @@ import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
 import java.util.Collection;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -25,8 +25,7 @@ public class ModulePathPluginFinder extends AbstractPluginFinder {
     protected final ModuleFinder moduleFinder;
 
     public static void registerTo(Registry<PluginFinderType> registry) {
-        Arguments.notNull(registry, "registry");
-        registry.register(NAME, FACTORY);
+        Objects.requireNonNull(registry).register(NAME, FACTORY);
     }
 
     public static Builder configBuilder(String name, File modulePath) {

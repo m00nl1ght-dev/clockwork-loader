@@ -3,12 +3,12 @@ package dev.m00nl1ght.clockwork.extension.security;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.extension.security.internal.PolicyImpl;
 import dev.m00nl1ght.clockwork.extension.security.internal.ProviderImpl;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import java.security.*;
 import java.util.HashMap;
+import java.util.Objects;
 
 public final class CWLSecurityExtension {
 
@@ -48,8 +48,8 @@ public final class CWLSecurityExtension {
 
     public static void registerContext(ClockworkCore core, SecurityConfig securityConfig) {
 
-        Arguments.notNull(core, "core");
-        Arguments.notNull(securityConfig, "securityConfig");
+        Objects.requireNonNull(core);
+        Objects.requireNonNull(securityConfig);
 
         core.getState().requireOrAfter(ClockworkCore.State.POPULATED);
 

@@ -1,7 +1,6 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.*;
@@ -43,13 +42,13 @@ public class EventHandlerRegistry {
         }
 
         public <C> void add(EventHandlerMethod<?, C> handlerMethod) {
-            Arguments.notNull(handlerMethod, "handlerMethod");
+            Objects.requireNonNull(handlerMethod);
             this.handlers.computeIfAbsent(handlerMethod.getComponentClass(), c -> new LinkedHashSet<>()).add(handlerMethod);
         }
 
         public <C> void put(Class<C> handlerClass, Collection<EventHandlerMethod<?, C>> handlers) {
-            Arguments.notNull(handlerClass, "handlerClass");
-            Arguments.notNull(handlers, "handlers");
+            Objects.requireNonNull(handlerClass);
+            Objects.requireNonNull(handlers);
             this.handlers.put(handlerClass, Set.copyOf(handlers));
         }
 

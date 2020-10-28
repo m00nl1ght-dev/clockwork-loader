@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.fnder;
 import dev.m00nl1ght.clockwork.core.LoadingContext;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -17,7 +16,7 @@ public abstract class AbstractPluginFinder implements PluginFinder {
     private Map<String, Optional<PluginReference>> cache;
 
     protected AbstractPluginFinder(PluginFinderConfig config) {
-        this.config = Arguments.notNull(config, "config");
+        this.config = Objects.requireNonNull(config);
     }
 
     @Override

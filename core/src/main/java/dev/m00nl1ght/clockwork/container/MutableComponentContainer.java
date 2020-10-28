@@ -1,7 +1,8 @@
 package dev.m00nl1ght.clockwork.container;
 
 import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.util.Arguments;
+
+import java.util.Objects;
 
 public class MutableComponentContainer<T extends ComponentTarget> extends ComponentContainer<T> {
 
@@ -10,8 +11,9 @@ public class MutableComponentContainer<T extends ComponentTarget> extends Compon
     public MutableComponentContainer(TargetType<T> targetType, T object) {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
-        this.components[0] = Arguments.notNull(object, "object");
-        Arguments.verifyType(object.getClass(), targetType.getTargetClass(), "object");
+        this.components[0] = Objects.requireNonNull(object);
+        if (!targetType.getTargetClass().isAssignableFrom(object.getClass()))
+            throw new IllegalArgumentException();
     }
 
     public void initComponents() {

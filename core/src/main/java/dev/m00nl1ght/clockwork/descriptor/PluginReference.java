@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.lang.module.ModuleFinder;
+import java.util.Objects;
 
 public final class PluginReference {
 
@@ -12,15 +12,15 @@ public final class PluginReference {
     private final String moduleName;
 
     public static PluginReference of(PluginDescriptor descriptor, ModuleFinder moduleFinder, String moduleName) {
-        Arguments.notNull(descriptor, "descriptor");
-        Arguments.notNull(moduleFinder, "moduleFinder");
-        Arguments.notNullOrEmpty(moduleName, "moduleName");
+        Objects.requireNonNull(descriptor);
+        Objects.requireNonNull(moduleFinder);
+        Objects.requireNonNull(moduleName);
         return new PluginReference(descriptor, moduleFinder, moduleName);
     }
 
     public static PluginReference of(PluginReference other, ModuleFinder additionalModules) {
-        Arguments.notNull(other, "other");
-        Arguments.notNull(additionalModules, "additionalModules");
+        Objects.requireNonNull(other);
+        Objects.requireNonNull(additionalModules);
         final var newFinder = ModuleFinder.compose(other.moduleFinder, additionalModules);
         return new PluginReference(other.descriptor, newFinder, other.moduleName);
     }

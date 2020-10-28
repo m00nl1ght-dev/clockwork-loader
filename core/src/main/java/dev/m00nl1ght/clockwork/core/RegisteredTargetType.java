@@ -1,8 +1,9 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
+
+import java.util.Objects;
 
 public final class RegisteredTargetType<T extends ComponentTarget> extends TargetType<T> {
 
@@ -11,8 +12,9 @@ public final class RegisteredTargetType<T extends ComponentTarget> extends Targe
 
     RegisteredTargetType(LoadedPlugin plugin, TargetType<? super T> parent, TargetDescriptor descriptor, Class<T> targetClass) {
         super(parent, targetClass);
-        this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPluginId()), "plugin");
+        this.descriptor = Objects.requireNonNull(descriptor);
+        this.plugin = Objects.requireNonNull(plugin);
+        if (!plugin.getId().equals(descriptor.getPluginId())) throw new IllegalArgumentException();
     }
 
     public LoadedPlugin getPlugin() {

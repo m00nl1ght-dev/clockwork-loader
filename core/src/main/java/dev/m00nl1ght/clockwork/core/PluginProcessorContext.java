@@ -1,10 +1,10 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
+import java.util.Objects;
 
 public class PluginProcessorContext {
 
@@ -12,14 +12,15 @@ public class PluginProcessorContext {
     private final Lookup rootLookup;
 
     PluginProcessorContext(LoadedPlugin plugin, Lookup rootLookup) {
-        this.plugin = Arguments.notNull(plugin, "plugin");
-        this.rootLookup = Arguments.notNullAnd(rootLookup, Lookup::hasFullPrivilegeAccess, "rootLookup");
+        this.plugin = Objects.requireNonNull(plugin);
+        this.rootLookup = Objects.requireNonNull(rootLookup);
+        if (!rootLookup.hasFullPrivilegeAccess()) throw new IllegalArgumentException();
         plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         if (rootLookup.lookupClass() != ClockworkLoader.class) throw new IllegalArgumentException();
     }
 
     public Lookup getReflectiveAccess(Class<?> targetClass) throws IllegalAccessException {
-        Arguments.notNull(targetClass, "targetClass");
+        Objects.requireNonNull(targetClass);
         plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         final var targetModule = targetClass.getModule();
         if (targetModule != plugin.getMainModule()) throw new IllegalAccessException();
@@ -29,7 +30,7 @@ public class PluginProcessorContext {
 
     public <C, T extends ComponentTarget> ComponentFactory<T, C>
     getComponentFactory(RegisteredComponentType<C, T> componentType) {
-        Arguments.notNull(componentType, "componentType");
+        Objects.requireNonNull(componentType);
         plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         this.checkPluginAccess(componentType.getPlugin());
         return componentType.getFactoryInternal();
@@ -37,8 +38,8 @@ public class PluginProcessorContext {
 
     public <C, T extends ComponentTarget> void
     setComponentFactory(RegisteredComponentType<C, T> componentType, ComponentFactory<T, C> factory) {
-        Arguments.notNull(componentType, "componentType");
-        Arguments.notNull(factory, "factory");
+        Objects.requireNonNull(componentType);
+        Objects.requireNonNull(factory);
         plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
         this.checkPluginAccess(componentType.getPlugin());
         componentType.setFactoryInternal(factory);

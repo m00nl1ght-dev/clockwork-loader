@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.VersionRequirement;
 import dev.m00nl1ght.clockwork.version.Version;
 
+import java.util.Objects;
 import java.util.regex.Pattern;
 
 public final class DependencyDescriptor {
@@ -20,7 +20,7 @@ public final class DependencyDescriptor {
     private DependencyDescriptor(String targetId, String ivyRange, VersionRequirement versionRequirement) {
         this.ivyRange = ivyRange;
         this.versionRequirement = versionRequirement;
-        Arguments.notNullOrBlank(targetId, "targetId");
+        Objects.requireNonNull(targetId);
         final var matcher = COMPONENT_ID_PATTERN.matcher(targetId);
         if (matcher.matches()) {
             this.plugin = matcher.group(1);
@@ -31,7 +31,7 @@ public final class DependencyDescriptor {
     }
 
     public static DependencyDescriptor build(String descriptor) {
-        Arguments.notNullOrBlank(descriptor, "descriptor");
+        Objects.requireNonNull(descriptor);
         final var matcher = DESCRIPTOR_PATTERN.matcher(descriptor);
         if (matcher.matches()) {
             final var plugin = matcher.group(1);
@@ -45,12 +45,12 @@ public final class DependencyDescriptor {
     }
 
     public static DependencyDescriptor buildIvyRange(String targetId, String versionRange) {
-        Arguments.notNullOrEmpty(versionRange, "versionRange");
+        Objects.requireNonNull(versionRange);
         return new DependencyDescriptor(targetId, versionRange, VersionRequirement.buildIvy(versionRange));
     }
 
     public static DependencyDescriptor buildExact(String targetId, Version version) {
-        Arguments.notNull(version, "version");
+        Objects.requireNonNull(version);
         return new DependencyDescriptor(targetId, version.toString(), VersionRequirement.build(version));
     }
 

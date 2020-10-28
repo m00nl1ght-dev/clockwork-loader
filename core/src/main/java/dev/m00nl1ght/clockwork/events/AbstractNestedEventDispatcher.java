@@ -5,11 +5,11 @@ import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.NestedEventListener;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class AbstractNestedEventDispatcher<E extends Event, T extends ComponentTarget, O extends ComponentTarget> implements NestedEventDispatcher<E, T, O> {
@@ -19,9 +19,9 @@ public abstract class AbstractNestedEventDispatcher<E extends Event, T extends C
     protected final TargetType<T> targetType;
 
     protected AbstractNestedEventDispatcher(EventDispatcher<E, O> origin, ComponentType<T, O> componentOrigin, TargetType<T> targetType) {
-        this.origin = Arguments.notNull(origin, "origin");
-        this.componentOrigin = Arguments.notNull(componentOrigin, "componentOrigin");
-        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.origin = Objects.requireNonNull(origin);
+        this.componentOrigin = Objects.requireNonNull(componentOrigin);
+        this.targetType = Objects.requireNonNull(targetType);
     }
 
     @Override

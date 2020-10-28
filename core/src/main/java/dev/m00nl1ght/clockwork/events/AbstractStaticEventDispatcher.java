@@ -5,11 +5,11 @@ import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.StaticEventListener;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 public abstract class AbstractStaticEventDispatcher<E extends Event, T extends ComponentTarget, O extends ComponentTarget> implements StaticEventDispatcher<E, T, O> {
@@ -20,9 +20,9 @@ public abstract class AbstractStaticEventDispatcher<E extends Event, T extends C
     protected final T target;
 
     protected AbstractStaticEventDispatcher(EventDispatcher<E, O> origin, T target) {
-        this.origin = Arguments.notNull(origin, "origin");
+        this.origin = Objects.requireNonNull(origin);
         this.originIdentity = origin.getTargetType().getIdentityComponentType();
-        this.target = Arguments.notNull(target, "target");
+        this.target = Objects.requireNonNull(target);
         this.targetType = ComponentTarget.typeOf(target);
     }
 

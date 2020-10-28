@@ -1,13 +1,9 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.version.Version;
 
-import java.util.Collection;
-import java.util.Collections;
-import java.util.LinkedHashSet;
-import java.util.Set;
+import java.util.*;
 
 public final class LoadedPlugin {
 
@@ -18,9 +14,9 @@ public final class LoadedPlugin {
     private final Module mainModule;
 
     LoadedPlugin(PluginDescriptor descriptor, ClockworkCore clockworkCore, Module mainModule) {
-        this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.clockworkCore = Arguments.notNull(clockworkCore, "clockworkCore");
-        this.mainModule = Arguments.notNull(mainModule, "mainModule");
+        this.descriptor = Objects.requireNonNull(descriptor);
+        this.clockworkCore = Objects.requireNonNull(clockworkCore);
+        this.mainModule = Objects.requireNonNull(mainModule);
     }
 
     public PluginDescriptor getDescriptor() {

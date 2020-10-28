@@ -5,15 +5,16 @@ import dev.m00nl1ght.clockwork.core.PluginProcessor;
 import dev.m00nl1ght.clockwork.events.impl.ContextAwareEvent;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.Registry;
+
+import java.util.Objects;
 
 public final class CollectClockworkExtensionsEvent extends ContextAwareEvent {
 
     private final ClockworkLoader loader;
 
     public CollectClockworkExtensionsEvent(ClockworkLoader loader) {
-        this.loader = Arguments.notNull(loader, "loader");
+        this.loader = Objects.requireNonNull(loader);
     }
 
     public Registry<PluginReaderType> getReaderTypeRegistry() {

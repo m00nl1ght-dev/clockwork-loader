@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.util;
 
 import java.util.HashMap;
 import java.util.Map;
+import java.util.Objects;
 
 public class Registry<T> {
 
@@ -9,7 +10,7 @@ public class Registry<T> {
     protected final Class<T> regType;
 
     public Registry(Class<T> regType) {
-        this.regType = Arguments.notNull(regType, "regType");
+        this.regType = Objects.requireNonNull(regType);
     }
 
     public synchronized void register(String id, T object) {

@@ -2,7 +2,6 @@ package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -22,13 +21,13 @@ public final class ComponentDescriptor {
     private final Config extData;
 
     ComponentDescriptor(Builder builder) {
-        this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
+        this.pluginId = builder.pluginId;
         this.componentId = builder.componentId;
-        this.version = Arguments.notNull(builder.version, "version");
-        this.targetId = Arguments.notNullOrBlank(builder.targetId, "targetId");
+        this.version = Objects.requireNonNull(builder.version);
+        this.targetId = Objects.requireNonNull(builder.targetId);
         this.parent = builder.parentId;
-        this.componentClass = Arguments.notNullOrBlank(builder.componentClass, "componentClass");
-        this.dependencies = List.copyOf(Arguments.notNull(builder.dependencies, "dependencies").values());
+        this.componentClass = Objects.requireNonNull(builder.componentClass);
+        this.dependencies = List.copyOf(builder.dependencies.values());
         this.factoryAccessEnabled = builder.factoryAccessEnabled;
         this.optional = builder.optional;
         this.extData = Objects.requireNonNull(builder.extData);
@@ -80,15 +79,15 @@ public final class ComponentDescriptor {
     }
 
     public static Builder builder(String pluginId) {
-        Arguments.notNullOrBlank(pluginId, "pluginId");
+        Objects.requireNonNull(pluginId);
         if (!DependencyDescriptor.PLUGIN_ID_PATTERN.matcher(pluginId).matches())
             throw PluginLoadingException.invalidId(pluginId);
         return new Builder(pluginId, null);
     }
 
     public static Builder builder(String pluginId, String componentId) {
-        Arguments.notNullOrBlank(pluginId, "pluginId");
-        Arguments.notNullOrBlank(componentId, "componentId");
+        Objects.requireNonNull(pluginId);
+        Objects.requireNonNull(componentId);
         final var resultingId = formatId(pluginId, componentId);
         if (!DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(resultingId).matches())
             throw PluginLoadingException.invalidId(resultingId);

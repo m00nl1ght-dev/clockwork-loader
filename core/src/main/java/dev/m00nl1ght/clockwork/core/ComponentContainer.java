@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
+import java.util.Objects;
 
 public abstract class ComponentContainer<T extends ComponentTarget> {
 
     protected final TargetType<T> targetType;
 
     protected ComponentContainer(TargetType<T> targetType) {
-        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.targetType = Objects.requireNonNull(targetType);
         targetType.requireInitialised();
     }
 

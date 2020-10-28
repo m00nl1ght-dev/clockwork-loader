@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.*;
@@ -22,7 +21,7 @@ public class TargetType<T extends ComponentTarget> {
     private int subtargetIdxFirst = -1, subtargetIdxLast = -1;
 
     public TargetType(TargetType<? super T> parent, Class<T> targetClass) {
-        this.targetClass = Arguments.notNull(targetClass, "targetClass");
+        this.targetClass = Objects.requireNonNull(targetClass);
         this.parent = parent;
         if (this.parent == null) {
             this.root = this;

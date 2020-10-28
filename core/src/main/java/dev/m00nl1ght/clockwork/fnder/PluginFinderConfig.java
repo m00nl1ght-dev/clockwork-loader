@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.fnder;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 
+import java.util.Objects;
 import java.util.Set;
 
 public final class PluginFinderConfig {
@@ -73,7 +73,7 @@ public final class PluginFinderConfig {
     }
 
     public static Builder builder(String name, String type) {
-        return new Builder(Arguments.notNullOrBlank(name, "name"), Arguments.notNullOrBlank(type, "type"));
+        return new Builder(Objects.requireNonNull(name), Objects.requireNonNull(type));
     }
 
     public static class Builder {

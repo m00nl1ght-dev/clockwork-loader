@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collections;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Objects;
 
 public class ExceptionInPlugin extends RuntimeException {
 
@@ -62,11 +62,11 @@ public class ExceptionInPlugin extends RuntimeException {
     }
 
     public void addPluginToStack(LoadedPlugin plugin) {
-        this.stack.add(Arguments.notNull(plugin, "plugin"));
+        this.stack.add(Objects.requireNonNull(plugin));
     }
 
     public void addComponentToStack(ComponentType componentType) {
-        Arguments.notNull(componentType, "componentType");
+        Objects.requireNonNull(componentType);
         if (componentType instanceof RegisteredComponentType) {
             final var registered = (RegisteredComponentType) componentType;
             this.stack.add(registered.getPlugin());

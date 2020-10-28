@@ -5,9 +5,9 @@ import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.events.AbstractExactEventDispatcher;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractExactEventDispatcher<E, T> {
@@ -62,7 +62,7 @@ public class ExactEventDispatcherImpl<E extends ContextAwareEvent, T extends Com
     @Override
     @SuppressWarnings("unchecked")
     public synchronized void attachProfiler(EventDispatcherProfilerGroup<E, ? extends T> profilerGroup) {
-        Arguments.notNull(profilerGroup, "profilerGroup");
+        Objects.requireNonNull(profilerGroup);
         if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());
         this.profilerGroup = (EventDispatcherProfilerGroup<E, T>) profilerGroup;

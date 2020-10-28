@@ -1,7 +1,6 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
 import dev.m00nl1ght.clockwork.core.PluginLoadingException;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -21,13 +20,13 @@ public final class TargetDescriptor {
     private final Config extData;
 
     TargetDescriptor(Builder builder) {
-        this.pluginId = Arguments.notNullOrBlank(builder.pluginId, "pluginId");
-        this.targetId = Arguments.notNullOrBlank(builder.targetId, "targetId");
-        this.version = Arguments.notNull(builder.version, "version");
+        this.pluginId = builder.pluginId;
+        this.targetId = builder.targetId;
+        this.version = Objects.requireNonNull(builder.version);
         this.parent = builder.parentId;
-        this.targetClass = Arguments.notNullOrBlank(builder.targetClass, "targetClass");
-        this.internalComponents = Arguments.snapshot(builder.internalComponents, "internalComponents");
-        this.extData = Objects.requireNonNull(builder.extData);
+        this.targetClass = Objects.requireNonNull(builder.targetClass);
+        this.internalComponents = List.copyOf(builder.internalComponents);
+        this.extData = builder.extData;
     }
 
     public String getPluginId() {
@@ -64,8 +63,8 @@ public final class TargetDescriptor {
     }
 
     public static Builder builder(String pluginId, String targetId) {
-        Arguments.notNullOrBlank(pluginId, "pluginId");
-        Arguments.notNullOrBlank(targetId, "targetId");
+        Objects.requireNonNull(pluginId);
+        Objects.requireNonNull(targetId);
         final var resultingId = pluginId + ":" + targetId;
         if (!DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(resultingId).matches())
             throw PluginLoadingException.invalidId(resultingId);

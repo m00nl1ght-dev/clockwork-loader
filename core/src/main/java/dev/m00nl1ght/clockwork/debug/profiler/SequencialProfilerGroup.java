@@ -1,9 +1,8 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
-
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public class SequencialProfilerGroup extends ProfilerGroup {
 
@@ -14,7 +13,7 @@ public class SequencialProfilerGroup extends ProfilerGroup {
 
     public SequencialProfilerGroup(String name, Collection<ProfilerEntry> entries) {
         super(name);
-        this.entries = Arguments.asNotNullArray(entries, "entries");
+        this.entries = Objects.requireNonNull(entries).toArray(ProfilerEntry[]::new);
     }
 
     @Override

@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.util;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -24,7 +25,7 @@ public abstract class TypeRef<T> {
     }
 
     private TypeRef(Type type) {
-        this.type = Arguments.notNull(type, "type");
+        this.type = Objects.requireNonNull(type);
     }
 
     protected TypeRef() {

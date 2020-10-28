@@ -3,13 +3,13 @@ package dev.m00nl1ght.clockwork.interfaces;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public abstract class AbstractExactComponentInterface<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
 
@@ -19,8 +19,8 @@ public abstract class AbstractExactComponentInterface<I, T extends ComponentTarg
     protected List components;
 
     protected AbstractExactComponentInterface(TypeRef<I> interfaceType, TargetType<T> targetType) {
-        this.interfaceType = Arguments.notNull(interfaceType, "interfaceType");
-        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.interfaceType = Objects.requireNonNull(interfaceType);
+        this.targetType = Objects.requireNonNull(targetType);
         targetType.requireInitialised();
     }
 
@@ -50,7 +50,7 @@ public abstract class AbstractExactComponentInterface<I, T extends ComponentTarg
     @Override
     public <C> void addComponents(Iterable<ComponentType<? extends I, ? extends T>> components) {
         boolean modified = false;
-        for (final var component : Arguments.notNull(components, "components")) {
+        for (final var component : Objects.requireNonNull(components)) {
             final var type = component.getTargetType();
             type.requireInitialised();
             if (type != getTargetType()) checkCompatibility(type);

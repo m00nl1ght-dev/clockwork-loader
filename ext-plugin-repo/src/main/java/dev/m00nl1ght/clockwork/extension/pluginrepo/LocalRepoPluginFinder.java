@@ -29,8 +29,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     protected final Path rootPath;
 
     public static void registerTo(Registry<PluginFinderType> registry) {
-        Arguments.notNull(registry, "registry");
-        registry.register(NAME, FACTORY);
+        Objects.requireNonNull(registry).register(NAME, FACTORY);
     }
 
     public static Builder configBuilder(String name, File rootPath) {

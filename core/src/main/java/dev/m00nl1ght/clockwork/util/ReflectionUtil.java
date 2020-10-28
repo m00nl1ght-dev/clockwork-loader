@@ -6,13 +6,16 @@ import java.lang.invoke.MethodType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 public class ReflectionUtil {
 
     public static MethodHandle tryFindConstructor(MethodHandles.Lookup lookup, Class<?> targetClass, Class<?>... params) {
         try {
-            Arguments.notNullAnd(lookup, MethodHandles.Lookup::hasFullPrivilegeAccess, "lookup");
-            ReflectionUtil.class.getModule().addReads(Arguments.notNull(targetClass, "targetClass").getModule());
+            Objects.requireNonNull(lookup);
+            Objects.requireNonNull(targetClass);
+            if (!lookup.hasFullPrivilegeAccess()) throw new IllegalArgumentException();
+            ReflectionUtil.class.getModule().addReads(targetClass.getModule());
             final var privateLookup = MethodHandles.privateLookupIn(targetClass, lookup);
             return privateLookup.findConstructor(targetClass, MethodType.methodType(void.class, params));
         } catch (NoSuchMethodException e) {

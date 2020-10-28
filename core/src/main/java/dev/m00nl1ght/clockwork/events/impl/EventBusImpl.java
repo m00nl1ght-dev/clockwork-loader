@@ -8,10 +8,10 @@ import dev.m00nl1ght.clockwork.events.AbstractEventBus;
 import dev.m00nl1ght.clockwork.events.EventDispatcher;
 import dev.m00nl1ght.clockwork.events.NestedEventDispatcher;
 import dev.m00nl1ght.clockwork.events.StaticEventDispatcher;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
+import java.util.Objects;
 import java.util.Set;
 
 public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
@@ -54,7 +54,7 @@ public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
 
     @Override
     public void attachProfiler(EventBusProfilerGroup profilerGroup) {
-        Arguments.notNull(profilerGroup, "profilerGroup");
+        Objects.requireNonNull(profilerGroup);
         this.profilerGroup = profilerGroup;
         getEventDispatchers().forEach(profilerGroup::attachToDispatcher);
     }

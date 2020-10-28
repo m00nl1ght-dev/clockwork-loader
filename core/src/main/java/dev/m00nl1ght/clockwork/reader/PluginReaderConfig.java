@@ -1,8 +1,9 @@
 package dev.m00nl1ght.clockwork.reader;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
+
+import java.util.Objects;
 
 public final class PluginReaderConfig {
 
@@ -11,9 +12,9 @@ public final class PluginReaderConfig {
     private final Config params;
 
     private PluginReaderConfig(String name, String type, Config params) {
-        this.name = Arguments.notNullOrBlank(name, "name");
-        this.type = Arguments.notNullOrBlank(type, "type");
-        this.params = Arguments.notNull(params, "params");
+        this.name = Objects.requireNonNull(name);
+        this.type = Objects.requireNonNull(type);
+        this.params = Objects.requireNonNull(params);
     }
 
     private PluginReaderConfig(Config data) {

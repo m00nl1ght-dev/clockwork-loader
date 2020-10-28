@@ -5,12 +5,12 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.LinkedHashMap;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ public abstract class AbstractEventBus<B extends Event> implements EventBus<B> {
     protected final Map<TypeRef<?>, Map<Class<?>, EventDispatcher<? extends B, ?>>> dispatchers = new LinkedHashMap<>();
 
     protected AbstractEventBus(ClockworkCore core) {
-        this.core = Arguments.notNull(core, "core");
+        this.core = Objects.requireNonNull(core);
         core.getState().requireOrAfter(ClockworkCore.State.PROCESSED);
     }
 

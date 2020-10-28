@@ -1,9 +1,10 @@
 package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
+
+import java.util.Objects;
 
 public final class RegisteredComponentType<C, T extends ComponentTarget> extends ComponentType<C, T> {
 
@@ -12,10 +13,11 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
 
     RegisteredComponentType(LoadedPlugin plugin, ComponentType<? super C, ? super T> parent, ComponentDescriptor descriptor, Class<C> componentClass, RegisteredTargetType<T> targetType) {
         super(parent, componentClass, targetType);
-        this.descriptor = Arguments.notNull(descriptor, "descriptor");
-        this.plugin = Arguments.notNullAnd(plugin, o -> o.getId().equals(descriptor.getPluginId()), "plugin");
-        Arguments.notNullAnd(targetType, o -> o.getId().equals(descriptor.getTargetId()), "targetType");
-        Arguments.notNullAnd(componentClass, o -> o.getName().equals(descriptor.getComponentClass()), "componentClass");
+        this.descriptor = Objects.requireNonNull(descriptor);
+        this.plugin = Objects.requireNonNull(plugin);
+        if (!plugin.getId().equals(descriptor.getPluginId())) throw new IllegalArgumentException();
+        if (!targetType.getId().equals(descriptor.getTargetId())) throw new IllegalArgumentException();
+        if (!componentClass.getName().equals(descriptor.getComponentClass())) throw new IllegalArgumentException();
         super.setFactory(ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), componentClass, targetType.getTargetClass()));
     }
 

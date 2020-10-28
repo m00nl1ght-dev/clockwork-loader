@@ -1,7 +1,5 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.util.Arguments;
-
 import java.util.*;
 
 /**
@@ -25,7 +23,7 @@ public class ClockworkCore implements ComponentTarget {
     private ComponentContainer<ClockworkCore> coreContainer;
 
     ClockworkCore(ModuleLayer moduleLayer) {
-        this.moduleLayer = Arguments.notNull(moduleLayer, "moduleLayer");
+        this.moduleLayer = Objects.requireNonNull(moduleLayer);
     }
 
     /**
@@ -215,13 +213,13 @@ public class ClockworkCore implements ComponentTarget {
     // ### Internal ###
 
     void setState(State state) {
-        Arguments.notNull(state, "state");
+        Objects.requireNonNull(state);
         state.requireOrAfter(this.state);
         this.state = state;
     }
 
     void setCoreContainer(ComponentContainer<ClockworkCore> container) {
-        Arguments.notNull(container, "container");
+        Objects.requireNonNull(container);
         if (this.coreContainer != null) throw new IllegalStateException();
         this.coreContainer = container;
     }

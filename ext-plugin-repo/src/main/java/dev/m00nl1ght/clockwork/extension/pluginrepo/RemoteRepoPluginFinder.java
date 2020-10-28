@@ -7,7 +7,6 @@ import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig.Builder;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
@@ -18,10 +17,7 @@ import java.io.FileOutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
@@ -35,8 +31,7 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     protected final LocalRepoPluginFinder localCache;
 
     public static void registerTo(Registry<PluginFinderType> registry) {
-        Arguments.notNull(registry, "registry");
-        registry.register(NAME, FACTORY);
+        Objects.requireNonNull(registry).register(NAME, FACTORY);
     }
 
     public static Builder configBuilder(String name, URL rootURL, File cachePath) {

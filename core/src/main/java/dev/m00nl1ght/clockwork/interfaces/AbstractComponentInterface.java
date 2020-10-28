@@ -3,14 +3,10 @@ package dev.m00nl1ght.clockwork.interfaces;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.util.Arguments;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.List;
+import java.util.*;
 
 public abstract class AbstractComponentInterface<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
 
@@ -22,8 +18,8 @@ public abstract class AbstractComponentInterface<I, T extends ComponentTarget> i
     protected final int idxOffset;
 
     protected AbstractComponentInterface(TypeRef<I> interfaceType, TargetType<T> targetType) {
-        this.interfaceType = Arguments.notNull(interfaceType, "interfaceType");
-        this.targetType = Arguments.notNull(targetType, "targetType");
+        this.interfaceType = Objects.requireNonNull(interfaceType);
+        this.targetType = Objects.requireNonNull(targetType);
         targetType.requireInitialised();
         this.rootTarget = getTargetType().getRoot();
         this.idxOffset = getTargetType().getSubtargetIdxFirst();
@@ -69,7 +65,7 @@ public abstract class AbstractComponentInterface<I, T extends ComponentTarget> i
     @Override
     public <C> void addComponents(Iterable<ComponentType<? extends I, ? extends T>> components) {
         final var modified = new HashSet<TargetType<? extends T>>();
-        for (final var component : Arguments.notNull(components, "components")) {
+        for (final var component : Objects.requireNonNull(components)) {
             final var type = component.getTargetType();
             type.requireInitialised();
             if (type.getRoot() != rootTarget) checkCompatibility(type);
