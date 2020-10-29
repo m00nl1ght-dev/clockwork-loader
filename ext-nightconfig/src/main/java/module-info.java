@@ -8,6 +8,5 @@ module dev.m00nl1ght.clockwork.extension.nightconfig {
     requires dev.m00nl1ght.clockwork;
     requires org.apache.logging.log4j;
     requires com.electronwill.nightconfig.core;
-    requires com.electronwill.nightconfig.toml;
 
 }
