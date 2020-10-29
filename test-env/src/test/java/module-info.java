@@ -1,9 +1,10 @@
-module dev.m00nl1ght.clockwork.test.plugin.a {
+module dev.m00nl1ght.clockwork.test {
 
-    exports dev.m00nl1ght.clockwork.test.plugin.a;
+    exports dev.m00nl1ght.clockwork.test;
 
     requires dev.m00nl1ght.clockwork;
     requires dev.m00nl1ght.clockwork.test.env;
     requires org.apache.logging.log4j;
+    requires org.junit.jupiter.api;
 
 }

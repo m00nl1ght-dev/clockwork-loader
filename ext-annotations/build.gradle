@@ -1,22 +1,16 @@
 
-plugins {
-    id 'java-library'
-}
-
-sourceCompatibility = targetJDK
-targetCompatibility = targetJDK
-
-java {
-    modularity.getInferModulePath() set true
-}
-
-jar {
-    manifest {
-        from(new File(sourceSets.main.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF'))
-    }
-}
-
 dependencies {
     api project(':core')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+}
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            groupId = 'dev.m00nl1ght.clockwork.extension'
+            version = rootProject.version
+            artifactId = 'annotations'
+            from components.java
+        }
+    }
 }

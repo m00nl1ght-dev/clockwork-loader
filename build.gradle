@@ -1,11 +1,7 @@
 
-plugins {
-    id 'maven-publish'
-}
-
 allprojects {
 
-    version '0.5'
+    version '0.6'
     group 'dev.m00nl1ght.clockwork'
 
     ext {
@@ -14,40 +10,56 @@ allprojects {
         log4jVersion = "2.13.3"
     }
 
+}
+
+subprojects {
+
+    apply plugin: 'java-library'
+    apply plugin: 'maven-publish'
+
+    sourceCompatibility = targetJDK
+    targetCompatibility = targetJDK
+
+    java {
+        withSourcesJar()
+        // withJavadocJar()
+        modularity.getInferModulePath() set true
+    }
+
+    sourceSets {
+        main {
+            output.resourcesDir = file('build/bin')
+            java.outputDir = file('build/bin')
+        }
+    }
+
+    test {
+        useJUnitPlatform()
+    }
+
+    jar {
+        manifest {
+            from(new File(sourceSets.main.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF'))
+        }
+    }
+
     repositories {
         mavenCentral()
         maven { url "https://m00nl1ght.dev/maven/" }
     }
 
-}
-
-evaluationDependsOnChildren()
-
-publishing {
-
-    repositories {
-        maven {
-            if (project.hasProperty('devMavenPassword')) {
-                url 'https://m00nl1ght.dev/maven/'
-                credentials {
-                    username devMavenUser
-                    password devMavenPassword
+    publishing {
+        repositories {
+            maven {
+                if (project.hasProperty('devMavenPassword')) {
+                    url 'https://m00nl1ght.dev/maven/'
+                    credentials {
+                        username devMavenUser
+                        password devMavenPassword
+                    }
                 }
-            } else {
-                url 'file://' + rootProject.file('repo').getAbsolutePath()
             }
         }
-    }
-
-    publications {
-
-        core(MavenPublication) {
-            groupId = 'dev.m00nl1ght.clockwork'
-            artifactId = 'core'
-            version = rootProject.version
-            from project('core').components.java
-        }
-
     }
 
 }

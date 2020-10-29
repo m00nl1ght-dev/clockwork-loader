@@ -1,32 +1,17 @@
 
-plugins {
-    id 'application'
-    id 'java-library'
-}
-
-mainClassName = "dev.m00nl1ght.clockwork.test.TestLauncher"
-
-sourceCompatibility = targetJDK
-targetCompatibility = targetJDK
-
-java {
-    modularity.getInferModulePath() set true
-}
+final testRunDir = file("test-run")
+final pluginDir = new File(testRunDir, "plugins")
+testRunDir.mkdirs()
 
 sourceSets {
     testPluginA
-}
-
-jar {
-    manifest {
-        from(new File(sourceSets.main.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF'))
-    }
 }
 
 task testPluginAJar(type: Jar) {
     archiveClassifier.set 'testPluginA'
     from sourceSets.testPluginA.output
     manifest { from(new File(sourceSets.testPluginA.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF')) }
+    destinationDir(pluginDir)
 }
 
 dependencies {
@@ -34,6 +19,7 @@ dependencies {
     api project(':core')
     implementation project(':ext-annotations')
     implementation project(':ext-nightconfig')
+    implementation project(':ext-plugin-repo')
     implementation project(':ext-security')
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 
@@ -42,17 +28,12 @@ dependencies {
     testPluginACompile project(':ext-annotations')
     testPluginACompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 
+    testImplementation(platform('org.junit:junit-bom:5.7.0'))
+    testImplementation('org.junit.jupiter:junit-jupiter')
+
 }
 
-application {
-    getMainModule() set "dev.m00nl1ght.clockwork.test"
-}
-
-build {
+test {
     dependsOn testPluginAJar
-}
-
-run {
-    workingDir rootProject.rootDir
-    dependsOn testPluginAJar
+    workingDir testRunDir
 }

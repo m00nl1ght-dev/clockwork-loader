@@ -4,10 +4,7 @@
 /.idea/
 /out/
 /build/
-/repo/
 
-/test-env/plugin-data/
-/test-benchmarks/results/
+/test-env/test-run/
 
 .attach_pid*
-/notes.txt

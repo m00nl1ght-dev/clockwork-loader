@@ -1,23 +1,14 @@
 
-plugins {
-    id 'java-library'
-}
-
-sourceCompatibility = targetJDK
-targetCompatibility = targetJDK
-
-java {
-    withSourcesJar()
-    // withJavadocJar()
-    modularity.getInferModulePath() set true
-}
-
-jar {
-    manifest {
-        from(new File(sourceSets.main.resources.getSrcDirs()[0], 'META-INF/MANIFEST.MF'))
-    }
-}
-
 dependencies {
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
+}
+
+publishing {
+    publications {
+        core(MavenPublication) {
+            groupId = 'dev.m00nl1ght.clockwork'
+            version = rootProject.version
+            from components.java
+        }
+    }
 }
