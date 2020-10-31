@@ -100,6 +100,7 @@ public class ManifestPluginReader implements PluginReader {
                     mainCompBuilder.componentClass(className);
                     entryConfig.getListOrSingletonOrEmpty(HEADER_COMPONENT_DEPENDENCIES)
                             .forEach(d -> mainCompBuilder.dependency(DependencyDescriptor.build(d)));
+                    mainCompBuilder.factoryAccessEnabled(entryConfig.getBooleanOrDefault(HEADER_COMPONENT_FACTORY_ACCESS, false));
                     mainCompBuilder.extData(new AttributesWrapper(entry.getValue(), HEADER_EXT_PREFIX));
                     descriptorBuilder.mainComponent(mainCompBuilder.build());
                 } else {

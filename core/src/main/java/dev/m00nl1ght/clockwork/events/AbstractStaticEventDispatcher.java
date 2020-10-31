@@ -73,6 +73,11 @@ public abstract class AbstractStaticEventDispatcher<E extends Event, T extends C
         return targetType;
     }
 
+    @Override
+    public T getTarget() {
+        return target;
+    }
+
     protected void checkCompatibility(TargetType<?> otherType) {
         if (otherType != targetType) {
             final var msg = "Cannot post event [] to different target []";

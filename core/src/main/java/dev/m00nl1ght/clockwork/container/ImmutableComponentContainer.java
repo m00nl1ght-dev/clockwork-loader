@@ -11,7 +11,7 @@ public class ImmutableComponentContainer<T extends ComponentTarget> extends Comp
 
     protected final Object[] components;
 
-    public ImmutableComponentContainer(TargetType<T> targetType, T object) {
+    public ImmutableComponentContainer(TargetType<T> targetType, Object object) {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
         this.components[0] = Objects.requireNonNull(object);

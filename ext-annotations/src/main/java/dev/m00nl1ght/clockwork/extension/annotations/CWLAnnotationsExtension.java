@@ -6,9 +6,9 @@ import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
-import dev.m00nl1ght.clockwork.events.AbstractEventBus;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.EventDispatcher;
+import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -30,7 +30,7 @@ public final class CWLAnnotationsExtension {
         this.attachEventListener();
     }
 
-    public static void buildListeners(AbstractEventBus<?> eventBus) {
+    public static void buildListeners(EventBusImpl eventBus) {
         buildListeners(eventBus.getCore(), eventBus.getEventDispatchers());
     }
 

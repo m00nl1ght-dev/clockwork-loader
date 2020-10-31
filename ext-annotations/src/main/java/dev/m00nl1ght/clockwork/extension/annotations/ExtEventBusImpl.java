@@ -31,24 +31,25 @@ public class ExtEventBusImpl extends EventBusImpl {
     }
 
     @Override
-    public <E extends ContextAwareEvent, T extends ComponentTarget>
-    EventDispatcher<E, T> getEventDispatcher(TypeRef<E> eventType, Class<T> targetClass) {
-        final var dispatcher = super.getEventDispatcher(eventType, targetClass);
+    protected <E extends ContextAwareEvent, T extends ComponentTarget>
+    EventDispatcher<E, T> buildDispatcher(TypeRef<E> eventType, Class<T> targetClass) {
+        final var dispatcher = super.buildDispatcher(eventType, targetClass);
         if (registry != null) CWLAnnotationsExtension.buildListeners(registry, dispatcher);
         return dispatcher;
     }
 
     @Override
-    public <E extends ContextAwareEvent, O extends ComponentTarget, T extends ComponentTarget>
-    NestedEventDispatcher<E, T, O> getNestedEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass) {
-        final var dispatcher = super.getNestedEventDispatcher(eventType, targetClass, originClass);
+    protected <E extends ContextAwareEvent, O extends ComponentTarget, T extends ComponentTarget>
+    NestedEventDispatcher<E, T, O> buildNestedDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass) {
+        final var dispatcher = super.buildNestedDispatcher(eventType, targetClass, originClass);
         if (registry != null) CWLAnnotationsExtension.buildListeners(registry, dispatcher);
         return dispatcher;
     }
 
     @Override
-    public <E extends ContextAwareEvent, O extends ComponentTarget, T extends ComponentTarget> StaticEventDispatcher<E, T, O> getStaticEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target) {
-        final var dispatcher = super.getStaticEventDispatcher(eventType, targetClass, originClass, target);
+    protected <E extends ContextAwareEvent, O extends ComponentTarget, T extends ComponentTarget>
+    StaticEventDispatcher<E, T, O> buildStaticDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target) {
+        final var dispatcher = super.buildStaticDispatcher(eventType, targetClass, originClass, target);
         if (registry != null) CWLAnnotationsExtension.buildListeners(registry, dispatcher);
         return dispatcher;
     }

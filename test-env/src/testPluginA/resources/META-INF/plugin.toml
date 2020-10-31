@@ -13,3 +13,14 @@ id = "test-env"
 
 [[dependency]]
 id = "cwl-annotations"
+
+
+[[component]]
+id = "test-component-a"
+target = "test-env:test-target-a"
+class = "dev.m00nl1ght.clockwork.test.plugin.a.TestComponent_A"
+
+[[component]]
+id = "test-component-b"
+target = "test-env:test-target-b"
+class = "dev.m00nl1ght.clockwork.test.plugin.a.TestComponent_B"

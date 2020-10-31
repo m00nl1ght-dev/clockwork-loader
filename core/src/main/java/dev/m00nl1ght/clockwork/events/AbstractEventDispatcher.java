@@ -49,7 +49,7 @@ public abstract class AbstractEventDispatcher<E extends Event, T extends Compone
             TargetType<?> type = target;
             while (type != null) {
                 @SuppressWarnings("unchecked")
-                final List<EventListener<E, ? super S, ?>> got = listeners[target.getSubtargetIdxFirst() - idxOffset];
+                final List<EventListener<E, ? super S, ?>> got = listeners[type.getSubtargetIdxFirst() - idxOffset];
                 if (got != null) list.addAll(got);
                 if (type == this.targetType) break;
                 final var castedType = type.getParent();

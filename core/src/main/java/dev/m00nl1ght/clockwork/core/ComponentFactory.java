@@ -10,7 +10,7 @@ public interface ComponentFactory<T extends ComponentTarget, C> {
 
     @SuppressWarnings("unchecked")
     static <T extends ComponentTarget, C> ComponentFactory<T, C>
-    buildDefaultFactory(MethodHandles.Lookup lookup, Class<C> componentClass, Class<T> targetClass) {
+    buildDefaultFactory(MethodHandles.Lookup lookup, Class<C> componentClass, Class<T> targetClass) { // TODO improve
         final var objCtr = ReflectionUtil.tryFindConstructor(lookup, componentClass, targetClass);
         if (objCtr != null) return o -> (C) objCtr.invoke(o);
         final var emptyCtr = ReflectionUtil.tryFindConstructor(lookup, componentClass);

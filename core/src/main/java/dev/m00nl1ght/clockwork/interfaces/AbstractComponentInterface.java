@@ -49,7 +49,7 @@ public abstract class AbstractComponentInterface<I, T extends ComponentTarget> i
             TargetType<?> type = target;
             while (type != null) {
                 @SuppressWarnings("unchecked")
-                final List<ComponentType<? extends I, ? extends T>> got = components[target.getSubtargetIdxFirst() - idxOffset];
+                final List<ComponentType<? extends I, ? extends T>> got = components[type.getSubtargetIdxFirst() - idxOffset];
                 if (got != null) list.addAll(got);
                 if (type == this.targetType) break;
                 final var castedType = type.getParent();

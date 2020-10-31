@@ -8,7 +8,7 @@ public class MutableComponentContainer<T extends ComponentTarget> extends Compon
 
     protected final Object[] components;
 
-    public MutableComponentContainer(TargetType<T> targetType, T object) {
+    public MutableComponentContainer(TargetType<T> targetType, Object object) {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
         this.components[0] = Objects.requireNonNull(object);
