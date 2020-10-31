@@ -15,12 +15,11 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class NightconfigReaderLoadTest extends ClockworkTest {
 
     @Override
-    protected ClockworkConfig buildPluginLayerConfig() {
+    protected ClockworkConfig.Builder buildPluginLayerConfig() {
         return ClockworkConfig.builder()
                 .addPluginReader(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml"))
                 .addPluginFinder(ModulePathPluginFinder.configBuilder("jars", TestEnvironment.PLUGINS_DIR).build())
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"))
-                .build();
+                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
     }
 
     @Test

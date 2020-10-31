@@ -13,25 +13,24 @@ import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-public class EventHandlerTest extends ClockworkTest {
+public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
-    private EventBusImpl eventBus;
-    private TargetType<TestTarget_A> targetTypeA;
-    private TargetType<TestTarget_B> targetTypeB;
+    protected TargetType<TestTarget_A> targetTypeA;
+    protected TargetType<TestTarget_B> targetTypeB;
 
     @Override
     protected TestEnvironment buildEnvironment(ClockworkCore core) {
         final var env = super.buildEnvironment(core);
         targetTypeA = core.getTargetType(TestTarget_A.class).orElseThrow();
         targetTypeB = core.getTargetType(TestTarget_B.class).orElseThrow();
-        eventBus = new EventBusImpl(core);
-        env.setTestEventBus(eventBus);
         return env;
     }
 
+    protected abstract EventBusImpl eventBus();
+
     @Test
     public void simpleEventOnTargetA() {
-        final var dispatcher = eventBus.getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
         final var testTargetA = new TestTarget_A(targetTypeA);
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetA, event);
@@ -40,7 +39,7 @@ public class EventHandlerTest extends ClockworkTest {
 
     @Test
     public void genericEventOnTargetA() {
-        final var dispatcher = eventBus.getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
         final var testTargetA = new TestTarget_A(targetTypeA);
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetA, event);
@@ -49,7 +48,7 @@ public class EventHandlerTest extends ClockworkTest {
 
     @Test
     public void simpleEventOnTargetB() {
-        final var dispatcher = eventBus.getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
         final var testTargetB = new TestTarget_B(targetTypeB);
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetB, event);
@@ -59,7 +58,7 @@ public class EventHandlerTest extends ClockworkTest {
 
     @Test
     public void genericEventOnTargetB() {
-        final var dispatcher = eventBus.getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
         final var testTargetB = new TestTarget_B(targetTypeB);
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetB, event);
