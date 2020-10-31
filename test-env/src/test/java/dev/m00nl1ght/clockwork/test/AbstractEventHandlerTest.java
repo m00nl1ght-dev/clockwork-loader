@@ -35,6 +35,8 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetA, event);
         assertTrue(event.wasHandledBy("TestComponent_A#onSimpleTestEvent"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForComponentA"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForTargetA"));
     }
 
     @Test
@@ -44,6 +46,8 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetA, event);
         assertTrue(event.wasHandledBy("TestComponent_A#onGenericTestEvent"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForComponentA"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForTargetA"));
     }
 
     @Test
@@ -54,6 +58,11 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         dispatcher.post(testTargetB, event);
         assertTrue(event.wasHandledBy("TestComponent_A#onSimpleTestEvent"));
         assertTrue(event.wasHandledBy("TestComponent_B#onSimpleTestEvent"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForComponentA"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForComponentB"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForTargetA"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForTargetB"));
+
     }
 
     @Test
@@ -64,6 +73,10 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         dispatcher.post(testTargetB, event);
         assertTrue(event.wasHandledBy("TestComponent_A#onGenericTestEvent"));
         assertTrue(event.wasHandledBy("TestComponent_B#onGenericTestEvent"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForComponentA"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForComponentB"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForTargetA"));
+        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForTargetB"));
     }
 
 }

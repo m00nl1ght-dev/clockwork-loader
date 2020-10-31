@@ -23,6 +23,14 @@ public interface EventDispatcher<E extends Event, T extends ComponentTarget> ext
 
     <S extends T> List<EventListener<E, ? super S, ?>> getEffectiveListeners(TargetType<S> target);
 
+    default <S extends T> EventListener<E, S, S> addListener(TargetType<S> targetType, BiConsumer<S, E> consumer) {
+        return addListener(targetType, consumer, EventListenerPriority.NORMAL);
+    }
+
+    default <S extends T> EventListener<E, S, S> addListener(TargetType<S> targetType, BiConsumer<S, E> consumer, EventListenerPriority priority) {
+        return addListener(targetType.getIdentityComponentType(), consumer, priority);
+    }
+
     default <S extends T, C> EventListener<E, S, C> addListener(ComponentType<C, S> componentType, BiConsumer<C, E> consumer) {
         return addListener(componentType, consumer, EventListenerPriority.NORMAL);
     }
