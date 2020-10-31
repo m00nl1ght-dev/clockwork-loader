@@ -34,9 +34,9 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var testTargetA = new TestTarget_A(targetTypeA);
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetA, event);
-        assertTrue(event.wasHandledBy("TestComponent_A#onSimpleTestEvent"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForComponentA"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForTargetA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForComponentA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
     }
 
     @Test
@@ -45,9 +45,9 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var testTargetA = new TestTarget_A(targetTypeA);
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetA, event);
-        assertTrue(event.wasHandledBy("TestComponent_A#onGenericTestEvent"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForComponentA"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForTargetA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForComponentA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetA"));
     }
 
     @Test
@@ -56,12 +56,12 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var testTargetB = new TestTarget_B(targetTypeB);
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetB, event);
-        assertTrue(event.wasHandledBy("TestComponent_A#onSimpleTestEvent"));
-        assertTrue(event.wasHandledBy("TestComponent_B#onSimpleTestEvent"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForComponentA"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForComponentB"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForTargetA"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onSimpleTestEventForTargetB"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_B#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForComponentA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForComponentB"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetB"));
 
     }
 
@@ -71,12 +71,14 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var testTargetB = new TestTarget_B(targetTypeB);
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetB, event);
-        assertTrue(event.wasHandledBy("TestComponent_A#onGenericTestEvent"));
-        assertTrue(event.wasHandledBy("TestComponent_B#onGenericTestEvent"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForComponentA"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForComponentB"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForTargetA"));
-        assertTrue(event.wasHandledBy("TestPlugin_A#onGenericTestEventForTargetB"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_B#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForComponentA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForComponentB"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetA"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetB"));
     }
+
+    // TODO tests for nested and static event handlers
 
 }

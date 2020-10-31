@@ -56,42 +56,42 @@ public class TestPlugin_A {
 
     @EventHandler
     static void onSimpleTestEventForComponentA(TestComponent_A component, SimpleTestEvent event) {
-        event.setHandledBy("TestPlugin_A#onSimpleTestEventForComponentA");
+        event.getTestContext().addMarker("TestPlugin_A#onSimpleTestEventForComponentA");
     }
 
     @EventHandler
     static void onSimpleTestEventForComponentB(TestComponent_B component, SimpleTestEvent event) {
-        event.setHandledBy("TestPlugin_A#onSimpleTestEventForComponentB");
+        event.getTestContext().addMarker("TestPlugin_A#onSimpleTestEventForComponentB");
     }
 
     @EventHandler
     static void onSimpleTestEventForTargetA(TestTarget_A component, SimpleTestEvent event) {
-        event.setHandledBy("TestPlugin_A#onSimpleTestEventForTargetA");
+        event.getTestContext().addMarker("TestPlugin_A#onSimpleTestEventForTargetA");
     }
 
     @EventHandler
     static void onSimpleTestEventForTargetB(TestTarget_B component, SimpleTestEvent event) {
-        event.setHandledBy("TestPlugin_A#onSimpleTestEventForTargetB");
+        event.getTestContext().addMarker("TestPlugin_A#onSimpleTestEventForTargetB");
     }
 
     @EventHandler
     static void onGenericTestEventForComponentA(TestComponent_A component, GenericTestEvent<String> event) {
-        event.setHandledBy("TestPlugin_A#onGenericTestEventForComponentA");
+        event.getTestContext().addMarker("TestPlugin_A#onGenericTestEventForComponentA");
     }
 
     @EventHandler
     static void onGenericTestEventForComponentB(TestComponent_B component, GenericTestEvent<String> event) {
-        event.setHandledBy("TestPlugin_A#onGenericTestEventForComponentB");
+        event.getTestContext().addMarker("TestPlugin_A#onGenericTestEventForComponentB");
     }
 
     @EventHandler
     static void onGenericTestEventForTargetA(TestTarget_A component, GenericTestEvent<String> event) {
-        event.setHandledBy("TestPlugin_A#onGenericTestEventForTargetA");
+        event.getTestContext().addMarker("TestPlugin_A#onGenericTestEventForTargetA");
     }
 
     @EventHandler
     static void onGenericTestEventForTargetB(TestTarget_B component, GenericTestEvent<String> event) {
-        event.setHandledBy("TestPlugin_A#onGenericTestEventForTargetB");
+        event.getTestContext().addMarker("TestPlugin_A#onGenericTestEventForTargetB");
     }
 
 }

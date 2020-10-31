@@ -1,7 +1,8 @@
-package dev.m00nl1ght.clockwork.test.env;
+package dev.m00nl1ght.clockwork.test.env.security;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.extension.security.permissions.PermissionsFactory;
+import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
 
 import java.io.File;
 import java.io.FilePermission;
