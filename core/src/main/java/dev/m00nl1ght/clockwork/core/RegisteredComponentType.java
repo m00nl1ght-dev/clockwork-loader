@@ -18,7 +18,8 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
         if (!plugin.getId().equals(descriptor.getPluginId())) throw new IllegalArgumentException();
         if (!targetType.getId().equals(descriptor.getTargetId())) throw new IllegalArgumentException();
         if (!componentClass.getName().equals(descriptor.getComponentClass())) throw new IllegalArgumentException();
-        super.setFactory(ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), componentClass, targetType.getTargetClass()));
+        final var defaultFactory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), targetType.getTargetClass(), componentClass);
+        if (defaultFactory != null) super.setFactory(defaultFactory);
     }
 
     @Override
