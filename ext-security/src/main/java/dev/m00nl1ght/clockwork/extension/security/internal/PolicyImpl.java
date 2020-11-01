@@ -15,10 +15,20 @@ public final class PolicyImpl extends PolicySpi {
     private static final Map<ClassLoader, WeakReference<Context>> configMap =
             Collections.synchronizedMap(new WeakHashMap<>(3));
 
+    private static boolean trustUnknownLoaders = false;
+
     public static void putContext(ClassLoader classLoader, Permissions unconditionalPerms,
                                   Map<ProtectionDomain, Permissions> declaredPerms) {
+        final var sm = System.getSecurityManager();
+        if (sm != null) sm.checkPermission(new SecurityPermission("setPolicy"));
         final var context = new Context(classLoader, unconditionalPerms, declaredPerms);
         configMap.put(classLoader, new WeakReference<>(context));
+    }
+
+    public static void setTrustUnknownLoaders(boolean flag) {
+        final var sm = System.getSecurityManager();
+        if (sm != null) sm.checkPermission(new SecurityPermission("setPolicy"));
+        PolicyImpl.trustUnknownLoaders = flag;
     }
 
     private final ClassLoader platformClassLoader;
@@ -56,7 +66,7 @@ public final class PolicyImpl extends PolicySpi {
             }
         }
 
-        return false;
+        return trustUnknownLoaders;
 
     }
 
@@ -87,7 +97,7 @@ public final class PolicyImpl extends PolicySpi {
             }
         }
 
-        return CWLSecurityExtension.EMPTY_PERMISSIONS;
+        return trustUnknownLoaders ? CWLSecurityExtension.ALL_PERMISSIONS : CWLSecurityExtension.EMPTY_PERMISSIONS;
 
     }
 

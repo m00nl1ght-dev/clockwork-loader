@@ -36,9 +36,14 @@ public final class CWLSecurityExtension {
     }
 
     public static void install() {
+        install(false);
+    }
+
+    public static void install(boolean trustUnknownLoaders) {
         try {
             Security.addProvider(new ProviderImpl());
             Policy.setPolicy(Policy.getInstance(ProviderImpl.NAME, null));
+            PolicyImpl.setTrustUnknownLoaders(trustUnknownLoaders);
             System.setSecurityManager(new SecurityManager());
             LOGGER.info("Sucessfully installed security manager, provider and policy.");
         } catch (Exception e) {
@@ -52,9 +57,6 @@ public final class CWLSecurityExtension {
         Objects.requireNonNull(securityConfig);
 
         core.getState().requireOrAfter(ClockworkCore.State.POPULATED);
-
-        SecurityManager sm = System.getSecurityManager();
-        if (sm != null) sm.checkPermission(new SecurityPermission("setPolicy"));
 
         final var optClassLoader = core.getModuleLayer().modules().stream()
                 .findFirst().map(Module::getClassLoader);

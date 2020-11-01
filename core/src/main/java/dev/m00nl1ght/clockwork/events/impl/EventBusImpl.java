@@ -24,6 +24,16 @@ public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
         core.getState().requireOrAfter(ClockworkCore.State.PROCESSED);
     }
 
+    public <E extends ContextAwareEvent>
+    EventDispatcher<E, ClockworkCore> getEventDispatcher(TypeRef<E> eventType) {
+        return getEventDispatcher(eventType, ClockworkCore.class);
+    }
+
+    public <E extends ContextAwareEvent>
+    EventDispatcher<E, ClockworkCore> getEventDispatcher(Class<E> eventClass) {
+        return getEventDispatcher(TypeRef.of(eventClass));
+    }
+
     public <E extends ContextAwareEvent, O extends ComponentTarget>
     StaticEventDispatcher<E, ClockworkCore, O> getStaticEventDispatcher(TypeRef<E> eventType, Class<O> originClass) {
         return getStaticEventDispatcher(eventType, ClockworkCore.class, originClass, core);

@@ -35,7 +35,7 @@ public final class SecurityConfig {
                         e -> e.getValue().buildPermission(plugin.getDescriptor(), null),
                         (a, b) -> b, HashMap::new));
 
-        for (final var str : plugin.getDescriptor().getExtData().getListOrEmpty("permissions")) {
+        for (final var str : plugin.getDescriptor().getExtData().getListOrEmpty("Permissions")) {
             var i = str.indexOf(':');
             var perm = i < 0 ? str : str.substring(0, i);
             var value = i < 0 ? null : str.substring(i + 1);
@@ -109,6 +109,11 @@ public final class SecurityConfig {
 
         public Builder addSharedPermission(Permission permission) {
             sharedPermissions.add(permission);
+            return this;
+        }
+
+        public Builder addSharedPermissions(Set<Permission> permissions) {
+            permissions.forEach(sharedPermissions::add);
             return this;
         }
 

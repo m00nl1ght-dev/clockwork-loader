@@ -69,8 +69,9 @@ public class AttributesWrapper implements Config {
         final var builder = ImmutableConfig.builder();
 
         for (final var entry : attributes.entrySet()) {
-            final var key = entry.getKey().toString().strip();
-            if (!key.startsWith(keyPrefix)) continue;
+            final var rawKey = entry.getKey().toString().strip();
+            if (!rawKey.startsWith(keyPrefix)) continue;
+            final var key = rawKey.substring(keyPrefix.length());
             final var value = entry.getValue().toString().strip();
             if (isConfig(value)) {
                 final var config = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, value);

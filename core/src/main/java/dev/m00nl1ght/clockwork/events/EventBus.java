@@ -11,11 +11,11 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
 
     Set<EventDispatcher<? extends B, ?>> getEventDispatchers();
 
-    <E extends B, T extends ComponentTarget> EventDispatcher<E, T>
-    getEventDispatcher(TypeRef<E> eventType, Class<T> targetClass);
+    <E extends B, T extends ComponentTarget>
+    EventDispatcher<E, T> getEventDispatcher(TypeRef<E> eventType, Class<T> targetClass);
 
-    default <E extends B, T extends ComponentTarget> EventDispatcher<E, T>
-    getEventDispatcher(Class<E> eventClass, Class<T> targetClass) {
+    default <E extends B, T extends ComponentTarget>
+    EventDispatcher<E, T> getEventDispatcher(Class<E> eventClass, Class<T> targetClass) {
         return getEventDispatcher(TypeRef.of(eventClass), targetClass);
     }
 
