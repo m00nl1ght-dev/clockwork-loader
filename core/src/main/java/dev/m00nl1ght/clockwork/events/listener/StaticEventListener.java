@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events.listener;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -12,16 +11,16 @@ public class StaticEventListener<E extends Event, T extends ComponentTarget, I e
 
     protected final EventListener<E, I, C> innerListener;
     protected final BiConsumer<C, E> innerConsumer;
-    protected final C innerComponent;
+    protected final I innerTarget;
+    protected C innerComponent;
 
-    public StaticEventListener(EventListener<E, I, C> innerListener, TargetType<T> targetType, I target) {
+    public StaticEventListener(EventListener<E, I, C> innerListener, TargetType<T> targetType, I innerTarget) {
         super(Objects.requireNonNull(innerListener).getEventType(),
                 targetType.getIdentityComponentType(), innerListener.getPriority());
+        this.innerTarget = Objects.requireNonNull(innerTarget);
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();
-        this.innerComponent = innerListener.getComponentType().get(target);
-        if (innerComponent == null)
-            throw FormatUtil.rtExc("Component [] is not initialised", innerListener.getComponentType());
+        this.innerComponent = innerListener.getComponentType().get(innerTarget);
     }
 
     @Override
@@ -30,7 +29,14 @@ public class StaticEventListener<E extends Event, T extends ComponentTarget, I e
     }
 
     private void invoke(T object, E event) {
-        innerConsumer.accept(innerComponent, event);
+        if (innerComponent != null) {
+            innerConsumer.accept(innerComponent, event);
+        } else { // TODO rework?
+            innerComponent = innerListener.getComponentType().get(innerTarget);
+            if (innerComponent != null) {
+                innerConsumer.accept(innerComponent, event);
+            }
+        }
     }
 
     public EventListener<E, I, C> getInnerListener() {

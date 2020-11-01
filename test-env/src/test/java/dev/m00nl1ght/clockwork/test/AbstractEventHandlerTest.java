@@ -35,9 +35,11 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
     @Override
     protected void setupComplete() {
-        // this is needed so that annotated nested handlers get registered, TODO some way around this?
+        // this is needed so that annotated static and nested handlers get registered, TODO some way around this?
         eventBus().getNestedEventDispatcher(SimpleTestEvent.class, TestTarget_C.class, TestTarget_A.class);
         eventBus().getNestedEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_C.class, TestTarget_A.class);
+        eventBus().getStaticEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
+        eventBus().getStaticEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
     }
 
     @Test
@@ -50,6 +52,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForComponentA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEvent"));
     }
 
     @Test
@@ -62,6 +65,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForComponentA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEvent"));
     }
 
     @Test
@@ -77,6 +81,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetB"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEvent"));
     }
 
     @Test
@@ -92,8 +97,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetB"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEvent"));
     }
-
-    // TODO tests for static event handlers
 
 }

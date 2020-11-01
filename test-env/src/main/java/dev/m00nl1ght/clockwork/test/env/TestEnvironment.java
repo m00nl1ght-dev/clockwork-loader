@@ -1,8 +1,7 @@
 package dev.m00nl1ght.clockwork.test.env;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.events.EventBus;
-import dev.m00nl1ght.clockwork.events.impl.ContextAwareEvent;
+import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
 
 import java.io.File;
 import java.util.Objects;
@@ -21,7 +20,7 @@ public class TestEnvironment {
         return Objects.requireNonNull(testEnvComp.get(core));
     }
 
-    private EventBus<ContextAwareEvent> testEventBus;
+    private EventBusImpl testEventBus;
 
     public TestEnvironment() {
         ENV_DIR.mkdirs();
@@ -32,11 +31,11 @@ public class TestEnvironment {
         PLUGIN_PROTECTED_DIR_B.mkdirs();
     }
 
-    public EventBus<ContextAwareEvent> getTestEventBus() {
+    public EventBusImpl getTestEventBus() {
         return testEventBus;
     }
 
-    public void setTestEventBus(EventBus<ContextAwareEvent> testEventBus) {
+    public void setTestEventBus(EventBusImpl testEventBus) {
         this.testEventBus = testEventBus;
     }
 
