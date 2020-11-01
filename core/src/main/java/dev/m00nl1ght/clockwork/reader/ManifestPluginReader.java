@@ -3,11 +3,7 @@ package dev.m00nl1ght.clockwork.reader;
 import dev.m00nl1ght.clockwork.config.AttributesWrapper;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -105,11 +101,12 @@ public class ManifestPluginReader implements PluginReader {
                     mainCompBuilder.extData(new AttributesWrapper(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.mainComponent(mainCompBuilder.build());
                 } else {
-                    final var compBuilder = ComponentDescriptor.builder(pluginId, verifyId(componentId, pluginId));
+                    final var compBuilder = ComponentDescriptor.builder(pluginId, componentId);
                     compBuilder.version(version);
                     compBuilder.componentClass(className);
                     compBuilder.target(entryConfig.get(HEADER_COMPONENT_TARGET));
-                    compBuilder.parent(autoId(entryConfig.getOrNull(HEADER_COMPONENT_EXTENDS), pluginId));
+                    entryConfig.getOptional(HEADER_COMPONENT_EXTENDS)
+                            .ifPresent(e -> compBuilder.parent(Namespaces.combinedId(e, pluginId)));
                     entryConfig.getListOrSingletonOrEmpty(HEADER_COMPONENT_DEPENDENCIES)
                             .forEach(d -> compBuilder.dependency(DependencyDescriptor.build(d)));
                     compBuilder.optional(entryConfig.getBooleanOrDefault(HEADER_COMPONENT_OPTIONAL, false));
@@ -120,7 +117,7 @@ public class ManifestPluginReader implements PluginReader {
             } else {
                 final var targetId = entryConfig.getOrNull(HEADER_TARGET_ID);
                 if (targetId != null) {
-                    final var builder = TargetDescriptor.builder(pluginId, verifyId(targetId, pluginId));
+                    final var builder = TargetDescriptor.builder(pluginId, targetId);
                     builder.version(version);
                     builder.targetClass(className);
                     builder.parent(entryConfig.getOrNull(HEADER_TARGET_EXTENDS));
@@ -138,20 +135,6 @@ public class ManifestPluginReader implements PluginReader {
     private String extractClassName(String entryName) {
         if (!entryName.endsWith(".class")) return null;
         return entryName.substring(0, entryName.length() - 6).replace('/', '.');
-    }
-
-    private String verifyId(String id, String pluginId) {
-        final var idx = id.indexOf(':');
-        if (idx < 0) return id;
-        final var pId = id.substring(0, idx);
-        if (!pId.equals(pluginId))
-            throw FormatUtil.rtExc("plugin with id [] can't define mismatched id []", pluginId, id);
-        return id.substring(idx + 1);
-    }
-
-    private String autoId(String id, String pluginId) {
-        if (id == null) return null;
-        return id.contains(":") ? id : (pluginId + id);
     }
 
     @Override

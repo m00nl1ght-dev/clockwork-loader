@@ -11,6 +11,7 @@ public class AnnotatedEventHandlerTest extends AbstractEventHandlerTest {
     protected void setupComplete() {
         eventBus = new ExtEventBusImpl(core());
         eventBus.bind();
+        super.setupComplete();
     }
 
     @Override

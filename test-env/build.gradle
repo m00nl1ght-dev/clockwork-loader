@@ -1,6 +1,7 @@
 
 final testRunDir = file("test-run")
 final pluginDir = new File(testRunDir, "plugins")
+testRunDir.deleteDir()
 testRunDir.mkdirs()
 
 sourceSets {

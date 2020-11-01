@@ -1,8 +1,7 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.LinkedList;
@@ -79,10 +78,7 @@ public final class PluginDescriptor {
     }
 
     public static Builder builder(String id) {
-        Objects.requireNonNull(id);
-        if (!DependencyDescriptor.PLUGIN_ID_PATTERN.matcher(id).matches())
-            throw PluginLoadingException.invalidId(id);
-        return new Builder(id);
+        return new Builder(Namespaces.simpleId(Objects.requireNonNull(id)));
     }
 
     public static final class Builder {

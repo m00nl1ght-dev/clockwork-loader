@@ -1,16 +1,14 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.version.VersionRequirement;
 import dev.m00nl1ght.clockwork.version.Version;
+import dev.m00nl1ght.clockwork.version.VersionRequirement;
 
 import java.util.Objects;
-import java.util.regex.Pattern;
+
+import static dev.m00nl1ght.clockwork.descriptor.Namespaces.COMBINED_ID_PATTERN;
+import static dev.m00nl1ght.clockwork.descriptor.Namespaces.DEPENDENCY_PATTERN;
 
 public final class DependencyDescriptor {
-
-    public static final Pattern PLUGIN_ID_PATTERN = Pattern.compile("^[a-z][a-z0-9_-]{3,32}$");
-    public static final Pattern COMPONENT_ID_PATTERN = Pattern.compile("^([a-z][a-z0-9_-]{3,32})(?::([a-z][a-z0-9_-]{3,32}))?$");
-    public static final Pattern DESCRIPTOR_PATTERN = Pattern.compile("^([a-z][a-z0-9_-]{3,32})(?::([a-z][a-z0-9_-]{3,32}))?(?:\\[(.*)])?$");
 
     private final String plugin;
     private final String component;
@@ -21,7 +19,7 @@ public final class DependencyDescriptor {
         this.ivyRange = ivyRange;
         this.versionRequirement = versionRequirement;
         Objects.requireNonNull(targetId);
-        final var matcher = COMPONENT_ID_PATTERN.matcher(targetId);
+        final var matcher = COMBINED_ID_PATTERN.matcher(targetId);
         if (matcher.matches()) {
             this.plugin = matcher.group(1);
             this.component = matcher.group(2) == null ? "" : matcher.group(2);
@@ -32,7 +30,7 @@ public final class DependencyDescriptor {
 
     public static DependencyDescriptor build(String descriptor) {
         Objects.requireNonNull(descriptor);
-        final var matcher = DESCRIPTOR_PATTERN.matcher(descriptor);
+        final var matcher = DEPENDENCY_PATTERN.matcher(descriptor);
         if (matcher.matches()) {
             final var plugin = matcher.group(1);
             final var component = matcher.group(2);

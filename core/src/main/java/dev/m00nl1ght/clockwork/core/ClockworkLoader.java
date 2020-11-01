@@ -4,10 +4,7 @@ import dev.m00nl1ght.clockwork.container.ImmutableComponentContainer;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
 import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
 import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
-import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.fnder.*;
 import dev.m00nl1ght.clockwork.internal.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.internal.InternalLoggers;
@@ -285,11 +282,11 @@ public final class ClockworkLoader {
 
         // Add internal components of each target type.
         for (final var targetType : core.getLoadedTargetTypes()) {
-            final var classes = targetType.getDescriptor().getInternalComponents();
-            for (final var className : classes) {
-                final var compClass = loadClassOrNull(className, targetType.getPlugin());
+            final var comps = targetType.getDescriptor().getInternalComponents();
+            for (final var comp : comps) {
+                final var compClass = findClass(comp, targetType.getPlugin());
                 if (compClass == null)
-                    throw PluginLoadingException.pluginClassNotFound(className, targetType.getPlugin().getDescriptor());
+                    throw PluginLoadingException.pluginClassNotFound(comp, targetType.getPlugin().getDescriptor());
                 buildInternalComponent(targetType, compClass);
             }
         }
@@ -413,14 +410,8 @@ public final class ClockworkLoader {
     private <C, T extends ComponentTarget> void
     buildInternalComponent(RegisteredTargetType<T> targetType, Class<C> compClass) {
 
-        // Try to find any supercomponent by searching the target.
-        final var scOpt = targetType.getComponentTypes().stream()
-                .filter(c -> c.componentClass.isAssignableFrom(compClass))
-                .findFirst();
-
-        @SuppressWarnings("unchecked")
-        final var casted = scOpt.isEmpty() ? null : (ComponentType<? super C, ? super T>) scOpt.get();
-        new ComponentType<>(casted, compClass, targetType);
+        // TODO try to find parent?
+        new ComponentType<>(null, compClass, targetType);
 
     }
 
@@ -445,15 +436,23 @@ public final class ClockworkLoader {
     }
 
     /**
-     * Loads the class with the given name from the internal module layer or any parent layers.
+     * Finds a class in the internal module layer or any parent layers.
      *
-     * @param className the qualified name of the class to be loaded
+     * @param descriptor either the qualified name of the class, or a target/component id
      * @param plugin    any plugin from the classloader to be used
      * @return the loaded class, or null if no such class was found
      */
-    public static Class<?> loadClassOrNull(String className, LoadedPlugin plugin) {
+    public static Class<?> findClass(String descriptor, LoadedPlugin plugin) {
         try {
-            return Class.forName(className, false, plugin.getMainModule().getClassLoader());
+            final var core = plugin.getClockworkCore();
+            final var name = Namespaces.combinedIdOrNull(descriptor, plugin.getId());
+            if (name != null) {
+                final var foundTarget = core.getTargetType(name);
+                if (foundTarget.isPresent()) return foundTarget.get().getTargetClass();
+                final var foundComponent = core.getComponentType(name);
+                if (foundComponent.isPresent()) return foundComponent.get().getComponentClass();
+            }
+            return Class.forName(descriptor, false, plugin.getMainModule().getClassLoader());
         } catch (ClassNotFoundException e) {
             return null;
         }

@@ -5,6 +5,7 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
 import dev.m00nl1ght.clockwork.test.env.TestTarget_A;
 import dev.m00nl1ght.clockwork.test.env.TestTarget_B;
+import dev.m00nl1ght.clockwork.test.env.TestTarget_C;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
 import dev.m00nl1ght.clockwork.test.env.security.PermissionTestEvent;
@@ -24,10 +25,14 @@ public class TestPlugin_A {
 
             final var targetTypeA = core.getTargetType(TestTarget_A.class).orElseThrow();
             final var targetTypeB = core.getTargetType(TestTarget_B.class).orElseThrow();
+
             final var componentTypeA = core.getComponentType(TestComponent_A.class, TestTarget_A.class).orElseThrow();
             final var componentTypeB = core.getComponentType(TestComponent_B.class, TestTarget_B.class).orElseThrow();
+            final var componentTypeC = core.getComponentType(TestComponent_C.class, TestTarget_C.class).orElseThrow();
 
+            final var genericType = new TypeRef<GenericTestEvent<String>>(){};
             final var simpleEventDispatcher = eventBus.getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
+            final var genericEventDispatcher = eventBus.getEventDispatcher(genericType, TestTarget_A.class);
 
             // SimpleTestEvent -> Component instance handlers
             simpleEventDispatcher.addListener(componentTypeA, TestComponent_A::onSimpleTestEvent);
@@ -41,7 +46,9 @@ public class TestPlugin_A {
             simpleEventDispatcher.addListener(targetTypeA, TestPlugin_A::onSimpleTestEventForTargetA);
             simpleEventDispatcher.addListener(targetTypeB, TestPlugin_A::onSimpleTestEventForTargetB);
 
-            final var genericEventDispatcher = eventBus.getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
+            // SimpleTestEvent -> Nested handler in TestTarget_C
+            final var simpleNestedEventDispatcher = eventBus.getNestedEventDispatcher(SimpleTestEvent.class, TestTarget_C.class, TestTarget_A.class);
+            simpleNestedEventDispatcher.addListener(componentTypeC, TestComponent_C::onSimpleTestEvent);
 
             // GenericTestEvent<String> -> Component instance handlers
             genericEventDispatcher.addListener(componentTypeA, TestComponent_A::onGenericTestEvent);
@@ -54,6 +61,10 @@ public class TestPlugin_A {
             // GenericTestEvent<String> -> Static handlers (with identity param)
             genericEventDispatcher.addListener(targetTypeA, TestPlugin_A::onGenericTestEventForTargetA);
             genericEventDispatcher.addListener(targetTypeB, TestPlugin_A::onGenericTestEventForTargetB);
+
+            // GenericTestEvent<String> -> Nested handler in TestTarget_C
+            final var genericNestedEventDispatcher = eventBus.getNestedEventDispatcher(genericType, TestTarget_C.class, TestTarget_A.class);
+            genericNestedEventDispatcher.addListener(componentTypeC, TestComponent_C::onGenericTestEvent);
 
         }
     }

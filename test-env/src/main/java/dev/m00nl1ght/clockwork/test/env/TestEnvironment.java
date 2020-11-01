@@ -24,7 +24,7 @@ public class TestEnvironment {
     private EventBus<ContextAwareEvent> testEventBus;
 
     public TestEnvironment() {
-        ENV_DIR.mkdirs(); // TODO empty these before test
+        ENV_DIR.mkdirs();
         PLUGINS_DIR.mkdirs();
         PLUGIN_DATA_DIR.mkdirs();
         PLUGIN_SHARED_DIR.mkdirs();

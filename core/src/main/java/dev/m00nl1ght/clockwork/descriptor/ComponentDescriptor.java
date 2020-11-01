@@ -38,7 +38,7 @@ public final class ComponentDescriptor {
     }
 
     public String getId() {
-        return formatId(pluginId, componentId);
+        return Namespaces.combine(pluginId, componentId);
     }
 
     public Version getVersion() {
@@ -79,19 +79,13 @@ public final class ComponentDescriptor {
     }
 
     public static Builder builder(String pluginId) {
-        Objects.requireNonNull(pluginId);
-        if (!DependencyDescriptor.PLUGIN_ID_PATTERN.matcher(pluginId).matches())
-            throw PluginLoadingException.invalidId(pluginId);
-        return new Builder(pluginId, null);
+        return new Builder(Namespaces.simpleId(Objects.requireNonNull(pluginId)), null);
     }
 
     public static Builder builder(String pluginId, String componentId) {
-        Objects.requireNonNull(pluginId);
-        Objects.requireNonNull(componentId);
-        final var resultingId = formatId(pluginId, componentId);
-        if (!DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(resultingId).matches())
-            throw PluginLoadingException.invalidId(resultingId);
-        return new Builder(pluginId, componentId);
+        final var first = Namespaces.simpleId(Objects.requireNonNull(pluginId));
+        final var second = Namespaces.second(Namespaces.combinedIdWithFirst(componentId, pluginId));
+        return new Builder(first, second);
     }
 
     public static final class Builder {
@@ -126,7 +120,7 @@ public final class ComponentDescriptor {
             if (!pluginId.equals(ClockworkCore.CORE_PLUGIN_ID)) {
                 dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDescriptor::buildAnyVersion);
                 if (componentId != null) dependencies.computeIfAbsent(pluginId, DependencyDescriptor::buildAnyVersion);
-                if (targetId != null) dependencies.computeIfAbsent(pluginId(targetId), DependencyDescriptor::buildAnyVersion);
+                if (targetId != null) dependencies.computeIfAbsent(Namespaces.first(targetId), DependencyDescriptor::buildAnyVersion);
                 if (parentId != null) dependencies.computeIfAbsent(parentId, DependencyDescriptor::buildAnyVersion);
             }
         }
@@ -142,13 +136,13 @@ public final class ComponentDescriptor {
         }
 
         public Builder parent(String parentId) {
-            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : pluginId + ":" + parentId;
+            this.parentId = parentId == null ? null : Namespaces.combinedId(parentId, pluginId);
             return this;
         }
 
         public Builder dependency(DependencyDescriptor dependency) {
             final var prev = this.dependencies.putIfAbsent(dependency.getTarget(), dependency);
-            if (prev != null) throw PluginLoadingException.dependencyDuplicate(formatId(pluginId, componentId), dependency, prev);
+            if (prev != null) throw PluginLoadingException.dependencyDuplicate(Namespaces.combine(pluginId, componentId), dependency, prev);
             return this;
         }
 
@@ -169,15 +163,6 @@ public final class ComponentDescriptor {
             this.extData = Objects.requireNonNull(extData);
         }
 
-    }
-
-    private static String pluginId(String id) {
-        final var i = id.indexOf(':');
-        return i < 0 ? id : id.substring(0, i);
-    }
-
-    private static String formatId(String pluginId, String componentId) {
-        return componentId == null ? pluginId : (pluginId + ":" + componentId);
     }
 
 }

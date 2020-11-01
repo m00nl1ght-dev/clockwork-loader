@@ -1,6 +1,5 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.core.PluginLoadingException;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -34,7 +33,7 @@ public final class TargetDescriptor {
     }
 
     public String getId() {
-        return pluginId + ":" + targetId;
+        return Namespaces.combine(pluginId, targetId);
     }
 
     public Version getVersion() {
@@ -63,12 +62,9 @@ public final class TargetDescriptor {
     }
 
     public static Builder builder(String pluginId, String targetId) {
-        Objects.requireNonNull(pluginId);
-        Objects.requireNonNull(targetId);
-        final var resultingId = pluginId + ":" + targetId;
-        if (!DependencyDescriptor.COMPONENT_ID_PATTERN.matcher(resultingId).matches())
-            throw PluginLoadingException.invalidId(resultingId);
-        return new Builder(pluginId, targetId);
+        final var first = Namespaces.simpleId(Objects.requireNonNull(pluginId));
+        final var second = Namespaces.second(Namespaces.combinedIdWithFirst(targetId, pluginId));
+        return new Builder(first, second);
     }
 
     public static final class Builder {
@@ -101,7 +97,7 @@ public final class TargetDescriptor {
         }
 
         public Builder parent(String parentId) {
-            this.parentId = parentId == null ? null : parentId.contains(":") ? parentId : pluginId + ":" + parentId;
+            this.parentId = parentId == null ? null : Namespaces.combinedId(parentId, pluginId);
             return this;
         }
 

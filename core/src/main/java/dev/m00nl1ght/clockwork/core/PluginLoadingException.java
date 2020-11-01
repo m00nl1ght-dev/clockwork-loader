@@ -86,10 +86,6 @@ public class PluginLoadingException extends RuntimeException {
         }
     }
 
-    public static PluginLoadingException invalidId(String id) {
-        return generic("Id [] is invalid", id);
-    }
-
     public static PluginLoadingException missingReader(String name) {
         return generic("No PluginReader with name [] is defined", name);
     }

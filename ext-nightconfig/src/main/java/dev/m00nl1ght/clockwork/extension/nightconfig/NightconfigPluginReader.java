@@ -2,18 +2,14 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.reader.PluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
-import dev.m00nl1ght.clockwork.config.Config;
-import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
@@ -76,7 +72,7 @@ public class NightconfigPluginReader implements PluginReader {
 
         final Optional<List<UnmodifiableConfig>> components = config.getOptional("component");
         if (components.isPresent()) for (var conf : components.get()) {
-            final var builder = ComponentDescriptor.builder(pluginId, verifyId(conf.get("id"), pluginId));
+            final var builder = ComponentDescriptor.builder(pluginId, conf.get("id"));
             builder.version(version);
             builder.componentClass(conf.get("class"));
             builder.parent(conf.getOrElse("parent", () -> null));
@@ -94,7 +90,7 @@ public class NightconfigPluginReader implements PluginReader {
 
         final Optional<List<UnmodifiableConfig>> targets = config.getOptional("target");
         if (targets.isPresent()) for (var conf : targets.get()) {
-            final var builder = TargetDescriptor.builder(pluginId, verifyId(conf.get("id"), pluginId));
+            final var builder = TargetDescriptor.builder(pluginId, conf.get("id"));
             builder.version(version);
             builder.targetClass(conf.get("class"));
             builder.parent(conf.get("parent"));
@@ -111,23 +107,14 @@ public class NightconfigPluginReader implements PluginReader {
     private DependencyDescriptor buildDep(UnmodifiableConfig conf) {
         final String id = conf.get("id");
         final Optional<String> verStr = conf.getOptional("version");
-        return verStr.map(s -> DependencyDescriptor.buildIvyRange(id, s)).orElseGet(() -> DependencyDescriptor.buildAnyVersion(id));
+        return verStr.map(s -> DependencyDescriptor.buildIvyRange(id, s))
+                .orElseGet(() -> DependencyDescriptor.buildAnyVersion(id));
     }
 
     private String buildPerm(UnmodifiableConfig conf) {
         final String perm = conf.get("id");
         final Optional<String> value = conf.getOptional("value");
         return (value.isPresent() && !value.get().isEmpty()) ? perm + ":" + value.get() : perm;
-    }
-
-    private String verifyId(String id, String pluginId) {
-        if (id == null) throw new IllegalStateException("id is missing");
-        final var idx = id.indexOf(':');
-        if (idx < 0) return id;
-        final var pId = id.substring(0, idx);
-        if (!pId.equals(pluginId))
-            throw FormatUtil.rtExc("plugin with id [] can't define mismatched id []", pluginId, id);
-        return id.substring(idx + 1);
     }
 
     @Override
