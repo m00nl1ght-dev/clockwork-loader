@@ -25,8 +25,8 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         targetTypeB = core.getTargetType(TestTarget_B.class).orElseThrow();
         targetTypeC = core.getTargetType(TestTarget_C.class).orElseThrow();
         targetTypeD = core.getTargetType(TestTarget_D.class).orElseThrow();
-        final var nestedComp = targetTypeA.getComponentType(TestTarget_C.class).orElseThrow();
-        nestedComp.setFactory(t -> new TestTarget_D(targetTypeD));
+        final var nestedComp = targetTypeA.getOwnComponentType(TestTarget_C.class).orElseThrow();
+        nestedComp.setFactory(TestTarget_A::getTestTargetC);
         return env;
     }
 
@@ -44,21 +44,20 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
     @Test
     public void simpleEventOnTargetA() {
         final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
-        final var testTargetA = new TestTarget_A(targetTypeA);
+        final var testTargetA = new TestTarget_A(targetTypeA, new TestTarget_C(targetTypeC));
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetA, event);
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onSimpleTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForComponentA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onSimpleTestEvent"));
-        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onSimpleTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEvent"));
     }
 
     @Test
     public void genericEventOnTargetA() {
         final var dispatcher = eventBus().getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
-        final var testTargetA = new TestTarget_A(targetTypeA);
+        final var testTargetA = new TestTarget_A(targetTypeA, new TestTarget_D(targetTypeD));
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetA, event);
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onGenericTestEvent"));
@@ -72,7 +71,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
     @Test
     public void simpleEventOnTargetB() {
         final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
-        final var testTargetB = new TestTarget_B(targetTypeB);
+        final var testTargetB = new TestTarget_B(targetTypeB, new TestTarget_C(targetTypeC));
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetB, event);
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onSimpleTestEvent"));
@@ -82,14 +81,13 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetB"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onSimpleTestEvent"));
-        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onSimpleTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEvent"));
     }
 
     @Test
     public void genericEventOnTargetB() {
         final var dispatcher = eventBus().getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
-        final var testTargetB = new TestTarget_B(targetTypeB);
+        final var testTargetB = new TestTarget_B(targetTypeB, new TestTarget_D(targetTypeD));
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetB, event);
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_A#onGenericTestEvent"));

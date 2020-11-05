@@ -10,7 +10,6 @@ public abstract class AbstractComponentTarget<T> implements ComponentTarget {
 
     protected AbstractComponentTarget(TargetType<? extends T> targetType) {
         componentContainer = new ImmutableComponentContainer<>(Objects.requireNonNull(targetType), this);
-        componentContainer.initComponents();
     }
 
     @Override

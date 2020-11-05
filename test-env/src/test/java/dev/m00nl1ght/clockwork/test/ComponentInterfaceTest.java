@@ -25,7 +25,7 @@ public class ComponentInterfaceTest extends ClockworkTest {
     public void applyInterfaceToComponentA() {
         final var testContext = new TestContext();
         final var compInterface = new ComponentInterfaceImpl<>(TestInterface.class, targetTypeA);
-        final var target = new TestTarget_A(targetTypeA);
+        final var target = new TestTarget_A(targetTypeA, null);
         compInterface.apply(target, i -> i.applyTestInterface(testContext));
         assertTrue(testContext.isMarkerPresent("TestComponent_A#applyTestInterface"));
     }
@@ -34,7 +34,7 @@ public class ComponentInterfaceTest extends ClockworkTest {
     public void applyInterfaceToComponentB() {
         final var testContext = new TestContext();
         final var compInterface = new ComponentInterfaceImpl<>(TestInterface.class, targetTypeA);
-        final var target = new TestTarget_B(targetTypeB);
+        final var target = new TestTarget_B(targetTypeB, null);
         compInterface.apply(target, i -> i.applyTestInterface(testContext));
         assertTrue(testContext.isMarkerPresent("TestComponent_A#applyTestInterface"));
         assertTrue(testContext.isMarkerPresent("TestComponent_B#applyTestInterface"));
