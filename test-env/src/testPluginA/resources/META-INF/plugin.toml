@@ -29,3 +29,8 @@ class = "dev.m00nl1ght.clockwork.test.plugin.a.TestComponent_B"
 id = "test-component-c"
 target = "test-env:test-target-c"
 class = "dev.m00nl1ght.clockwork.test.plugin.a.TestComponent_C"
+
+[[component]]
+id = "test-component-d"
+target = "test-env:test-target-d"
+class = "dev.m00nl1ght.clockwork.test.plugin.a.TestComponent_D"

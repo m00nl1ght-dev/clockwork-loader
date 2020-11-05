@@ -3,10 +3,7 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
-import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
-import dev.m00nl1ght.clockwork.test.env.TestTarget_A;
-import dev.m00nl1ght.clockwork.test.env.TestTarget_B;
-import dev.m00nl1ght.clockwork.test.env.TestTarget_C;
+import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
 import dev.m00nl1ght.clockwork.util.TypeRef;
@@ -19,6 +16,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
     protected TargetType<TestTarget_A> targetTypeA;
     protected TargetType<TestTarget_B> targetTypeB;
     protected TargetType<TestTarget_C> targetTypeC;
+    protected TargetType<TestTarget_D> targetTypeD;
 
     @Override
     protected TestEnvironment buildEnvironment(ClockworkCore core) {
@@ -26,8 +24,9 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         targetTypeA = core.getTargetType(TestTarget_A.class).orElseThrow();
         targetTypeB = core.getTargetType(TestTarget_B.class).orElseThrow();
         targetTypeC = core.getTargetType(TestTarget_C.class).orElseThrow();
+        targetTypeD = core.getTargetType(TestTarget_D.class).orElseThrow();
         final var nestedComp = targetTypeA.getComponentType(TestTarget_C.class).orElseThrow();
-        nestedComp.setFactory(t -> new TestTarget_C(targetTypeC));
+        nestedComp.setFactory(t -> new TestTarget_D(targetTypeD));
         return env;
     }
 
@@ -52,6 +51,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForComponentA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onSimpleTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEvent"));
     }
 
@@ -65,6 +65,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForComponentA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onGenericTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEvent"));
     }
 
@@ -81,6 +82,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEventForTargetB"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onSimpleTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onSimpleTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onSimpleTestEvent"));
     }
 
@@ -97,6 +99,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetA"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetB"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onGenericTestEvent"));
+        assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onGenericTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEvent"));
     }
 

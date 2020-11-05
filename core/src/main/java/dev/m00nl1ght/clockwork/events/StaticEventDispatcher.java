@@ -10,6 +10,8 @@ import java.util.Objects;
 
 public interface StaticEventDispatcher<E extends Event, T extends ComponentTarget, O extends ComponentTarget> extends EventDispatcher<E, T> {
 
+    // TODO rework?
+
     EventDispatcher<E, O> getOrigin();
 
     T getTarget();
