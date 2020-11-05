@@ -9,7 +9,7 @@ import java.util.Set;
 
 public abstract class AbstractEventBus<B extends Event> implements EventBus<B> {
 
-    protected final Map<EventDispatcher.Key, EventDispatcher<? extends B, ?>> dispatchers = new LinkedHashMap<>();
+    protected final Map<Object, EventDispatcher<? extends B, ?>> dispatchers = new LinkedHashMap<>();
 
     @Override
     public <E extends B, T extends ComponentTarget>

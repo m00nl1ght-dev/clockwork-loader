@@ -24,13 +24,16 @@ public interface StaticEventDispatcher<E extends Event, T extends ComponentTarge
         return List.of(getTargetType());
     }
 
-    class Key extends EventDispatcher.Key {
+    final class Key {
 
+        public final TypeRef<?> eventType;
+        public final Class<?> targetClass;
         public final Class<?> originClass;
         public final Object target;
 
         public Key(TypeRef<?> eventType, Class<?> targetClass, Class<?> originClass, Object target) {
-            super(eventType, targetClass);
+            this.eventType = Objects.requireNonNull(eventType);
+            this.targetClass = Objects.requireNonNull(targetClass);
             this.originClass = Objects.requireNonNull(originClass);
             this.target = Objects.requireNonNull(target);
         }
@@ -39,15 +42,16 @@ public interface StaticEventDispatcher<E extends Event, T extends ComponentTarge
         public boolean equals(Object o) {
             if (this == o) return true;
             if (!(o instanceof Key)) return false;
-            if (!super.equals(o)) return false;
             Key key = (Key) o;
-            return originClass == key.originClass &&
+            return eventType.equals(key.eventType) &&
+                    targetClass == key.targetClass &&
+                    originClass == key.originClass &&
                     target.equals(key.target);
         }
 
         @Override
         public int hashCode() {
-            return Objects.hash(super.hashCode(), originClass, target);
+            return Objects.hash(eventType, targetClass, originClass, target);
         }
 
     }

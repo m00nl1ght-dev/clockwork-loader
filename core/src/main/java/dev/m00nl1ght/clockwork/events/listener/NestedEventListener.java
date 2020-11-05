@@ -7,33 +7,50 @@ import dev.m00nl1ght.clockwork.events.Event;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-public class NestedEventListener<E extends Event, T extends ComponentTarget, C extends ComponentTarget, I> extends EventListener<E, T, C> {
+public class NestedEventListener<E extends Event, T extends ComponentTarget, I extends ComponentTarget, C> extends EventListener<E, T, I> {
 
-    protected final EventListener<E, ? extends C, I> innerListener;
-    protected final BiConsumer<I, E> innerConsumer;
-    protected final int cIdx;
+    protected final EventListener<E, ? extends I, C> innerListener;
+    protected final BiConsumer<C, E> innerConsumer;
+    protected final int cIdx, tIdxF, tIdxL;
 
-    public NestedEventListener(EventListener<E, ? extends C, I> innerListener, ComponentType<C, T> componentType) {
+    public NestedEventListener(EventListener<E, ? extends I, C> innerListener, ComponentType<I, T> componentType) {
         super(Objects.requireNonNull(innerListener).getEventType(), componentType, innerListener.getPriority());
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();
         this.cIdx = innerListener.getComponentType().getInternalIdx();
+        this.tIdxF = componentType.getTargetType().getSubtargetIdxFirst();
+        this.tIdxL = componentType.getTargetType().getSubtargetIdxLast();
     }
 
     @Override
-    public BiConsumer<C, E> getConsumer() {
-        return this::invoke;
+    public BiConsumer<I, E> getConsumer() {
+        if (innerListener.getComponentType().getTargetType().getTargetClass() == componentType.getComponentClass()) {
+            return this::invokeExact;
+        } else {
+            return this::invoke;
+        }
     }
 
-    private void invoke(C innerTarget, E event) {
+    private void invokeExact(I innerTarget, E event) {
         @SuppressWarnings("unchecked")
-        final I innerComponent = (I) innerTarget.getComponent(cIdx);
+        final C innerComponent = (C) innerTarget.getComponent(cIdx);
         if (innerComponent != null) {
             innerConsumer.accept(innerComponent, event);
         }
     }
 
-    public EventListener<E, ? extends C, I> getInnerListener() {
+    private void invoke(I innerTarget, E event) {
+        final var tIdx = innerTarget.getTargetType().getSubtargetIdxFirst();
+        if (tIdx >= tIdxF && tIdx <= tIdxL) {
+            @SuppressWarnings("unchecked")
+            final C innerComponent = (C) innerTarget.getComponent(cIdx);
+            if (innerComponent != null) {
+                innerConsumer.accept(innerComponent, event);
+            }
+        }
+    }
+
+    public EventListener<E, ? extends I, C> getInnerListener() {
         return innerListener;
     }
 

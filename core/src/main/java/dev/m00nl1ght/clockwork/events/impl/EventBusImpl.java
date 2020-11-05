@@ -64,7 +64,7 @@ public class EventBusImpl extends AbstractEventBus<ContextAwareEvent> {
                 .orElseThrow(() -> FormatUtil.illArgExc("No target registered for class []", targetClass));
         final var originComponent = origin.getTargetType().getOwnComponentType(targetClass)
                 .orElseThrow(() -> FormatUtil.illArgExc("No component registered for class [] in target []", targetClass, origin.getTargetType()));
-        return attachProfiler(new NestedEventDispatcherImpl<>(origin, originComponent, target));
+        return attachProfiler(new NestedEventDispatcherImpl<>(origin, target, originComponent));
     }
 
     @Override

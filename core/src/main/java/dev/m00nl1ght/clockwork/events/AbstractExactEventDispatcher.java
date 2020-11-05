@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.events;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.ArrayList;
@@ -92,8 +91,8 @@ public abstract class AbstractExactEventDispatcher<E extends Event, T extends Co
 
     protected void checkCompatibility(TargetType<?> otherType) {
         if (otherType != targetType) {
-            final var msg = "Cannot post event [] to different target []";
-            throw new IllegalArgumentException(FormatUtil.format(msg, this, otherType));
+            final var msg = "Target " + otherType + " is not compatible with event dispatcher " + this;
+            throw new IllegalArgumentException(msg);
         }
     }
 

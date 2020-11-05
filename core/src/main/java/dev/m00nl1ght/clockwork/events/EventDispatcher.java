@@ -59,7 +59,7 @@ public interface EventDispatcher<E extends Event, T extends ComponentTarget> ext
 
     Collection<TargetType<? extends T>> getCompatibleTargetTypes();
 
-    class Key {
+    final class Key {
 
         public final TypeRef<?> eventType;
         public final Class<?> targetClass;
