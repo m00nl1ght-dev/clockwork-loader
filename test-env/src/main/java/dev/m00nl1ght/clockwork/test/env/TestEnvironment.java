@@ -16,7 +16,7 @@ public class TestEnvironment {
     public static final File PLUGIN_PROTECTED_DIR_B = new File(ENV_DIR, "protected-data-b");
 
     public static TestEnvironment get(ClockworkCore core) {
-        final var testEnvComp = core.getComponentType(TestEnvironment.class, ClockworkCore.class).orElseThrow();
+        final var testEnvComp = core.getComponentTypeOrThrow(TestEnvironment.class, ClockworkCore.class);
         return Objects.requireNonNull(testEnvComp.get(core));
     }
 

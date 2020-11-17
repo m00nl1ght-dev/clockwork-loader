@@ -16,8 +16,8 @@ public class ComponentInterfaceTest extends ClockworkTest {
     @Override
     protected TestEnvironment buildEnvironment(ClockworkCore core) {
         final var env = super.buildEnvironment(core);
-        targetTypeA = core.getTargetType(TestTarget_A.class).orElseThrow();
-        targetTypeB = core.getTargetType(TestTarget_B.class).orElseThrow();
+        targetTypeA = core.getTargetTypeOrThrow(TestTarget_A.class);
+        targetTypeB = core.getTargetTypeOrThrow(TestTarget_B.class);
         return env;
     }
 

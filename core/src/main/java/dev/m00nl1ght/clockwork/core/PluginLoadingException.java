@@ -48,6 +48,14 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Could not find target [] for component []", component.getTargetId(), component.getId());
     }
 
+    public static PluginLoadingException componentMissingParent(ComponentDescriptor component) {
+        return generic("Could not find parent [] for component []", component.getParent(), component.getId());
+    }
+
+    public static PluginLoadingException targetMissingParent(TargetDescriptor target) {
+        return generic("Could not find parent [] for target []", target.getParent(), target.getId());
+    }
+
     public static PluginLoadingException pluginClassIllegal(Class<?> clazz, LoadedPlugin plugin) {
         final var expectedName = plugin.getMainModule().getName() != null ? plugin.getMainModule().getName() : "UNNAMED";
         final var actualName = clazz.getModule().getName() != null ? clazz.getModule().getName() : "UNNAMED";

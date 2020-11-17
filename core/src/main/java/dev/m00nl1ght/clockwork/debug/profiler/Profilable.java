@@ -1,18 +1,20 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Collections;
 import java.util.Set;
 
 public interface Profilable<G extends ProfilerGroup> {
 
-    default void attachProfiler(G profilerGroup) {
+    default void attachProfiler(@NotNull G profilerGroup) {
         if (!supportsProfilers())
             throw FormatUtil.unspExc(this.getClass().getSimpleName() + ": This implementation does not support profilers");
     }
 
-    default Set<? extends G> attachDefaultProfilers() {
+    @NotNull
+    default Set<@NotNull ? extends G> attachDefaultProfilers() {
         return Collections.emptySet();
     }
 

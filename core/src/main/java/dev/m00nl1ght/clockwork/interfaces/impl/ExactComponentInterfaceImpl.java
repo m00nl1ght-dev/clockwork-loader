@@ -18,7 +18,7 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends A
     protected int[] compIds = EMPTY_ARRAY;
 
     public ExactComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType) {
-        super(interfaceType, targetType);
+        this(interfaceType, targetType, true);
     }
 
     public ExactComponentInterfaceImpl(Class<I> interfaceClass, TargetType<T> targetType) {
@@ -26,7 +26,7 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends A
     }
 
     public ExactComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType, boolean autoCollect) {
-        this(interfaceType, targetType);
+        super(interfaceType, targetType);
         if (autoCollect) autoCollectComponents();
     }
 

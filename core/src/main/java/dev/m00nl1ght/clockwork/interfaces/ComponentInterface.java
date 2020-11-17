@@ -16,6 +16,8 @@ import java.util.stream.StreamSupport;
 
 public interface ComponentInterface<I, T extends ComponentTarget> {
 
+    // TODO rework concept and refactor impls
+
     void apply(T object, Consumer<? super I> consumer);
 
     Iterator<I> iterator(T object);

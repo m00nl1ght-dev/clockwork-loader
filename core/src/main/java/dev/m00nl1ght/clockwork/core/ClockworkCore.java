@@ -1,5 +1,7 @@
 package dev.m00nl1ght.clockwork.core;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.*;
 
 /**
@@ -22,25 +24,31 @@ public class ClockworkCore implements ComponentTarget {
     private volatile State state = State.POPULATING;
     private ComponentContainer<ClockworkCore> coreContainer;
 
-    ClockworkCore(ModuleLayer moduleLayer) {
+    protected ClockworkCore(@NotNull ModuleLayer moduleLayer) {
         this.moduleLayer = Objects.requireNonNull(moduleLayer);
     }
 
     /**
      * Returns an unmodifiable collection of all {@link LoadedPlugin}s.
      */
-    public Collection<LoadedPlugin> getLoadedPlugins() {
+    public @NotNull Collection<@NotNull LoadedPlugin> getLoadedPlugins() {
         return Collections.unmodifiableCollection(loadedPlugins.values());
     }
 
-    public Optional<LoadedPlugin> getLoadedPlugin(String pluginId) {
-        return Optional.ofNullable(loadedPlugins.get(pluginId));
+    public @NotNull Optional<LoadedPlugin> getLoadedPlugin(@NotNull String pluginId) {
+        return Optional.ofNullable(loadedPlugins.get(Objects.requireNonNull(pluginId)));
+    }
+
+    public @NotNull LoadedPlugin getLoadedPluginOrThrow(@NotNull String pluginId) {
+        final var plugin = loadedPlugins.get(Objects.requireNonNull(pluginId));
+        if (plugin == null) throw new RuntimeException("Missing plugin for id: " + pluginId);
+        return plugin;
     }
 
     /**
      * Returns an unmodifiable collection of all loaded {@link TargetType}s.
      */
-    public Collection<RegisteredTargetType<?>> getLoadedTargetTypes() {
+    public @NotNull Collection<@NotNull RegisteredTargetType<?>> getLoadedTargetTypes() {
         return Collections.unmodifiableCollection(loadedTargets.values());
     }
 
@@ -52,8 +60,8 @@ public class ClockworkCore implements ComponentTarget {
      * For example, this includes the main component of each plugin.
      */
     @Override
-    public RegisteredTargetType<ClockworkCore> getTargetType() {
-        return getTargetType(ClockworkCore.class).orElseThrow();
+    public @NotNull TargetType<ClockworkCore> getTargetType() {
+        return coreContainer != null ? coreContainer.getTargetType() : getTargetTypeOrThrow(ClockworkCore.class);
     }
 
     /**
@@ -63,10 +71,21 @@ public class ClockworkCore implements ComponentTarget {
      * @param targetClass the class corresponding to the desired TargetType
      */
     @SuppressWarnings("unchecked")
-    public <T extends ComponentTarget> Optional<RegisteredTargetType<T>> getTargetType(Class<T> targetClass) {
-        final var type = classToTargetMap.get(targetClass);
+    public <T extends ComponentTarget> @NotNull Optional<RegisteredTargetType<T>> getTargetType(
+            @NotNull Class<T> targetClass) {
+
+        final var type = classToTargetMap.get(Objects.requireNonNull(targetClass));
         if (type == null) return Optional.empty();
         return Optional.of((RegisteredTargetType<T>) type);
+    }
+
+    @SuppressWarnings("unchecked")
+    public <T extends ComponentTarget> @NotNull RegisteredTargetType<T> getTargetTypeOrThrow(
+            @NotNull Class<T> targetClass) {
+
+        final var type = classToTargetMap.get(Objects.requireNonNull(targetClass));
+        if (type == null) throw new RuntimeException("Missing target type for class: " + targetClass);
+        return (RegisteredTargetType<T>) type;
     }
 
     /**
@@ -75,14 +94,20 @@ public class ClockworkCore implements ComponentTarget {
      *
      * @param targetId the id of the desired TargetType
      */
-    public Optional<RegisteredTargetType<?>> getTargetType(String targetId) {
-        return Optional.ofNullable(loadedTargets.get(targetId));
+    public @NotNull Optional<RegisteredTargetType<?>> getTargetType(@NotNull String targetId) {
+        return Optional.ofNullable(loadedTargets.get(Objects.requireNonNull(targetId)));
+    }
+
+    public @NotNull RegisteredTargetType<?> getTargetTypeOrThrow(@NotNull String targetId) {
+        final var target = loadedTargets.get(Objects.requireNonNull(targetId));
+        if (target == null) throw new RuntimeException("Missing target type for id: " + targetId);
+        return target;
     }
 
     /**
      * Returns an unmodifiable collection of all loaded {@link ComponentType}s.
      */
-    public Collection<RegisteredComponentType<?, ?>> getLoadedComponentTypes() {
+    public @NotNull Collection<@NotNull RegisteredComponentType<?, ?>> getLoadedComponentTypes() {
         return Collections.unmodifiableCollection(loadedComponents.values());
     }
 
@@ -94,11 +119,31 @@ public class ClockworkCore implements ComponentTarget {
      * @param targetClass the class corresponding to the target of the desired ComponentType
      */
     @SuppressWarnings("unchecked")
-    public <C, T extends ComponentTarget> Optional<RegisteredComponentType<C, T>> getComponentType(Class<C> componentClass, Class<T> targetClass) {
+    public <C, T extends ComponentTarget> @NotNull Optional<RegisteredComponentType<C, T>> getComponentType(
+            @NotNull Class<C> componentClass,
+            @NotNull Class<T> targetClass) {
+
         final var type = classToComponentMap.get(componentClass);
-        if (type == null) return Optional.empty();
-        if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
-        return Optional.of((RegisteredComponentType<C, T>) type);
+        if (type == null || type.getTargetType().getTargetClass() != targetClass) {
+            return Optional.empty();
+        } else {
+            return Optional.of((RegisteredComponentType<C, T>) type);
+        }
+    }
+
+    @SuppressWarnings("unchecked")
+    public <C, T extends ComponentTarget> @NotNull RegisteredComponentType<C, T> getComponentTypeOrThrow(
+            @NotNull Class<C> componentClass,
+            @NotNull Class<T> targetClass) {
+
+        final var type = getComponentTypeOrThrow(componentClass);
+        final var actual = type.getTargetType().getTargetClass();
+        if (actual != targetClass) {
+            final var msg = "Component type " + type + " has target " + actual + " but expected " + targetClass;
+            throw new RuntimeException(msg);
+        } else {
+            return (RegisteredComponentType<C, T>) type;
+        }
     }
 
     /**
@@ -108,25 +153,21 @@ public class ClockworkCore implements ComponentTarget {
      * @param componentClass the class corresponding to the desired ComponentType
      */
     @SuppressWarnings("unchecked")
-    public <C> Optional<RegisteredComponentType<C, ?>> getComponentType(Class<C> componentClass) {
+    public <C> @NotNull Optional<RegisteredComponentType<C, ?>> getComponentType(
+            @NotNull Class<C> componentClass) {
+
         final var type = classToComponentMap.get(componentClass);
         if (type == null) return Optional.empty();
         return Optional.of((RegisteredComponentType<C, ?>) type);
     }
 
-    /**
-     * Returns the {@link ComponentType} with the given id and target classes, wrapped in an {@link Optional}.
-     * If no such component is registered to this ClockworkCore, this method will return an empty optional.
-     *
-     * @param componentId the id of the desired ComponentType
-     * @param targetClass the class corresponding to the target of the desired ComponentType
-     */
     @SuppressWarnings("unchecked")
-    public <T extends ComponentTarget> Optional<RegisteredComponentType<?, T>> getComponentType(String componentId, Class<T> targetClass) {
-        final var type = loadedComponents.get(componentId);
-        if (type == null) return Optional.empty();
-        if (type.getTargetType().getTargetClass() != targetClass) return Optional.empty();
-        return Optional.of((RegisteredComponentType<?, T>) type);
+    public <C> @NotNull RegisteredComponentType<C, ?> getComponentTypeOrThrow(
+            @NotNull Class<C> componentClass) {
+
+        final var type = classToComponentMap.get(componentClass);
+        if (type == null) throw new RuntimeException("Missing component type for class: " + componentClass);
+        return (RegisteredComponentType<C, ?>) type;
     }
 
     /**
@@ -135,8 +176,14 @@ public class ClockworkCore implements ComponentTarget {
      *
      * @param componentId the id of the desired ComponentType
      */
-    public Optional<RegisteredComponentType<?, ?>> getComponentType(String componentId) {
+    public @NotNull Optional<RegisteredComponentType<?, ?>> getComponentType(@NotNull String componentId) {
         return Optional.ofNullable(loadedComponents.get(componentId));
+    }
+
+    public @NotNull RegisteredComponentType<?, ?> getComponentTypeOrThrow(@NotNull String componentId) {
+        final var component = loadedComponents.get(componentId);
+        if (component == null) throw new RuntimeException("Missing component type for id: " + componentId);
+        return component;
     }
 
     @Override
@@ -149,14 +196,14 @@ public class ClockworkCore implements ComponentTarget {
         }
     }
 
-    public ModuleLayer getModuleLayer() {
+    public @NotNull ModuleLayer getModuleLayer() {
         return moduleLayer;
     }
 
     /**
      * Returns the internal state of this ClockworkCore.
      */
-    public State getState() {
+    public @NotNull State getState() {
         return state;
     }
 
@@ -183,27 +230,27 @@ public class ClockworkCore implements ComponentTarget {
          */
         INITIALISED;
 
-        public void require(State state) {
+        public void require(@NotNull State state) {
             if (this != state)
                 throw new IllegalStateException("Required state [" + state + "], but was [" + this + "]");
         }
 
-        public void requireAfter(State state) {
+        public void requireAfter(@NotNull State state) {
             if (this.ordinal() <= state.ordinal())
                 throw new IllegalStateException("Required state after [" + state + "], but was [" + this + "]");
         }
 
-        public void requireBefore(State state) {
+        public void requireBefore(@NotNull State state) {
             if (this.ordinal() >= state.ordinal())
                 throw new IllegalStateException("Required state before [" + state + "], but was [" + this + "]");
         }
 
-        public void requireOrAfter(State state) {
+        public void requireOrAfter(@NotNull State state) {
             if (this.ordinal() < state.ordinal())
                 throw new IllegalStateException("Required state [" + state + "] or after, but was [" + this + "]");
         }
 
-        public void requireOrBefore(State state) {
+        public void requireOrBefore(@NotNull State state) {
             if (this.ordinal() > state.ordinal())
                 throw new IllegalStateException("Required state [" + state + "] or before, but was [" + this + "]");
         }
@@ -212,37 +259,25 @@ public class ClockworkCore implements ComponentTarget {
 
     // ### Internal ###
 
-    void setState(State state) {
+    void setState(@NotNull State state) {
         Objects.requireNonNull(state);
         state.requireOrAfter(this.state);
         this.state = state;
     }
 
-    void setCoreContainer(ComponentContainer<ClockworkCore> container) {
+    void setCoreContainer(@NotNull ComponentContainer<ClockworkCore> container) {
         Objects.requireNonNull(container);
         if (this.coreContainer != null) throw new IllegalStateException();
         this.coreContainer = container;
     }
 
-    Optional<RegisteredTargetType<?>> getTargetTypeUncasted(Class<?> targetClass) {
-        final var type = classToTargetMap.get(targetClass);
-        if (type == null) return Optional.empty();
-        return Optional.of(type);
-    }
-
-    Optional<RegisteredComponentType<?, ?>> getComponentTypeUncasted(Class<?> componentClass) {
-        final var type = classToComponentMap.get(componentClass);
-        if (type == null) return Optional.empty();
-        return Optional.of(type);
-    }
-
-    void addLoadedPlugin(LoadedPlugin loadedPlugin) {
+    void addLoadedPlugin(@NotNull LoadedPlugin loadedPlugin) {
         state.require(State.POPULATING);
         final var existing = loadedPlugins.putIfAbsent(loadedPlugin.getId(), loadedPlugin);
         if (existing != null) throw PluginLoadingException.pluginDuplicate(loadedPlugin.getDescriptor(), existing.getDescriptor());
     }
 
-    void addLoadedTargetType(RegisteredTargetType<?> targetType) {
+    void addLoadedTargetType(@NotNull RegisteredTargetType<?> targetType) {
         state.require(State.POPULATING);
         final var existingByName = loadedTargets.putIfAbsent(targetType.getId(), targetType);
         if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(targetType.getDescriptor(), existingByName.getId());
@@ -250,7 +285,7 @@ public class ClockworkCore implements ComponentTarget {
         if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(targetType.getDescriptor(), existingByClass.getId());
     }
 
-    void addLoadedComponentType(RegisteredComponentType<?, ?> componentType) {
+    void addLoadedComponentType(@NotNull RegisteredComponentType<?, ?> componentType) {
         state.require(State.POPULATING);
         final var existingByName = loadedComponents.putIfAbsent(componentType.getId(), componentType);
         if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());

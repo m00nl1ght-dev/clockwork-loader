@@ -3,7 +3,8 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.events.EventDispatcher;
-import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
+import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
+import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.security.CWLSecurityExtension;
 import dev.m00nl1ght.clockwork.extension.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
@@ -21,16 +22,16 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 public class PermissionsTest extends ClockworkTest {
 
-    private ExtEventBusImpl eventBus;
+    private EventBusImpl eventBus;
     private EventDispatcher<PermissionTestEvent, ClockworkCore> dispatcher;
 
     @Override
     protected void setupComplete() {
         CWLSecurityExtension.install(true);
         CWLSecurityExtension.registerContext(core(), buildSecurityConfig());
-        eventBus = new ExtEventBusImpl(core());
+        eventBus = new EventBusImpl(core());
+        CWLAnnotationsExtension.applyToEventBus(eventBus);
         dispatcher = eventBus.getEventDispatcher(PermissionTestEvent.class);
-        eventBus.bind();
     }
 
     private SecurityConfig buildSecurityConfig() {

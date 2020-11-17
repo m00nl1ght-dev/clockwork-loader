@@ -35,8 +35,14 @@ public final class LoadedPlugin {
         return clockworkCore;
     }
 
+    @SuppressWarnings("unchecked")
     public ComponentType<?, ClockworkCore> getMainComponent() {
-        return clockworkCore.getComponentType(getId(), ClockworkCore.class).orElseThrow();
+        final var component = clockworkCore.getComponentTypeOrThrow(getId());
+        if (component.getTargetType().getTargetClass() != ClockworkCore.class) {
+            throw new RuntimeException("Main component invalid: " + component);
+        } else {
+            return (ComponentType<?, ClockworkCore>) component;
+        }
     }
 
     public Collection<ComponentType<?, ?>> getComponentTypes() {

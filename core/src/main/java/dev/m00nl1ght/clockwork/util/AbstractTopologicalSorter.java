@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.internal;
+package dev.m00nl1ght.clockwork.util;
 
 import java.util.HashMap;
 import java.util.LinkedList;

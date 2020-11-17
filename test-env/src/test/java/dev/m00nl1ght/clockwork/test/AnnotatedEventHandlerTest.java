@@ -1,16 +1,16 @@
 package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
-import dev.m00nl1ght.clockwork.extension.annotations.ExtEventBusImpl;
+import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 
 public class AnnotatedEventHandlerTest extends AbstractEventHandlerTest {
 
-    private ExtEventBusImpl eventBus;
+    private EventBusImpl eventBus;
 
     @Override
     protected void setupComplete() {
-        eventBus = new ExtEventBusImpl(core());
-        eventBus.bind();
+        eventBus = new EventBusImpl(core());
+        CWLAnnotationsExtension.applyToEventBus(eventBus);
         super.setupComplete();
     }
 

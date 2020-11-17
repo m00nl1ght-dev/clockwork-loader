@@ -5,7 +5,7 @@ CWL-Plugin-Display-Name: Clockwork Plugin Loader
 CWL-Plugin-Description: Universal plugin framework for Java
 CWL-Plugin-Authors: m00nl1ght
 
-Name: dev/m00nl1ght/clockwork/core/plugin/CWLPlugin.class
+Name: dev/m00nl1ght/clockwork/core/CWLPlugin.class
 CWL-Component-Id: clockwork
 
 Name: dev/m00nl1ght/clockwork/core/ClockworkCore.class

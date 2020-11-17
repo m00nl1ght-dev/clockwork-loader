@@ -1,53 +1,75 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
+import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.events.listener.SimpleEventListener;
+import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.LambdaMetafactory;
-import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodHandles.Lookup;
 import java.lang.invoke.MethodType;
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
+import java.util.Objects;
 import java.util.function.BiConsumer;
 
-public final class EventHandlerMethod<E extends Event, C> {
+public final class EventHandlerMethod<E extends Event, T extends ComponentTarget, C> extends EventListener<E, T, C> {
 
     private static final MethodType MHBC_GENERIC_TYPE = MethodType.methodType(Void.TYPE, Object.class, Object.class);
     private static final MethodType MHBC_INVOKED_TYPE = MethodType.methodType(BiConsumer.class);
 
     private final Method method;
-    private final Class<C> componentClass;
-    private final TypeRef<E> eventClassType;
-    private final EventListenerPriority priority;
-    private final MethodHandles.Lookup lookup;
+    private final Lookup lookup;
 
     private BiConsumer<C, E> cachedLambda;
 
-    public static EventHandlerMethod<?, ?> build(MethodHandles.Lookup lookup, Class<?> handlerClass, Method method, EventListenerPriority priority) {
-        if (method.getDeclaringClass() != handlerClass) throw new IllegalArgumentException();
+    public static @Nullable EventHandlerMethod<?, ?, ?> build(
+            @NotNull ClockworkCore core,
+            @NotNull Method method,
+            @NotNull Lookup lookup,
+            @NotNull EventListenerPriority priority) {
+
+        final var handlerClass = method.getDeclaringClass();
         final var params = method.getGenericParameterTypes();
         if (Modifier.isStatic(method.getModifiers())) {
             if (params.length != 2) return null;
             final var eventType = eventTypeRef(params[1]);
             if (!(params[0] instanceof Class) || eventType == null) return null;
-            return new EventHandlerMethod<>(lookup, method, (Class<?>) params[0], eventType, priority);
+            final var component = findComponentType(core, (Class<?>) params[0]);
+            if (component == null) return null;
+            return new EventHandlerMethod<>(eventType, component, priority, lookup, method);
         } else {
             if (params.length != 1) return null;
             final var eventType = eventTypeRef(params[0]);
             if (eventType == null) return null;
-            return new EventHandlerMethod<>(lookup, method, handlerClass, eventType, priority);
+            final var component = findComponentType(core, handlerClass);
+            if (component == null) return null;
+            return new EventHandlerMethod<>(eventType, component, priority, lookup, method);
         }
     }
 
-    private static TypeRef<? extends Event> eventTypeRef(Type paramType) {
+    private static @Nullable ComponentType<?, ?> findComponentType(
+            @NotNull ClockworkCore core,
+            @NotNull Class<?> forClass) {
+
+        final var regComp = core.getComponentType(forClass);
+        if (regComp.isPresent()) return regComp.get();
+        if (!ComponentTarget.class.isAssignableFrom(forClass)) return null;
+        @SuppressWarnings("unchecked")
+        final var asTarget = core.getTargetType((Class<? extends ComponentTarget>) forClass);
+        return asTarget.map(TargetType::getIdentityComponentType).orElse(null);
+    }
+
+    private static @Nullable TypeRef<? extends Event> eventTypeRef(@NotNull Type paramType) {
         if (paramType instanceof Class) {
             final var eventClass = (Class<?>) paramType;
             if (!Event.class.isAssignableFrom(eventClass)) return null;
@@ -65,20 +87,19 @@ public final class EventHandlerMethod<E extends Event, C> {
         }
     }
 
-    private EventHandlerMethod(MethodHandles.Lookup lookup, Method method, Class<C> componentClass, TypeRef<E> eventClassType, EventListenerPriority priority) {
+    private EventHandlerMethod(
+            @NotNull TypeRef<E> eventType,
+            @NotNull ComponentType<C, T> componentType,
+            @NotNull EventListenerPriority priority,
+            @NotNull Lookup lookup,
+            @NotNull Method method) {
+
+        super(eventType, componentType, priority);
         this.lookup = lookup;
         this.method = method;
-        this.componentClass = componentClass;
-        this.eventClassType = eventClassType;
-        this.priority = priority;
     }
 
-    public <T extends ComponentTarget> EventListener<E, T, C> buildListener(ComponentType<C, T> componentType) {
-        if (cachedLambda == null) cachedLambda = buildConsumer();
-        return new SimpleEventListener<>(eventClassType, componentType, priority, cachedLambda);
-    }
-
-    private BiConsumer<C, E> buildConsumer() {
+    private @NotNull BiConsumer<C, E> buildConsumer() {
         // TODO this breaks in JVM 1.15+ because of new hidden classes mechanics
         try {
             final var handle = lookup.unreflect(method);
@@ -92,25 +113,33 @@ public final class EventHandlerMethod<E extends Event, C> {
         }
     }
 
-    public Method getMethod() {
+    public @NotNull Method getMethod() {
         return method;
     }
 
-    public Class<C> getComponentClass() {
-        return componentClass;
-    }
-
-    public TypeRef<E> getEventClassType() {
-        return eventClassType;
-    }
-
-    public EventListenerPriority getPriority() {
-        return priority;
+    @Override
+    public @NotNull BiConsumer<C, E> getConsumer() {
+        if (cachedLambda == null) cachedLambda = buildConsumer();
+        return cachedLambda;
     }
 
     @Override
     public String toString() {
-        return componentClass.getSimpleName() + "#" + method.getName();
+        return componentType + "#" + method.getName();
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof EventHandlerMethod)) return false;
+        if (!super.equals(o)) return false;
+        EventHandlerMethod<?, ?, ?> that = (EventHandlerMethod<?, ?, ?>) o;
+        return method.equals(that.method);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(super.hashCode(), method);
     }
 
 }

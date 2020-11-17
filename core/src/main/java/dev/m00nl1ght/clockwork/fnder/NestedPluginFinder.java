@@ -79,7 +79,8 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
 
     protected PluginFinder innerFinder(LoadingContext context) {
         if (innerFinder != null) return innerFinder;
-        innerFinder = context.getFinderType(innerFinderConfig.getType()).build(innerFinderConfig);
+        innerFinder = context.getExtensionContext().getFinderTypeRegistry()
+                .get(innerFinderConfig.getType()).build(innerFinderConfig);
         return innerFinder;
     }
 

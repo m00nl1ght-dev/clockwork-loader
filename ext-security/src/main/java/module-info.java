@@ -11,4 +11,6 @@ module dev.m00nl1ght.clockwork.extension.security {
     requires dev.m00nl1ght.clockwork;
     requires org.apache.logging.log4j;
 
+    requires static org.jetbrains.annotations;
+
 }

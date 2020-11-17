@@ -9,6 +9,8 @@ import java.util.function.BiConsumer;
 
 public class NestedEventListener<E extends Event, T extends ComponentTarget, I extends ComponentTarget, C> extends EventListener<E, T, I> {
 
+    // TODO add support for this in EventBusImpl
+
     protected final EventListener<E, ? extends I, C> innerListener;
     protected final BiConsumer<C, E> innerConsumer;
     protected final int cIdx, tIdxF, tIdxL;

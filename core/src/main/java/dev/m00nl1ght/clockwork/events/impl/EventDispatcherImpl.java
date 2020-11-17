@@ -1,68 +1,96 @@
 package dev.m00nl1ght.clockwork.events.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
-import dev.m00nl1ght.clockwork.events.AbstractEventDispatcher;
+import dev.m00nl1ght.clockwork.events.CompiledListeners;
+import dev.m00nl1ght.clockwork.events.Event;
+import dev.m00nl1ght.clockwork.events.EventDispatcher;
+import dev.m00nl1ght.clockwork.events.EventListenerCollection;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Objects;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
-public class EventDispatcherImpl<E extends ContextAwareEvent, T extends ComponentTarget> extends AbstractEventDispatcher<E, T> {
+public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
 
-    protected final ListenerList[] groupedListeners;
+    protected final EventListenerCollection.Observer observer = this::onListenersChanged;
+
+    protected final TypeRef<E> eventType;
+    protected final TargetType<T> targetType;
+    protected final int idxOffset;
+
+    protected final EventListenerCollection[] listenerCollections;
+    protected final CompiledListeners[] compiledListeners;
     protected EventDispatcherProfilerGroup[] profilerGroups;
 
     public EventDispatcherImpl(TypeRef<E> eventType, TargetType<T> targetType) {
-        super(eventType, targetType);
+        this.eventType = Objects.requireNonNull(eventType);
+        this.targetType = Objects.requireNonNull(targetType);
+        targetType.requireInitialised();
+        this.idxOffset = targetType.getSubtargetIdxFirst();
         final int cnt = targetType.getSubtargetIdxLast() - idxOffset + 1;
-        this.groupedListeners = new ListenerList[cnt];
-        Arrays.fill(groupedListeners, ListenerList.empty());
+        this.listenerCollections = new EventListenerCollection[cnt];
+        this.compiledListeners = new CompiledListeners[cnt];
     }
 
     public EventDispatcherImpl(Class<E> eventClass, TargetType<T> targetType) {
         this(TypeRef.of(eventClass), targetType);
     }
 
-    @Override
-    protected <L extends T> void onListenersChanged(TargetType<L> targetType) {
-        final List<EventListener<E, ? super L, ?>> listeners = getEffectiveListeners(targetType);
+    protected CompiledListeners compileListeners(TargetType<?> targetType) {
         final int idx = targetType.getSubtargetIdxFirst() - idxOffset;
+        final var profiler = profilerGroups == null ? null : profilerGroups[idx];
+        final var inherited = targetType == this.targetType ? null : getCompiledListeners(targetType.getParent());
         @SuppressWarnings("unchecked")
-        final var profiler = (EventDispatcherProfilerGroup<E, L>) (profilerGroups == null ? null : profilerGroups[idx]);
-        groupedListeners[idx] = listeners.isEmpty() ? ListenerList.empty() : new ListenerList<>(listeners, profiler);
+        final var listeners = CompiledListeners.build(inherited, listenerCollections[idx], profiler);
+        compiledListeners[idx] = listeners;
+        return listeners;
+    }
+
+    protected CompiledListeners getCompiledListeners(TargetType<?> targetType) {
+        final var existing = compiledListeners[targetType.getSubtargetIdxFirst() - idxOffset];
+        if (existing == null) return compileListeners(targetType);
+        return existing;
+    }
+
+    private void onListenersChanged(EventListenerCollection<?, ?> collection) {
+        compiledListeners[collection.getTargetType().getSubtargetIdxFirst() - idxOffset] = null;
+    }
+
+    @Override
+    public <S extends T> List<EventListener<E, ? super S, ?>> getListeners(TargetType<S> target) {
+        checkCompatibility(target);
+        @SuppressWarnings("unchecked")
+        final var casted = (EventListener<E, ? super S, ?>[]) getCompiledListeners(target).listeners;
+        return List.of(casted);
     }
 
     @Override
     @SuppressWarnings("unchecked")
+    public <S extends T> EventListenerCollection<E, S> getListenerCollection(TargetType<S> target) {
+        checkCompatibility(target);
+        return listenerCollections[target.getSubtargetIdxFirst() - idxOffset];
+    }
+
+    @Override
+    public <S extends T> void setListenerCollection(EventListenerCollection<E, S> collection) {
+        checkCompatibility(collection.getTargetType());
+        final var idx = collection.getTargetType().getSubtargetIdxFirst() - idxOffset;
+        final var old = listenerCollections[idx];
+        if (old != null) old.removeObserver(observer);
+        listenerCollections[idx] = collection;
+        collection.addObserver(observer);
+    }
+
+    @Override
     public E post(T object, E event) {
         final TargetType<?> target = object.getTargetType();
-        if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
-            final ListenerList<E, ? super T> group = groupedListeners[target.getSubtargetIdxFirst() - idxOffset];
-            if (event.currentContext != null) throw new IllegalStateException();
-            event.currentContext = group;
-            for (int i = 0; i < group.consumers.length; i++) {
-                final Object component = object.getComponent(group.cIdxs[i]);
-                try {
-                    if (component != null) {
-                        event.currentListenerIdx = i;
-                        group.consumers[i].accept(component, event);
-                    }
-                } catch (ExceptionInPlugin e) {
-                    e.addComponentToStack(group.listeners.get(i).getComponentType());
-                    throw e;
-                } catch (Throwable e) {
-                    throw ExceptionInPlugin.inEventListener(group.listeners.get(i), event, target, e);
-                }
-            }
-            event.currentContext = null;
+            var listeners = compiledListeners[target.getSubtargetIdxFirst() - idxOffset];
+            if (listeners == null) listeners = compileListeners(target);
+            event.post(object, listeners);
             return event;
         } catch (Throwable t) {
             checkCompatibility(target);
@@ -71,13 +99,36 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
     }
 
     @Override
+    public final TypeRef<E> getEventType() {
+        return eventType;
+    }
+
+    @Override
+    public final TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public Collection<TargetType<? extends T>> getCompatibleTargetTypes() {
+        return targetType.getAllSubtargets();
+    }
+
+    protected void checkCompatibility(TargetType<?> otherTarget) {
+        if (!otherTarget.isEquivalentTo(targetType)) {
+            final var msg = "Target " + otherTarget + " is not compatible with event dispatcher " + this;
+            throw new IllegalArgumentException(msg);
+        }
+    }
+
+    @Override
     public synchronized void attachProfiler(EventDispatcherProfilerGroup<E, ? extends T> profilerGroup) {
         Objects.requireNonNull(profilerGroup);
-        if (this.profilerGroups == null) this.profilerGroups = new EventDispatcherProfilerGroup[groupedListeners.length];
+        if (this.profilerGroups == null) this.profilerGroups = new EventDispatcherProfilerGroup[compiledListeners.length];
         if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
         checkCompatibility(profilerGroup.getTargetType());
-        this.profilerGroups[profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset] = profilerGroup;
-        onListenersChanged(profilerGroup.getTargetType());
+        final var idx = profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset;
+        this.profilerGroups[idx] = profilerGroup;
+        this.compiledListeners[idx] = null;
     }
 
     @Override
@@ -93,14 +144,17 @@ public class EventDispatcherImpl<E extends ContextAwareEvent, T extends Componen
     public synchronized void detachAllProfilers() {
         if (this.profilerGroups == null) return;
         this.profilerGroups = null;
-        for (final var type : targetType.getAllSubtargets()) {
-            onListenersChanged(type);
-        }
+        Arrays.fill(compiledListeners, null);
     }
 
     @Override
     public boolean supportsProfilers() {
         return true;
+    }
+
+    @Override
+    public String toString() {
+        return eventType + "@" + targetType;
     }
 
 }

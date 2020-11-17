@@ -23,7 +23,7 @@ public class EventDispatcherProfilerGroup<E extends Event, T extends ComponentTa
     }
 
     public EventDispatcherProfilerGroup(EventDispatcher<E, ? super T> eventDispatcher, TargetType<T> targetType, int bufferSize) {
-        super(eventDispatcher.getEventClassType() + "@" + targetType.toString());
+        super(eventDispatcher.getEventType() + "@" + targetType.toString());
         this.eventDispatcher = eventDispatcher;
         this.targetType = targetType;
         this.bufferSize = bufferSize;

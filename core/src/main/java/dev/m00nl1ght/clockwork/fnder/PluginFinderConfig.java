@@ -69,7 +69,7 @@ public final class PluginFinderConfig {
     }
 
     public static PluginFinderConfig from(Config data) {
-        return new PluginFinderConfig(data);
+        return new PluginFinderConfig(Objects.requireNonNull(data));
     }
 
     public static Builder builder(String name, String type) {

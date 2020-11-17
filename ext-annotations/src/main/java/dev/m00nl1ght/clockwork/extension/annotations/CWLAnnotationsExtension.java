@@ -1,105 +1,53 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
-import dev.m00nl1ght.clockwork.core.plugin.CWLPlugin;
-import dev.m00nl1ght.clockwork.core.plugin.CollectClockworkExtensionsEvent;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventDispatcher;
+import dev.m00nl1ght.clockwork.core.ClockworkExtension;
+import dev.m00nl1ght.clockwork.core.ExtensionContext;
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.lang.invoke.MethodHandles;
-import java.util.List;
+import java.util.Objects;
 
-public final class CWLAnnotationsExtension {
+public final class CWLAnnotationsExtension implements ClockworkExtension {
 
     static final Logger LOGGER = LogManager.getLogger("Clockwork-Ext-Annotations");
-    static final MethodHandles.Lookup LOCAL_LOOKUP = MethodHandles.lookup();
 
     private final ClockworkCore core;
+    private EventHandlers collectedHandlers;
 
-    private EventHandlerRegistry collectedHandlers;
-
-    private CWLAnnotationsExtension(ClockworkCore core) {
-        this.core = core;
-        this.attachEventListener();
+    public CWLAnnotationsExtension(@NotNull ClockworkCore core) {
+        this.core = Objects.requireNonNull(core);
     }
 
-    public static void buildListeners(EventBusImpl eventBus) {
-        buildListeners(eventBus.getCore(), eventBus.getEventDispatchers());
-    }
-
-    public static void buildListeners(EventDispatcher<?, ?> eventDispatcher) {
-        if (!(eventDispatcher.getTargetType() instanceof RegisteredTargetType)) return;
-        final var target = (RegisteredTargetType) eventDispatcher.getTargetType();
-        if (target == null) throw new IllegalArgumentException("EventType is not registered");
-        buildListeners(target.getClockworkCore(), List.of(eventDispatcher));
-    }
-
-    public static void buildListeners(ClockworkCore core, Iterable<? extends EventDispatcher<?, ?>> eventTypes) {
-        final var ehc = getInstance(core);
-        eventTypes.forEach(e -> buildListeners(ehc.collectedHandlers, e));
-    }
-
-    public static <E extends Event, T extends ComponentTarget>
-    void buildListeners(EventHandlerRegistry collectedHandlers, EventDispatcher<E, T> eventDispatcher) {
-        final var methods = collectedHandlers.getForEventType(eventDispatcher.getEventClassType());
-        if (methods != null) for (final var method : methods) buildListener(eventDispatcher, method);
-    }
-
-    // ### Internal ###
-
-    private static <E extends Event, T extends ComponentTarget, C>
-    void buildListener(EventDispatcher<E, T> eventDispatcher, EventHandlerMethod<E, C> method) {
-        boolean found = false;
-        for (final var targetType : eventDispatcher.getCompatibleTargetTypes()) {
-            final var component = targetType.getComponentType(method.getComponentClass());
-            if (component.isPresent()) {
-                @SuppressWarnings("unchecked")
-                final var comp = (ComponentType<C, ? extends T>) component.get();
-                if (comp.getTargetType() == targetType) {
-                    eventDispatcher.addListener(method.buildListener(comp));
-                    found = true;
-                }
+    public static void applyToEventBus(@NotNull EventBusImpl eventBus) {
+        for (final var handler : getInstance(eventBus.getCore()).collectedHandlers.getAll()) {
+            if (!eventBus.addListener(handler)) {
+                LOGGER.warn("Failed to add handler to event bus: " + handler);
             }
         }
-        if (!found) {
-            LOGGER.warn("Event handler {} is not compatible with dispatcher {}", method, eventDispatcher);
-        }
     }
 
-    public static CWLAnnotationsExtension getInstance(ClockworkCore core) {
-        core.getState().requireOrAfter(ClockworkCore.State.INITIALISED);
-        final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class);
-        if (componentType.isEmpty()) throw new IllegalStateException("component type does not exist");
-        final var ehc = componentType.get().get(core);
+    @Override
+    public void registerFeatures(@NotNull ExtensionContext extensionContext) {
+        EventHandlerAnnotationProcessor.registerTo(extensionContext.getProcessorRegistry());
+    }
+
+    public static @NotNull CWLAnnotationsExtension getInstance(@NotNull ClockworkCore core) {
+        Objects.requireNonNull(core).getState().requireOrAfter(ClockworkCore.State.INITIALISED);
+        final var componentType = core.getComponentTypeOrThrow(CWLAnnotationsExtension.class, ClockworkCore.class);
+        final var ehc = componentType.get(core);
         if (ehc == null) throw new IllegalStateException("component missing");
         return ehc;
     }
 
-    private void attachEventListener() {
-        final var cwlPluginComponent = core.getComponentType(CWLPlugin.class, ClockworkCore.class).orElseThrow();
-        final var extComponent = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class).orElseThrow();
-        final var cwlPlugin = cwlPluginComponent.get(core);
-        if (cwlPlugin == null) throw FormatUtil.illStateExc("Internal core component missing");
-        cwlPlugin.getCollectExtensionsEventType()
-                .addListener(extComponent, CWLAnnotationsExtension::onCollectExtensionsEvent);
-    }
-
-    private void onCollectExtensionsEvent(CollectClockworkExtensionsEvent event) {
-        EventHandlerAnnotationProcessor.registerTo(event.getProcessorRegistry());
-    }
-
-    EventHandlerRegistry getCollectedHandlers() {
+    public @Nullable EventHandlers getCollectedHandlers() {
         return collectedHandlers;
     }
 
-    void setCollectedHandlers(EventHandlerRegistry collectedHandlers) {
+    public void setCollectedHandlers(@Nullable EventHandlers collectedHandlers) {
         this.collectedHandlers = collectedHandlers;
     }
 

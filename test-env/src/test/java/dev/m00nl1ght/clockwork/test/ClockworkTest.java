@@ -27,7 +27,7 @@ public abstract class ClockworkTest {
         final var pluginLayerLoader = ClockworkLoader.build(bootLayerCore, pluginLayerConfig);
         pluginLayerLoader.collectExtensionsFromParent();
         this.clockworkCore = pluginLayerLoader.load();
-        this.envComponentType = clockworkCore.getComponentType(TestEnvironment.class, ClockworkCore.class).orElseThrow();
+        this.envComponentType = clockworkCore.getComponentTypeOrThrow(TestEnvironment.class, ClockworkCore.class);
         this.envComponentType.setFactory(this::buildEnvironment);
         pluginLayerLoader.init();
         this.setupComplete();

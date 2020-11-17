@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.config;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.jar.Attributes;
 import java.util.stream.Collectors;
@@ -15,8 +16,8 @@ public class AttributesWrapper implements Config {
     }
 
     public AttributesWrapper(Attributes attributes, String keyPrefix) {
-        this.attributes = attributes;
-        this.keyPrefix = keyPrefix;
+        this.attributes = Objects.requireNonNull(attributes);
+        this.keyPrefix = Objects.requireNonNull(keyPrefix);
     }
 
     @Override
@@ -40,6 +41,7 @@ public class AttributesWrapper implements Config {
         if (raw == null) return null;
         final var val = raw.strip();
         if (isList(val) || isConfig(val)) return null;
+        if (isQuoted(val)) return raw.substring(1, raw.length() - 1);
         return raw;
     }
 
@@ -88,6 +90,8 @@ public class AttributesWrapper implements Config {
                         builder.putSubconfigs(key, configList);
                     }
                 }
+            } else if (isQuoted(value)) {
+                builder.putString(key, value.substring(1, value.length() - 1));
             } else {
                 builder.putString(key, value);
             }
@@ -104,6 +108,11 @@ public class AttributesWrapper implements Config {
     protected boolean isConfig(String val) {
         return val.charAt(0) == '{' &&
                 val.charAt(val.length() - 1) == '}';
+    }
+
+    protected boolean isQuoted(String val) {
+        return val.charAt(0) == '"' &&
+                val.charAt(val.length() - 1) == '"';
     }
 
 }

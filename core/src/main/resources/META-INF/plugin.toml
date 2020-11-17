@@ -2,7 +2,7 @@ plugin_id = "clockwork"
 display_name = "Clockwork Plugin Loader"
 version = "0.5"
 authors = ["m00nl1ght"]
-main_class = "dev.m00nl1ght.clockwork.core.plugin.CWLPlugin"
+main_class = "dev.m00nl1ght.clockwork.core.CWLPlugin"
 description = '''
 Universal plugin framework for Java
 '''

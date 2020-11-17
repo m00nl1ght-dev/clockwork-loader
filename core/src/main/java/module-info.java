@@ -1,7 +1,6 @@
 module dev.m00nl1ght.clockwork {
 
     exports dev.m00nl1ght.clockwork.core;
-    exports dev.m00nl1ght.clockwork.core.plugin;
     exports dev.m00nl1ght.clockwork.descriptor;
     exports dev.m00nl1ght.clockwork.container;
     exports dev.m00nl1ght.clockwork.fnder;
@@ -19,5 +18,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.config;
 
     requires org.apache.logging.log4j;
+
+    requires static org.jetbrains.annotations;
 
 }

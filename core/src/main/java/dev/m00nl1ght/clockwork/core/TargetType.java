@@ -54,7 +54,7 @@ public class TargetType<T extends ComponentTarget> {
     }
 
     public boolean isEquivalentTo(TargetType<?> other) {
-        return other == this || (getParent() != null && getParent().isEquivalentTo(other));
+        return other == this || (parent != null && parent.isEquivalentTo(other));
     }
 
     public final List<ComponentType<?, ? super T>> getComponentTypes() {
@@ -89,6 +89,14 @@ public class TargetType<T extends ComponentTarget> {
 
     public final ComponentType<T, T> getIdentityComponentType() {
         return identityComponentType;
+    }
+
+    public final List<TargetType<? super T>> getAllParents() {
+        if (parent == null) return Collections.emptyList();
+        final var list = new ArrayList<TargetType<? super T>>();
+        TargetType<? super T> type = this;
+        while ((type = type.parent) != null) list.add(type);
+        return List.copyOf(list);
     }
 
     @SuppressWarnings("unchecked")

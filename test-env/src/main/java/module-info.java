@@ -10,4 +10,6 @@ module dev.m00nl1ght.clockwork.test.env {
     requires dev.m00nl1ght.clockwork.extension.security;
     requires org.apache.logging.log4j;
 
+    requires static org.jetbrains.annotations;
+
 }

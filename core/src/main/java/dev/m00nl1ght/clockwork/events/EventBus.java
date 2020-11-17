@@ -3,36 +3,99 @@ package dev.m00nl1ght.clockwork.events;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.debug.profiler.EventBusProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.Profilable;
+import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
+import java.util.function.BiConsumer;
 
 public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGroup> {
 
-    Set<EventDispatcher<? extends B, ?>> getEventDispatchers();
+    @NotNull
+    Set<@NotNull EventDispatcher<? extends B, ?>> getEventDispatchers();
 
+    @NotNull
     <E extends B, T extends ComponentTarget>
-    EventDispatcher<E, T> getEventDispatcher(TypeRef<E> eventType, Class<T> targetClass);
+    EventDispatcher<E, T> getEventDispatcher(
+            @NotNull TypeRef<E> eventType,
+            @NotNull Class<T> targetClass);
 
+    @NotNull
     default <E extends B, T extends ComponentTarget>
-    EventDispatcher<E, T> getEventDispatcher(Class<E> eventClass, Class<T> targetClass) {
+    EventDispatcher<E, T> getEventDispatcher(
+            @NotNull Class<E> eventClass,
+            @NotNull Class<T> targetClass) {
+
         return getEventDispatcher(TypeRef.of(eventClass), targetClass);
     }
 
-    <E extends B, O extends ComponentTarget, T extends ComponentTarget>
-    NestedEventDispatcher<E, T, O> getNestedEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass);
+    @NotNull
+    Set<@NotNull EventListenerCollection<? extends B, ?>> getListenerCollections();
 
-    default <E extends B, O extends ComponentTarget, T extends ComponentTarget>
-    NestedEventDispatcher<E, T, O> getNestedEventDispatcher(Class<E> eventClass, Class<T> targetClass, Class<O> originClass) {
-        return getNestedEventDispatcher(TypeRef.of(eventClass), targetClass, originClass);
+    @NotNull
+    <E extends B, T extends ComponentTarget>
+    EventListenerCollection<E, T> getListenerCollection(
+            @NotNull TypeRef<E> eventType,
+            @NotNull Class<T> targetClass);
+
+    @NotNull
+    default <E extends B, T extends ComponentTarget>
+    EventListenerCollection<E, T> getListenerCollection(
+            @NotNull Class<E> eventClass,
+            @NotNull Class<T> targetClass) {
+
+        return getListenerCollection(TypeRef.of(eventClass), targetClass);
     }
 
-    <E extends B, O extends ComponentTarget, T extends ComponentTarget>
-    StaticEventDispatcher<E, T, O> getStaticEventDispatcher(TypeRef<E> eventType, Class<T> targetClass, Class<O> originClass, T target);
+    default <E extends B, T extends ComponentTarget, C>
+    boolean addListener(@NotNull EventListener<E, T, C> listener) {
+        final var targetClass = listener.getComponentType().getTargetType().getTargetClass();
+        return getListenerCollection(listener.getEventType(), targetClass).add(listener);
+    }
 
-    default <E extends B, O extends ComponentTarget, T extends ComponentTarget>
-    StaticEventDispatcher<E, T, O> getStaticEventDispatcher(Class<E> eventClass, Class<T> targetClass, Class<O> originClass, T target) {
-        return getStaticEventDispatcher(TypeRef.of(eventClass), targetClass, originClass, target);
+    @NotNull
+    <E extends B, T extends ComponentTarget, C>
+    EventListener<E, T, C> addListener(
+            @NotNull TypeRef<E> eventType,
+            @NotNull Class<T> targetClass,
+            @NotNull Class<C> componentClass,
+            @NotNull BiConsumer<C, E> consumer,
+            @NotNull EventListenerPriority priority);
+
+    @NotNull
+    default <E extends B, T extends ComponentTarget, C>
+    EventListener<E, T, C> addListener(
+            @NotNull TypeRef<E> eventType,
+            @NotNull Class<T> targetClass,
+            @NotNull Class<C> componentClass,
+            @NotNull BiConsumer<C, E> consumer) {
+
+        return addListener(eventType, targetClass, componentClass, consumer, EventListenerPriority.NORMAL);
+    }
+
+    @NotNull
+    default <E extends B, T extends ComponentTarget, C>
+    EventListener<E, T, C> addListener(
+            @NotNull Class<E> eventClass,
+            @NotNull Class<T> targetClass,
+            @NotNull Class<C> componentClass,
+            @NotNull BiConsumer<C, E> consumer,
+            @NotNull EventListenerPriority priority) {
+
+        return addListener(TypeRef.of(eventClass), targetClass, componentClass, consumer, priority);
+    }
+
+    @NotNull
+    default <E extends B, T extends ComponentTarget, C>
+    EventListener<E, T, C> addListener(
+            @NotNull Class<E> eventClass,
+            @NotNull Class<T> targetClass,
+            @NotNull Class<C> componentClass,
+            @NotNull BiConsumer<C, E> consumer) {
+
+        return addListener(TypeRef.of(eventClass), targetClass, componentClass, consumer, EventListenerPriority.NORMAL);
     }
 
 }
