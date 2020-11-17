@@ -4,26 +4,50 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.Profilable;
+import dev.m00nl1ght.clockwork.events.impl.EventDispatcherImpl;
+import dev.m00nl1ght.clockwork.events.impl.ExactEventDispatcherImpl;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
+import java.util.Objects;
 
 public interface EventDispatcher<E extends Event, T extends ComponentTarget> extends Profilable<EventDispatcherProfilerGroup<E, ? extends T>> {
 
-    TypeRef<E> getEventType();
+    static <E extends Event, T extends ComponentTarget> EventDispatcher<E, T> of(
+            @NotNull TypeRef<E> eventType,
+            @NotNull TargetType<T> targetType) {
 
-    TargetType<T> getTargetType();
+        Objects.requireNonNull(targetType).requireInitialised();
+        if (targetType.getDirectSubtargets().isEmpty()) {
+            return new ExactEventDispatcherImpl<>(eventType, targetType);
+        } else {
+            return new EventDispatcherImpl<>(eventType, targetType);
+        }
+    }
 
-    E post(T object, E event);
+    static <E extends Event, T extends ComponentTarget> EventDispatcher<E, T> of(
+            @NotNull Class<E> eventClass,
+            @NotNull TargetType<T> targetType) {
 
-    <S extends T> List<EventListener<E, ? super S, ?>> getListeners(TargetType<S> target);
+        return of(TypeRef.of(eventClass), targetType);
+    }
 
-    <S extends T> EventListenerCollection<E, S> getListenerCollection(TargetType<S> target);
+    @NotNull TypeRef<E> getEventType();
 
-    <S extends T> void setListenerCollection(EventListenerCollection<E, S> collection);
+    @NotNull TargetType<T> getTargetType();
 
-    Collection<TargetType<? extends T>> getCompatibleTargetTypes();
+    @NotNull E post(@NotNull T object, @NotNull E event);
+
+    <S extends T> @NotNull List<@NotNull EventListener<E, ? super S, ?>> getListeners(@NotNull TargetType<S> target);
+
+    <S extends T> @Nullable EventListenerCollection<E, S> getListenerCollection(@NotNull TargetType<S> target);
+
+    <S extends T> void setListenerCollection(@NotNull EventListenerCollection<E, S> collection);
+
+    @NotNull Collection<TargetType<? extends T>> getCompatibleTargetTypes();
 
 }

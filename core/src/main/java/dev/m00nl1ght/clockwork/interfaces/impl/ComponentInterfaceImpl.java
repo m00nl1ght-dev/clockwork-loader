@@ -4,47 +4,49 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.interfaces.AbstractComponentInterface;
+import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-public class ComponentInterfaceImpl<I, T extends ComponentTarget> extends AbstractComponentInterface<I, T> {
+public class ComponentInterfaceImpl<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
 
-    protected static final int[] EMPTY_ARRAY = new int[0];
+    protected final TypeRef<I> interfaceType;
+    protected final TargetType<T> targetType;
+    protected final int idxOffset;
 
     protected final int[][] compIds;
 
-    public ComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType, boolean autoCollect) {
-        super(interfaceType, targetType);
+    public ComponentInterfaceImpl(@NotNull TypeRef<I> interfaceType, @NotNull TargetType<T> targetType) {
+        this.interfaceType = Objects.requireNonNull(interfaceType);
+        this.targetType = Objects.requireNonNull(targetType);
+        targetType.requireInitialised();
+        this.idxOffset = getTargetType().getSubtargetIdxFirst();
         final var cnt = getTargetType().getSubtargetIdxLast() - idxOffset + 1;
         this.compIds = new int[cnt][];
-        Arrays.fill(compIds, EMPTY_ARRAY);
-        if (autoCollect) autoCollectComponents();
-    }
-
-    public ComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType) {
-        this(interfaceType, targetType, true);
-    }
-
-    public ComponentInterfaceImpl(Class<I> interfaceClass, TargetType<T> targetType) {
-        this(TypeRef.of(interfaceClass), targetType);
+        for (final var target : targetType.getAllSubtargets()) {
+            final var idx = target.getSubtargetIdxFirst() - idxOffset;
+            compIds[idx] = ComponentInterface.buildIdxArray(interfaceType, target);
+        }
     }
 
     @Override
-    protected void onComponentsChanged(TargetType<? extends T> targetType) {
-        final var listeners = getEffectiveComponents(targetType);
-        final var idx = targetType.getSubtargetIdxFirst() - idxOffset;
-        this.compIds[idx] = listeners.stream().mapToInt(ComponentType::getInternalIdx).distinct().toArray();
+    @SuppressWarnings("unchecked")
+    public @NotNull <S extends T> List<ComponentType<? extends I, ? super S>> getComponents(@NotNull TargetType<S> target) {
+        checkCompatibility(target);
+        final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
+        final var list = target.getComponentTypes();
+        return Arrays.stream(comps)
+                .mapToObj(i -> (ComponentType<? extends I, ? super S>) list.get(i))
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
-    public void apply(T object, Consumer<? super I> consumer) {
+    public void apply(@NotNull T object, @NotNull Consumer<? super I> consumer) {
         final var target = object.getTargetType();
-        if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
             for (final var idx : comps) {
@@ -67,9 +69,8 @@ public class ComponentInterfaceImpl<I, T extends ComponentTarget> extends Abstra
     }
 
     @Override
-    public Iterator<I> iterator(T object) {
+    public @NotNull Iterator<I> iterator(@NotNull T object) {
         final var target = object.getTargetType();
-        if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
             return new InterfaceIterator<>(object, comps);
@@ -80,9 +81,8 @@ public class ComponentInterfaceImpl<I, T extends ComponentTarget> extends Abstra
     }
 
     @Override
-    public Spliterator<I> spliterator(T object) {
+    public @NotNull Spliterator<I> spliterator(@NotNull T object) {
         final var target = object.getTargetType();
-        if (target.getRoot() != rootTarget) checkCompatibility(target);
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
             return new InterfaceSpliterator<>(object, comps);
@@ -90,6 +90,33 @@ public class ComponentInterfaceImpl<I, T extends ComponentTarget> extends Abstra
             checkCompatibility(target);
             throw t;
         }
+    }
+
+    @Override
+    public @NotNull TypeRef<I> getInterfaceType() {
+        return interfaceType;
+    }
+
+    @Override
+    public @NotNull TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public @NotNull Collection<@NotNull TargetType<? extends T>> getCompatibleTargetTypes() {
+        return targetType.getAllSubtargets();
+    }
+
+    protected void checkCompatibility(@NotNull TargetType<?> otherTarget) {
+        if (!otherTarget.isEquivalentTo(targetType)) {
+            final var msg = "Target " + otherTarget + " is not compatible with component interface " + this;
+            throw new IllegalArgumentException(msg);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return interfaceType.getSimpleName() + "@" + targetType;
     }
 
 }

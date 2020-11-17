@@ -3,60 +3,59 @@ package dev.m00nl1ght.clockwork.interfaces;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImpl;
+import dev.m00nl1ght.clockwork.interfaces.impl.ExactComponentInterfaceImpl;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Collection;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 import java.util.stream.StreamSupport;
 
 public interface ComponentInterface<I, T extends ComponentTarget> {
 
-    // TODO rework concept and refactor impls
+    static <I, T extends ComponentTarget> ComponentInterface<I, T> of(
+            @NotNull TypeRef<I> interfaceType,
+            @NotNull TargetType<T> targetType) {
 
-    void apply(T object, Consumer<? super I> consumer);
+        Objects.requireNonNull(targetType).requireInitialised();
+        if (targetType.getDirectSubtargets().isEmpty()) {
+            return new ExactComponentInterfaceImpl<>(interfaceType, targetType);
+        } else {
+            return new ComponentInterfaceImpl<>(interfaceType, targetType);
+        }
+    }
 
-    Iterator<I> iterator(T object);
+    static <I, T extends ComponentTarget> ComponentInterface<I, T> of(
+            @NotNull Class<I> interfaceClass,
+            @NotNull TargetType<T> targetType) {
 
-    Spliterator<I> spliterator(T object);
+        return of(TypeRef.of(interfaceClass), targetType);
+    }
 
-    default Stream<I> stream(T object) {
+    @NotNull TypeRef<I> getInterfaceType();
+
+    @NotNull TargetType<T> getTargetType();
+
+    void apply(@NotNull T object, @NotNull Consumer<? super I> consumer);
+
+    @NotNull Iterator<I> iterator(@NotNull T object);
+
+    @NotNull Spliterator<I> spliterator(@NotNull T object);
+
+    default @NotNull Stream<I> stream(@NotNull T object) {
         return StreamSupport.stream(spliterator(object), false);
     }
 
-    <S extends T> List<ComponentType<? extends I, S>> getComponents(TargetType<S> target);
+    <S extends T> @NotNull List<ComponentType<? extends I, ? super S>> getComponents(@NotNull TargetType<S> target);
 
-    List<ComponentType<? extends I, ? extends T>> getEffectiveComponents(TargetType<? extends T> target);
+    @NotNull Collection<TargetType<? extends T>> getCompatibleTargetTypes();
 
-    default <C> void addComponent(ComponentType<? extends I, ? extends T> component) {
-        this.addComponents(List.of(component));
-    }
-
-    <C> void addComponents(Iterable<ComponentType<? extends I, ? extends T>> components);
-
-    default <C> void removeComponent(ComponentType<? extends I, ? extends T> component) {
-        this.removeComponents(List.of(component));
-    }
-
-    <C> void removeComponents(Iterable<ComponentType<? extends I, ? extends T>> components);
-
-    TypeRef<I> getInterfaceType();
-
-    TargetType<T> getTargetType();
-
-    Collection<TargetType<? extends T>> getCompatibleTargetTypes();
-
-    @SuppressWarnings("unchecked")
-    default void autoCollectComponents() {
-        addComponents(getTargetType().getAllSubtargets().stream()
-                .flatMap(subtarget -> subtarget.getComponentTypes().stream())
-                .filter(comp -> comp.getParent() == null && getInterfaceType().tryFindAssignable(comp.getComponentClass()))
-                .map(comp -> (ComponentType<? extends I, ? extends T>) comp)
-                .collect(Collectors.toList()));
+    static @NotNull int[] buildIdxArray(@NotNull TypeRef<?> interfaceType, @NotNull TargetType<?> targetType) {
+        return targetType.getComponentTypes().stream()
+                .filter(comp -> interfaceType.tryFindAssignable(comp.getComponentClass()))
+                .mapToInt(ComponentType::getInternalIdx).toArray();
     }
 
 }

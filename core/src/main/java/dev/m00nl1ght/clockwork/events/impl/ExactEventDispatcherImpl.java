@@ -32,10 +32,6 @@ public class ExactEventDispatcherImpl<E extends Event, T extends ComponentTarget
         targetType.requireInitialised();
     }
 
-    public ExactEventDispatcherImpl(Class<E> eventClass, TargetType<T> targetType) {
-        this(TypeRef.of(eventClass), targetType);
-    }
-
     protected CompiledListeners compileListeners() {
         final var listeners = CompiledListeners.build(null, listenerCollection, profilerGroup);
         compiledListeners = listeners;

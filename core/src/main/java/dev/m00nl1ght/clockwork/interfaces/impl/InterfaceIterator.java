@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.interfaces.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;
 import java.util.NoSuchElementException;
@@ -12,7 +13,7 @@ public class InterfaceIterator<T> implements Iterator<T> {
     private int idx = 0;
     private T next = null;
 
-    public InterfaceIterator(ComponentTarget object, int[] componentIdxs) {
+    public InterfaceIterator(@NotNull ComponentTarget object, @NotNull int[] componentIdxs) {
         this.object = object;
         this.componentIdxs = componentIdxs;
         this.findNext();
@@ -24,7 +25,7 @@ public class InterfaceIterator<T> implements Iterator<T> {
     }
 
     @Override
-    public T next() {
+    public @NotNull T next() {
         if (next == null) throw new NoSuchElementException();
         final var ret = next;
         findNext();

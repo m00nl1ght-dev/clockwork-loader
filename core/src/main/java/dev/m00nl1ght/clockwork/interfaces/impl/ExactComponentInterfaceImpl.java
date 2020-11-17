@@ -4,39 +4,44 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.interfaces.AbstractExactComponentInterface;
+import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
 import dev.m00nl1ght.clockwork.util.TypeRef;
+import org.jetbrains.annotations.NotNull;
 
-import java.util.Iterator;
-import java.util.Spliterator;
+import java.util.*;
 import java.util.function.Consumer;
+import java.util.stream.Collectors;
 
-public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends AbstractExactComponentInterface<I, T> {
+public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
 
-    protected static final int[] EMPTY_ARRAY = new int[0];
+    protected final TypeRef<I> interfaceType;
+    protected final TargetType<T> targetType;
 
-    protected int[] compIds = EMPTY_ARRAY;
+    protected final int[] compIds;
 
-    public ExactComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType) {
-        this(interfaceType, targetType, true);
+    public ExactComponentInterfaceImpl(@NotNull TypeRef<I> interfaceType, @NotNull TargetType<T> targetType) {
+        this.interfaceType = Objects.requireNonNull(interfaceType);
+        this.targetType = Objects.requireNonNull(targetType);
+        targetType.requireInitialised();
+        this.compIds = ComponentInterface.buildIdxArray(interfaceType, targetType);
     }
 
-    public ExactComponentInterfaceImpl(Class<I> interfaceClass, TargetType<T> targetType) {
+    public ExactComponentInterfaceImpl(@NotNull Class<I> interfaceClass, @NotNull TargetType<T> targetType) {
         this(TypeRef.of(interfaceClass), targetType);
     }
 
-    public ExactComponentInterfaceImpl(TypeRef<I> interfaceType, TargetType<T> targetType, boolean autoCollect) {
-        super(interfaceType, targetType);
-        if (autoCollect) autoCollectComponents();
+    @Override
+    @SuppressWarnings("unchecked")
+    public @NotNull <S extends T> List<ComponentType<? extends I, ? super S>> getComponents(@NotNull TargetType<S> target) {
+        checkCompatibility(target);
+        final var list = target.getComponentTypes();
+        return Arrays.stream(compIds)
+                .mapToObj(i -> (ComponentType<? extends I, ? super S>) list.get(i))
+                .collect(Collectors.toUnmodifiableList());
     }
 
     @Override
-    protected void onComponentsChanged() {
-        this.compIds = getComponents().stream().mapToInt(ComponentType::getInternalIdx).distinct().toArray();
-    }
-
-    @Override
-    public void apply(T object, Consumer<? super I> consumer) {
+    public void apply(@NotNull T object, @NotNull Consumer<? super I> consumer) {
         final var target = object.getTargetType();
         if (target != targetType) checkCompatibility(target);
         try {
@@ -60,7 +65,7 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends A
     }
 
     @Override
-    public Iterator<I> iterator(T object) {
+    public @NotNull Iterator<I> iterator(@NotNull T object) {
         final var target = object.getTargetType();
         if (target != targetType) checkCompatibility(target);
         try {
@@ -72,7 +77,7 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends A
     }
 
     @Override
-    public Spliterator<I> spliterator(T object) {
+    public @NotNull Spliterator<I> spliterator(@NotNull T object) {
         final var target = object.getTargetType();
         if (target != targetType) checkCompatibility(target);
         try {
@@ -81,6 +86,33 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> extends A
             checkCompatibility(target);
             throw t;
         }
+    }
+
+    @Override
+    public @NotNull TypeRef<I> getInterfaceType() {
+        return interfaceType;
+    }
+
+    @Override
+    public @NotNull TargetType<T> getTargetType() {
+        return targetType;
+    }
+
+    @Override
+    public @NotNull Collection<@NotNull TargetType<? extends T>> getCompatibleTargetTypes() {
+        return List.of(targetType);
+    }
+
+    protected void checkCompatibility(@NotNull TargetType<?> otherTarget) {
+        if (otherTarget != getTargetType()) {
+            final var msg = "Target " + otherTarget + " is not compatible with component interface " + this;
+            throw new IllegalArgumentException(msg);
+        }
+    }
+
+    @Override
+    public String toString() {
+        return interfaceType.getSimpleName() + "@" + targetType;
     }
 
 }

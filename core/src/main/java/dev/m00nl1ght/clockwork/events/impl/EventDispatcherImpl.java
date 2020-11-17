@@ -35,10 +35,6 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
         this.compiledListeners = new CompiledListeners[cnt];
     }
 
-    public EventDispatcherImpl(Class<E> eventClass, TargetType<T> targetType) {
-        this(TypeRef.of(eventClass), targetType);
-    }
-
     protected CompiledListeners compileListeners(TargetType<?> targetType) {
         final int idx = targetType.getSubtargetIdxFirst() - idxOffset;
         final var profiler = profilerGroups == null ? null : profilerGroups[idx];

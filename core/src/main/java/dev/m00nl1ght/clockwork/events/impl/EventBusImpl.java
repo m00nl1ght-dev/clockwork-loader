@@ -96,12 +96,13 @@ public class EventBusImpl implements EventBus<Event> {
             @NotNull TypeRef<E> eventType,
             @NotNull Class<T> targetClass) {
 
-        final var target = core.getTargetTypeOrThrow(targetClass);
-        if (target.getDirectSubtargets().isEmpty()) {
-            return linkDispatcher(new ExactEventDispatcherImpl<>(eventType, target));
-        } else {
-            return linkDispatcher(new EventDispatcherImpl<>(eventType, target));
+        final var dispatcher = EventDispatcher.of(eventType, core.getTargetTypeOrThrow(targetClass));
+        if (profilerGroup != null) profilerGroup.attachToDispatcher(dispatcher);
+        for (final var target : dispatcher.getCompatibleTargetTypes()) {
+            final var collection = getListenerCollectionOrNull(dispatcher.getEventType(), target.getTargetClass());
+            if (collection != null) dispatcher.setListenerCollection(collection);
         }
+        return dispatcher;
     }
 
     @Override
@@ -165,24 +166,7 @@ public class EventBusImpl implements EventBus<Event> {
             @NotNull TypeRef<E> eventType,
             @NotNull Class<T> targetClass) {
 
-        final var target = core.getTargetTypeOrThrow(targetClass);
-        return linkListenerCollection(new EventListenerCollectionImpl<>(eventType, target));
-    }
-
-    @NotNull
-    protected <E extends Event, T extends ComponentTarget>
-    EventDispatcher<E, T> linkDispatcher(@NotNull EventDispatcher<E, T> dispatcher) {
-        if (profilerGroup != null) profilerGroup.attachToDispatcher(dispatcher);
-        for (final var target : dispatcher.getCompatibleTargetTypes()) {
-            final var collection = getListenerCollectionOrNull(dispatcher.getEventType(), target.getTargetClass());
-            if (collection != null) dispatcher.setListenerCollection(collection);
-        }
-        return dispatcher;
-    }
-
-    @NotNull
-    protected <E extends Event, T extends ComponentTarget>
-    EventListenerCollection<E, T> linkListenerCollection(@NotNull EventListenerCollection<E, T> collection) {
+        final var collection = new EventListenerCollectionImpl<>(eventType, core.getTargetTypeOrThrow(targetClass));
         for (final var target : collection.getTargetType().getAllParents()) {
             final var dispatcher = getEventDispatcherOrNull(collection.getEventType(), target.getTargetClass());
             if (dispatcher != null) dispatcher.setListenerCollection(collection);
