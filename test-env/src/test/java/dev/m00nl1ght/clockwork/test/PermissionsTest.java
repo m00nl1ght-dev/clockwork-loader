@@ -29,9 +29,9 @@ public class PermissionsTest extends ClockworkTest {
     protected void setupComplete() {
         CWLSecurityExtension.install(true);
         CWLSecurityExtension.registerContext(core(), buildSecurityConfig());
-        eventBus = new EventBusImpl(core());
-        CWLAnnotationsExtension.applyToEventBus(eventBus);
-        dispatcher = eventBus.getEventDispatcher(PermissionTestEvent.class);
+        eventBus = new EventBusImpl();
+        CWLAnnotationsExtension.applyToEventBus(core(), eventBus);
+        dispatcher = eventBus.getEventDispatcher(PermissionTestEvent.class, core().getTargetType());
     }
 
     private SecurityConfig buildSecurityConfig() {

@@ -9,8 +9,8 @@ public class AnnotatedEventHandlerTest extends AbstractEventHandlerTest {
 
     @Override
     protected void setupComplete() {
-        eventBus = new EventBusImpl(core());
-        CWLAnnotationsExtension.applyToEventBus(eventBus);
+        eventBus = new EventBusImpl();
+        CWLAnnotationsExtension.applyToEventBus(core(), eventBus);
         super.setupComplete();
     }
 

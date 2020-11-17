@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.extension.annotations;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ClockworkExtension;
 import dev.m00nl1ght.clockwork.core.ExtensionContext;
-import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
+import dev.m00nl1ght.clockwork.events.EventBus;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
@@ -22,8 +22,8 @@ public final class CWLAnnotationsExtension implements ClockworkExtension {
         this.core = Objects.requireNonNull(core);
     }
 
-    public static void applyToEventBus(@NotNull EventBusImpl eventBus) {
-        for (final var handler : getInstance(eventBus.getCore()).collectedHandlers.getAll()) {
+    public static void applyToEventBus(@NotNull ClockworkCore core, @NotNull EventBus eventBus) {
+        for (final var handler : getInstance(core).collectedHandlers.getAll()) {
             if (!eventBus.addListener(handler)) {
                 LOGGER.warn("Failed to add handler to event bus: " + handler);
             }

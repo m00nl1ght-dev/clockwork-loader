@@ -79,12 +79,22 @@ public class TargetType<T extends ComponentTarget> {
                 .findFirst();
     }
 
+    public <C> ComponentType<C, ? super T> getComponentTypeOrThrow(Class<C> componentClass) {
+        return getComponentType(componentClass)
+                .orElseThrow(() -> new RuntimeException("Missing component type for class: " + componentClass));
+    }
+
     @SuppressWarnings("unchecked")
     public <C> Optional<? extends ComponentType<C, T>> getOwnComponentType(Class<C> componentClass) {
         return ownComponentTypes.stream()
                 .filter(c -> c.getComponentClass() == componentClass)
                 .map(c -> (ComponentType<C, T>) c)
                 .findFirst();
+    }
+
+    public <C> ComponentType<C, T> getOwnComponentTypeOrThrow(Class<C> componentClass) {
+        return getOwnComponentType(componentClass)
+                .orElseThrow(() -> new RuntimeException("Missing component type for class: " + componentClass));
     }
 
     public final ComponentType<T, T> getIdentityComponentType() {

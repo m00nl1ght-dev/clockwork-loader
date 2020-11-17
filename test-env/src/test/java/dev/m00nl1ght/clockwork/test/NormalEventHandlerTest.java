@@ -11,7 +11,7 @@ public class NormalEventHandlerTest extends AbstractEventHandlerTest {
     @Override
     protected TestEnvironment buildEnvironment(ClockworkCore core) {
         final var env = super.buildEnvironment(core);
-        eventBus = new EventBusImpl(core);
+        eventBus = new EventBusImpl();
         env.setTestEventBus(eventBus);
         return env;
     }

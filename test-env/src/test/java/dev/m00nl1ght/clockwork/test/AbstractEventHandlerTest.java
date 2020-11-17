@@ -6,7 +6,6 @@ import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
 import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
-import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -34,7 +33,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
     @Test
     public void simpleEventOnTargetA() {
-        final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, targetTypeA);
         final var testTargetA = new TestTarget_A(targetTypeA, new TestTarget_C(targetTypeC));
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetA, event);
@@ -46,7 +45,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
     @Test
     public void genericEventOnTargetA() {
-        final var dispatcher = eventBus().getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(GenericTestEvent.STRING_TYPE, targetTypeA);
         final var testTargetA = new TestTarget_A(targetTypeA, new TestTarget_D(targetTypeD));
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetA, event);
@@ -59,7 +58,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
     @Test
     public void simpleEventOnTargetB() {
-        final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(SimpleTestEvent.class, targetTypeA);
         final var testTargetB = new TestTarget_B(targetTypeB, new TestTarget_C(targetTypeC));
         final var event = new SimpleTestEvent();
         dispatcher.post(testTargetB, event);
@@ -74,7 +73,7 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
     @Test
     public void genericEventOnTargetB() {
-        final var dispatcher = eventBus().getEventDispatcher(new TypeRef<GenericTestEvent<String>>(){}, TestTarget_A.class);
+        final var dispatcher = eventBus().getEventDispatcher(GenericTestEvent.STRING_TYPE, targetTypeA);
         final var testTargetB = new TestTarget_B(targetTypeB, new TestTarget_D(targetTypeD));
         final var event = new GenericTestEvent<>("dummy");
         dispatcher.post(testTargetB, event);
