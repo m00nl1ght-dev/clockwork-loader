@@ -77,6 +77,7 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
         final var old = listenerCollections[idx];
         if (old != null) old.removeObserver(observer);
         listenerCollections[idx] = collection;
+        compiledListeners[idx] = null;
         collection.addObserver(observer);
     }
 

@@ -7,15 +7,13 @@ import dev.m00nl1ght.clockwork.events.Event;
 import java.util.Objects;
 import java.util.function.BiConsumer;
 
-public class NestedEventListener<E extends Event, T extends ComponentTarget, I extends ComponentTarget, C> extends EventListener<E, T, I> {
-
-    // TODO add support for this in EventBusImpl
+public class ForwardingEventListener<E extends Event, T extends ComponentTarget, I extends ComponentTarget, C> extends EventListener<E, T, I> {
 
     protected final EventListener<E, ? extends I, C> innerListener;
     protected final BiConsumer<C, E> innerConsumer;
     protected final int cIdx, tIdxF, tIdxL;
 
-    public NestedEventListener(EventListener<E, ? extends I, C> innerListener, ComponentType<I, T> componentType) {
+    public ForwardingEventListener(EventListener<E, ? extends I, C> innerListener, ComponentType<I, T> componentType) {
         super(Objects.requireNonNull(innerListener).getEventType(), componentType, innerListener.getPriority());
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();
@@ -59,9 +57,9 @@ public class NestedEventListener<E extends Event, T extends ComponentTarget, I e
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
-        if (!(o instanceof NestedEventListener)) return false;
+        if (!(o instanceof ForwardingEventListener)) return false;
         if (!super.equals(o)) return false;
-        NestedEventListener<?, ?, ?, ?> that = (NestedEventListener<?, ?, ?, ?>) o;
+        ForwardingEventListener<?, ?, ?, ?> that = (ForwardingEventListener<?, ?, ?, ?>) o;
         return innerListener.equals(that.innerListener);
     }
 

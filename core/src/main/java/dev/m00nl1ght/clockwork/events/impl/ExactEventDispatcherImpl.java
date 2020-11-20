@@ -68,6 +68,7 @@ public class ExactEventDispatcherImpl<E extends Event, T extends ComponentTarget
         checkCompatibility(collection.getTargetType());
         if (listenerCollection != null) listenerCollection.removeObserver(observer);
         listenerCollection = (EventListenerCollection<E, T>) collection;
+        compiledListeners = null;
         collection.addObserver(observer);
     }
 
