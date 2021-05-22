@@ -32,18 +32,20 @@ public class ForwardingEventListener<E extends Event, T extends ComponentTarget,
     }
 
     private void invokeExact(I innerTarget, E event) {
+        final var container = innerTarget.getComponentContainer();
         @SuppressWarnings("unchecked")
-        final C innerComponent = (C) innerTarget.getComponent(cIdx);
+        final C innerComponent = (C) container.getComponent(cIdx);
         if (innerComponent != null) {
             innerConsumer.accept(innerComponent, event);
         }
     }
 
     private void invoke(I innerTarget, E event) {
-        final var tIdx = innerTarget.getTargetType().getSubtargetIdxFirst();
+        final var container = innerTarget.getComponentContainer();
+        final var tIdx = container.getTargetType().getSubtargetIdxFirst();
         if (tIdx >= tIdxF && tIdx <= tIdxL) {
             @SuppressWarnings("unchecked")
-            final C innerComponent = (C) innerTarget.getComponent(cIdx);
+            final C innerComponent = (C) container.getComponent(cIdx);
             if (innerComponent != null) {
                 innerConsumer.accept(innerComponent, event);
             }

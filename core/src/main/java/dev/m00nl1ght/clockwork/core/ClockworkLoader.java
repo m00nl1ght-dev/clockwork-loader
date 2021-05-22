@@ -83,7 +83,7 @@ public final class ClockworkLoader {
 
     public synchronized void collectExtensionsFromParent() {
         if (parent != null) {
-            final var extInterface = new ExactComponentInterfaceImpl<>(ClockworkExtension.class, parent.getTargetType());
+            final var extInterface = new ExactComponentInterfaceImpl<>(ClockworkExtension.class, parent.getCoreTargetType());
             extInterface.apply(parent, e -> e.registerFeatures(extensionContext));
         }
     }
@@ -377,24 +377,10 @@ public final class ClockworkLoader {
             @NotNull RegisteredTargetType<T> targetType,
             @NotNull Class<C> componentClass) {
 
-        // TODO verify (or even auto-set?) parent (in class hierarchy)
-
-        // First, fetch the parent target if there is any, and verify it.
-        ComponentType<? super C, ? super T> parentType = null;
-        if (descriptor.getParent() != null) {
-            final var found = plugin.getClockworkCore().getComponentType(descriptor.getParent());
-            if (found.isEmpty()) throw PluginLoadingException.componentMissingParent(descriptor);
-            if (found.get().getComponentClass().isAssignableFrom(componentClass)) {
-                @SuppressWarnings("unchecked")
-                final var casted = (ComponentType<? super C, ? super T>) found.get();
-                parentType = casted;
-            } else {
-                throw PluginLoadingException.invalidParentForComponent(descriptor, found.get());
-            }
-        }
+        // TODO verify class hierarchy?
 
         // Construct the new ComponentType.
-        final var component = new RegisteredComponentType<>(plugin, parentType, descriptor, componentClass, targetType);
+        final var component = new RegisteredComponentType<>(plugin, descriptor, targetType, componentClass);
 
         // Then add it to the core and plugin.
         plugin.getClockworkCore().addLoadedComponentType(component);
@@ -458,7 +444,7 @@ public final class ClockworkLoader {
         final var coreTarget = core.getTargetTypeOrThrow(ClockworkCore.class);
 
         // Build the component container and set it.
-        final var container = new ImmutableComponentContainer<>(coreTarget, core);
+        final var container = new ImmutableComponentContainer(coreTarget, core);
         core.setCoreContainer(container);
 
         // Init the components and update the state of the core.

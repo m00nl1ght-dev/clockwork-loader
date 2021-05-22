@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.interfaces.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -12,22 +12,22 @@ import java.util.function.Consumer;
  */
 public class InterfaceSpliterator<T> implements Spliterator<T> {
 
-    private final ComponentTarget object;
+    private final ComponentContainer container;
     private final int[] componentIdxs;
     private int index;
     private final int fence;
     private final int characteristics;
 
-    public InterfaceSpliterator(@NotNull ComponentTarget object, @NotNull int[] componentIdxs) {
-        this(object, componentIdxs, 0, componentIdxs.length, Spliterator.DISTINCT | Spliterator.NONNULL);
+    public InterfaceSpliterator(@NotNull ComponentContainer container, int[] componentIdxs) {
+        this(container, componentIdxs, 0, componentIdxs.length, Spliterator.DISTINCT | Spliterator.NONNULL);
     }
 
-    public InterfaceSpliterator(@NotNull ComponentTarget object, @NotNull int[] componentIdxs, int characteristics) {
-        this(object, componentIdxs, 0, componentIdxs.length, characteristics);
+    public InterfaceSpliterator(@NotNull ComponentContainer container, int[] componentIdxs, int characteristics) {
+        this(container, componentIdxs, 0, componentIdxs.length, characteristics);
     }
 
-    public InterfaceSpliterator(@NotNull ComponentTarget object, @NotNull int[] componentIdxs, int origin, int fence, int characteristics) {
-        this.object = object;
+    public InterfaceSpliterator(@NotNull ComponentContainer container, int[] componentIdxs, int origin, int fence, int characteristics) {
+        this.container = container;
         this.componentIdxs = componentIdxs;
         this.index = origin;
         this.fence = fence;
@@ -37,12 +37,12 @@ public class InterfaceSpliterator<T> implements Spliterator<T> {
     @Override
     public @Nullable Spliterator<T> trySplit() {
         int lo = index, mid = (lo + fence) >>> 1;
-        return (lo >= mid) ? null : new InterfaceSpliterator<>(object, componentIdxs, lo, index = mid, characteristics);
+        return (lo >= mid) ? null : new InterfaceSpliterator<>(container, componentIdxs, lo, index = mid, characteristics);
     }
 
     @Override
     public void forEachRemaining(@NotNull Consumer<? super T> action) {
-        ComponentTarget o = object; int[] a; int i, hi;
+        ComponentContainer o = container; int[] a; int i, hi;
         if (action == null) throw new NullPointerException();
         if ((a = componentIdxs).length >= (hi = fence) && (i = index) >= 0 && i < (index = hi)) {
             do {
@@ -58,7 +58,7 @@ public class InterfaceSpliterator<T> implements Spliterator<T> {
         if (action == null) throw new NullPointerException();
         while (index >= 0 && index < fence) {
             @SuppressWarnings("unchecked")
-            final var comp = (T) object.getComponent(componentIdxs[index++]);
+            final var comp = (T) container.getComponent(componentIdxs[index++]);
             if (comp == null) continue;
             action.accept(comp);
             return true;

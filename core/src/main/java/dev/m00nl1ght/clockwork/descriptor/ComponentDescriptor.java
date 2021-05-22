@@ -13,7 +13,6 @@ public final class ComponentDescriptor {
     private final String componentId;
     private final Version version;
     private final String targetId;
-    private final String parent;
     private final String componentClass;
     private final List<DependencyDescriptor> dependencies;
     private final boolean factoryAccessEnabled;
@@ -25,7 +24,6 @@ public final class ComponentDescriptor {
         this.componentId = builder.componentId;
         this.version = Objects.requireNonNull(builder.version);
         this.targetId = Objects.requireNonNull(builder.targetId);
-        this.parent = builder.parentId;
         this.componentClass = Objects.requireNonNull(builder.componentClass);
         this.dependencies = List.copyOf(builder.dependencies.values());
         this.factoryAccessEnabled = builder.factoryAccessEnabled;
@@ -47,10 +45,6 @@ public final class ComponentDescriptor {
 
     public String getTargetId() {
         return targetId;
-    }
-
-    public String getParent() {
-        return parent;
     }
 
     public String getComponentClass() {

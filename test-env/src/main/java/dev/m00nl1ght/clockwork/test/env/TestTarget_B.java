@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.core.TargetType;
 
 public class TestTarget_B extends TestTarget_A {
 
-    public TestTarget_B(TargetType<TestTarget_B> targetType, TestTarget_C testTargetC) {
+    public TestTarget_B(TargetType<?> targetType, TestTarget_C testTargetC) {
         super(targetType, testTargetC);
     }
 

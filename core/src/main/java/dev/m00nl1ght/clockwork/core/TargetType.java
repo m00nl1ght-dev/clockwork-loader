@@ -22,11 +22,11 @@ public class TargetType<T extends ComponentTarget> {
 
     public TargetType(TargetType<? super T> parent, Class<T> targetClass) {
         this.targetClass = Objects.requireNonNull(targetClass);
+        this.identityComponentType = new IdentityComponentType<>(this);
         this.parent = parent;
         if (this.parent == null) {
             this.root = this;
             this.allSubtargets = new LinkedList<>();
-            this.identityComponentType = new IdentityComponentType<>(null, this);
         } else {
             synchronized (this.parent) {
                 this.root = this.parent.root;
@@ -36,7 +36,6 @@ public class TargetType<T extends ComponentTarget> {
                     throw FormatUtil.illStateExc("Parent TargetType [] is already initialised", this.parent);
                 this.parent.directSubtargets.add(this);
                 this.allSubtargets = this.parent.allSubtargets;
-                this.identityComponentType = new IdentityComponentType<>(parent.identityComponentType, this);
             }
         }
     }
@@ -163,13 +162,7 @@ public class TargetType<T extends ComponentTarget> {
             this.verifySiblings();
         }
 
-        for (final var component : ownComponentTypes) {
-            if (component.parent != null) {
-                componentList.set(component.parent.getInternalIdx(), component);
-            } else {
-                componentList.add(component);
-            }
-        }
+        componentList.addAll(ownComponentTypes);
 
         for (int i = 0; i < componentList.size(); i++) {
             final var component = componentList.get(i);

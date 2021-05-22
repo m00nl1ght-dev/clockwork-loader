@@ -21,7 +21,7 @@ public class TargetGraph {
         if (existing != null) return existing;
 
         final Set<LinkingComponentType<?, T>> links = targetType.getOwnComponentTypes().stream()
-                .filter(c -> c instanceof LinkingComponentType && c.getParent() == null)
+                .filter(c -> c instanceof LinkingComponentType)
                 .map(c -> (LinkingComponentType<?, T>) c)
                 .collect(Collectors.toUnmodifiableSet());
 

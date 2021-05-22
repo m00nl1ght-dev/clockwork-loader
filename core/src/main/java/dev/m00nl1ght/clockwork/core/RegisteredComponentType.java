@@ -11,8 +11,8 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
     private final LoadedPlugin plugin;
     private final ComponentDescriptor descriptor;
 
-    RegisteredComponentType(LoadedPlugin plugin, ComponentType<? super C, ? super T> parent, ComponentDescriptor descriptor, Class<C> componentClass, RegisteredTargetType<T> targetType) {
-        super(parent, componentClass, targetType);
+    RegisteredComponentType(LoadedPlugin plugin, ComponentDescriptor descriptor, RegisteredTargetType<T> targetType, Class<C> componentClass) {
+        super(targetType, componentClass);
         this.descriptor = Objects.requireNonNull(descriptor);
         this.plugin = Objects.requireNonNull(plugin);
         if (!plugin.getId().equals(descriptor.getPluginId())) throw new IllegalArgumentException();

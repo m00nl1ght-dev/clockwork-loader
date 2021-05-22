@@ -22,7 +22,7 @@ public class ClockworkCore implements ComponentTarget {
     private final ModuleLayer moduleLayer;
 
     private volatile State state = State.POPULATING;
-    private ComponentContainer<ClockworkCore> coreContainer;
+    private ComponentContainer coreContainer;
 
     protected ClockworkCore(@NotNull ModuleLayer moduleLayer) {
         this.moduleLayer = Objects.requireNonNull(moduleLayer);
@@ -59,9 +59,8 @@ public class ClockworkCore implements ComponentTarget {
      * and are not attached to individual objects within the application.
      * For example, this includes the main component of each plugin.
      */
-    @Override
-    public @NotNull TargetType<ClockworkCore> getTargetType() {
-        return coreContainer != null ? coreContainer.getTargetType() : getTargetTypeOrThrow(ClockworkCore.class);
+    public @NotNull TargetType<ClockworkCore> getCoreTargetType() {
+        return getTargetTypeOrThrow(ClockworkCore.class);
     }
 
     /**
@@ -187,13 +186,9 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     @Override
-    public Object getComponent(int internalID) {
-        try {
-            return coreContainer.getComponent(internalID);
-        } catch (Exception e) {
-            state.requireOrAfter(State.PROCESSED);
-            throw e;
-        }
+    public ComponentContainer getComponentContainer() {
+        if (coreContainer == null) state.requireOrAfter(State.INITIALISED);
+        return coreContainer;
     }
 
     public @NotNull ModuleLayer getModuleLayer() {
@@ -265,7 +260,7 @@ public class ClockworkCore implements ComponentTarget {
         this.state = state;
     }
 
-    void setCoreContainer(@NotNull ComponentContainer<ClockworkCore> container) {
+    void setCoreContainer(@NotNull ComponentContainer container) {
         Objects.requireNonNull(container);
         if (this.coreContainer != null) throw new IllegalStateException();
         this.coreContainer = container;

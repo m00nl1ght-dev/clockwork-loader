@@ -4,13 +4,13 @@ import org.jetbrains.annotations.NotNull;
 
 public interface ComponentTarget {
 
-    @NotNull TargetType<?> getTargetType();
-
-    Object getComponent(int internalID);
+    ComponentContainer getComponentContainer();
 
     @SuppressWarnings("unchecked")
     static <T extends ComponentTarget> @NotNull TargetType<T> typeOf(@NotNull T target) {
-        return (TargetType<T>) target.getTargetType();
+        final var targetType = (TargetType<T>) target.getComponentContainer().getTargetType();
+        if (!targetType.getTargetClass().isInstance(target)) throw new RuntimeException();
+        return targetType;
     }
 
 }

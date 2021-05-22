@@ -12,7 +12,7 @@ public class LinkingComponentType<C extends ComponentTarget, T extends Component
             @NotNull TargetType<C> innerTargetType,
             @NotNull TargetType<T> outerTargetType) {
 
-        super(parent, innerTargetType.getTargetClass(), outerTargetType);
+        super(outerTargetType, innerTargetType.getTargetClass());
         this.innerTargetType = innerTargetType;
     }
 
@@ -22,7 +22,7 @@ public class LinkingComponentType<C extends ComponentTarget, T extends Component
 
     @Override
     public void checkValue(T target, C value) {
-        if (value != null && value.getTargetType().getRoot() != innerTargetType.getRoot())
+        if (value != null && value.getComponentContainer().getTargetType().getRoot() != innerTargetType.getRoot())
             throw new RuntimeException("Invalid value: " + value);
     }
 

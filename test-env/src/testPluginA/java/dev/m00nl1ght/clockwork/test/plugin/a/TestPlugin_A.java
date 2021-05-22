@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.test.plugin.a;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.Component;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
@@ -10,12 +11,10 @@ import dev.m00nl1ght.clockwork.test.env.security.PermissionTestEvent;
 import java.io.FileWriter;
 import java.io.IOException;
 
-public class TestPlugin_A {
-
-    private final ClockworkCore core;
+public class TestPlugin_A extends Component<ClockworkCore> {
 
     public TestPlugin_A(ClockworkCore core) {
-        this.core = core;
+        super(core);
         final var eventBus = TestEnvironment.get(core).getTestEventBus();
         if (eventBus != null) {
 

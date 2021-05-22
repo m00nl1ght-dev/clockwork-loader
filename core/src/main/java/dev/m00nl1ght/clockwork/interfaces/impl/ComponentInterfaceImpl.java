@@ -46,12 +46,13 @@ public class ComponentInterfaceImpl<I, T extends ComponentTarget> implements Com
 
     @Override
     public void apply(@NotNull T object, @NotNull Consumer<? super I> consumer) {
-        final var target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
             for (final var idx : comps) {
                 @SuppressWarnings("unchecked")
-                final var comp = (I) object.getComponent(idx);
+                final var comp = (I) container.getComponent(idx);
                 try {
                     if (comp != null) consumer.accept(comp);
                 } catch (ExceptionInPlugin e) {
@@ -70,10 +71,11 @@ public class ComponentInterfaceImpl<I, T extends ComponentTarget> implements Com
 
     @Override
     public @NotNull Iterator<I> iterator(@NotNull T object) {
-        final var target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
-            return new InterfaceIterator<>(object, comps);
+            return new InterfaceIterator<>(container, comps);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;
@@ -82,10 +84,11 @@ public class ComponentInterfaceImpl<I, T extends ComponentTarget> implements Com
 
     @Override
     public @NotNull Spliterator<I> spliterator(@NotNull T object) {
-        final var target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
         try {
             final var comps = compIds[target.getSubtargetIdxFirst() - idxOffset];
-            return new InterfaceSpliterator<>(object, comps);
+            return new InterfaceSpliterator<>(container, comps);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;

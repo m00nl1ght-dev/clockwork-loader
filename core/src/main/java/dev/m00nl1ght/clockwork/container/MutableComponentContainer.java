@@ -4,11 +4,11 @@ import dev.m00nl1ght.clockwork.core.*;
 
 import java.util.Objects;
 
-public class MutableComponentContainer<T extends ComponentTarget> extends ComponentContainer<T> {
+public class MutableComponentContainer extends ComponentContainer {
 
     protected final Object[] components;
 
-    public MutableComponentContainer(TargetType<T> targetType, Object object) {
+    public MutableComponentContainer(TargetType<?> targetType, Object object) {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
         this.components[0] = Objects.requireNonNull(object);
@@ -17,7 +17,7 @@ public class MutableComponentContainer<T extends ComponentTarget> extends Compon
     }
 
     public void initComponents() {
-        final var object = getTarget();
+        final var object = this.components[0];
         for (var comp : targetType.getComponentTypes()) {
             try {
                 final var idx = comp.getInternalIdx();
@@ -38,9 +38,12 @@ public class MutableComponentContainer<T extends ComponentTarget> extends Compon
         return components[internalID];
     }
 
-    public <C> void setComponent(ComponentType<C, ? super T> componentType, C component) {
-        componentType.checkValue(getTarget(), component);
-        components[componentType.getInternalIdx(targetType)] = component;
+    public <C, T extends ComponentTarget>
+    void setComponent(ComponentType<C, T> componentType, C component) {
+        final var castedTarget = componentType.getTargetType().getTargetClass().cast(this.components[0]);
+        final var internalIdx = componentType.getInternalIdx(targetType);
+        componentType.checkValue(castedTarget, component);
+        components[internalIdx] = component;
     }
 
 }

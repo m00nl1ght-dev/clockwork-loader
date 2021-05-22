@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.test.plugin.a;
 
+import dev.m00nl1ght.clockwork.core.Component;
 import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.env.TestContext;
 import dev.m00nl1ght.clockwork.test.env.TestInterface;
@@ -7,10 +8,10 @@ import dev.m00nl1ght.clockwork.test.env.TestTarget_B;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
 
-public class TestComponent_B implements TestInterface {
+public class TestComponent_B extends Component<TestTarget_B> implements TestInterface {
 
     TestComponent_B(TestTarget_B target) {
-
+        super(target);
     }
 
     @EventHandler

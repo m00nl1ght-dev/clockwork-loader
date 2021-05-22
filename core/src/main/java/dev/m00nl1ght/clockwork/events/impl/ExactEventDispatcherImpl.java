@@ -74,11 +74,12 @@ public class ExactEventDispatcherImpl<E extends Event, T extends ComponentTarget
 
     @Override
     public E post(T object, E event) {
-        final TargetType<?> target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final TargetType<?> target = container.getTargetType();
         try {
             var listeners = compiledListeners;
             if (listeners == null) listeners = compileListeners();
-            event.post(object, listeners);
+            event.post(container, listeners);
             return event;
         } catch (Throwable t) {
             checkCompatibility(target);

@@ -1,17 +1,16 @@
 package dev.m00nl1ght.clockwork.container;
 
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.core.TargetType;
 
 import java.util.Objects;
 
-public class ImmutableComponentContainer<T extends ComponentTarget> extends ComponentContainer<T> {
+public class ImmutableComponentContainer extends ComponentContainer {
 
     protected final Object[] components;
 
-    public ImmutableComponentContainer(TargetType<T> targetType, Object object) {
+    public ImmutableComponentContainer(TargetType<?> targetType, Object object) {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
         this.components[0] = Objects.requireNonNull(object);
@@ -20,12 +19,12 @@ public class ImmutableComponentContainer<T extends ComponentTarget> extends Comp
     }
 
     public void initComponents() {
-        final var object = getTarget();
+        final var target = this.components[0];
         for (var comp : targetType.getComponentTypes()) {
             try {
                 final var idx = comp.getInternalIdx();
                 if (components[idx] == null) {
-                    components[idx] = buildComponent(comp, object);
+                    components[idx] = buildComponent(comp, target);
                 }
             } catch (ExceptionInPlugin e) {
                 e.addComponentToStack(comp);

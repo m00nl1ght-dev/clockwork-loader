@@ -42,12 +42,13 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> implement
 
     @Override
     public void apply(@NotNull T object, @NotNull Consumer<? super I> consumer) {
-        final var target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
         if (target != targetType) checkCompatibility(target);
         try {
             for (final var idx : compIds) {
                 @SuppressWarnings("unchecked")
-                final var comp = (I) object.getComponent(idx);
+                final var comp = (I) container.getComponent(idx);
                 try {
                     if (comp != null) consumer.accept(comp);
                 } catch (ExceptionInPlugin e) {
@@ -66,10 +67,11 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> implement
 
     @Override
     public @NotNull Iterator<I> iterator(@NotNull T object) {
-        final var target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
         if (target != targetType) checkCompatibility(target);
         try {
-            return new InterfaceIterator<>(object, compIds);
+            return new InterfaceIterator<>(container, compIds);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;
@@ -78,10 +80,11 @@ public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> implement
 
     @Override
     public @NotNull Spliterator<I> spliterator(@NotNull T object) {
-        final var target = object.getTargetType();
+        final var container = object.getComponentContainer();
+        final var target = container.getTargetType();
         if (target != targetType) checkCompatibility(target);
         try {
-            return new InterfaceSpliterator<>(object, compIds);
+            return new InterfaceSpliterator<>(container, compIds);
         } catch (Throwable t) {
             checkCompatibility(target);
             throw t;

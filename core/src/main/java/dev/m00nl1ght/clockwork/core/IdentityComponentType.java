@@ -2,8 +2,8 @@ package dev.m00nl1ght.clockwork.core;
 
 public class IdentityComponentType<T extends ComponentTarget> extends ComponentType<T, T> {
 
-    public IdentityComponentType(IdentityComponentType<? super T> parent, TargetType<T> targetType) {
-        super(parent, targetType.getTargetClass(), targetType);
+    public IdentityComponentType(TargetType<T> targetType) {
+        super(targetType, targetType.getTargetClass());
         setFactory(t -> t);
     }
 

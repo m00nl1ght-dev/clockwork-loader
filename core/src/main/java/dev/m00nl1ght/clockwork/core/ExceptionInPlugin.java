@@ -49,7 +49,7 @@ public class ExceptionInPlugin extends RuntimeException {
         }
     }
 
-    public static RuntimeException inEventListener(EventListener<?, ?, ?> listener, Object event, Object target, Throwable cause) {
+    public static RuntimeException inEventListener(EventListener<?, ?, ?> listener, Object event, Throwable cause) {
         return genericOrRt(listener.getComponentType(), "Exception thrown in event listener [] while handling event []", cause, listener, event);
     }
 
