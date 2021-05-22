@@ -79,6 +79,10 @@ public class ComponentType<C, T extends ComponentTarget> {
         return factory;
     }
 
+    public void checkValue(T target, C value) {
+        // NO-OP
+    }
+
     public void setFactory(ComponentFactory<T, C> factory) {
         this.factory = Objects.requireNonNull(factory);
     }

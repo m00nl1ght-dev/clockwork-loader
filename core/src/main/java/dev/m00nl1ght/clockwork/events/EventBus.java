@@ -31,8 +31,6 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
         return getEventDispatcher(TypeRef.of(eventClass), targetType);
     }
 
-    @NotNull Set<@NotNull EventListenerCollection<? extends B, ?>> getListenerCollections();
-
     <E extends B, T extends ComponentTarget>
     @NotNull EventListenerCollection<E, T> getListenerCollection(
             @NotNull TypeRef<E> eventType,

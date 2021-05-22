@@ -8,6 +8,11 @@ public class IdentityComponentType<T extends ComponentTarget> extends ComponentT
     }
 
     @Override
+    public void checkValue(T target, T value) {
+        if (target != value) throw new RuntimeException("Invalid value: " + value);
+    }
+
+    @Override
     public String toString() {
         return "<Identity>@" + targetType.toString();
     }

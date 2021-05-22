@@ -3,7 +3,6 @@ package dev.m00nl1ght.clockwork.test;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
-import dev.m00nl1ght.clockwork.events.impl.ForwardingObserver;
 import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
@@ -28,22 +27,6 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         final var nestedComp = targetTypeA.getOwnComponentType(TestTarget_C.class).orElseThrow();
         nestedComp.setFactory(TestTarget_A::getTestTargetC);
         return env;
-    }
-
-    @Override
-    protected void setupComplete() { // this should not be necessary, TODO implement auto-bind in EventBus
-        super.setupComplete();
-        final var bindingComponent = targetTypeA.getOwnComponentTypeOrThrow(targetTypeC.getTargetClass());
-        final var collectionSA = eventBus().getListenerCollection(SimpleTestEvent.class, targetTypeA);
-        final var collectionSC = eventBus().getListenerCollection(SimpleTestEvent.class, targetTypeC);
-        final var collectionSD = eventBus().getListenerCollection(SimpleTestEvent.class, targetTypeD);
-        final var collectionGA = eventBus().getListenerCollection(GenericTestEvent.STRING_TYPE, targetTypeA);
-        final var collectionGC = eventBus().getListenerCollection(GenericTestEvent.STRING_TYPE, targetTypeC);
-        final var collectionGD = eventBus().getListenerCollection(GenericTestEvent.STRING_TYPE, targetTypeD);
-        ForwardingObserver.bind(collectionSC, collectionSA, bindingComponent);
-        ForwardingObserver.bind(collectionSD, collectionSA, bindingComponent);
-        ForwardingObserver.bind(collectionGC, collectionGA, bindingComponent);
-        ForwardingObserver.bind(collectionGD, collectionGA, bindingComponent);
     }
 
     protected abstract EventBusImpl eventBus();

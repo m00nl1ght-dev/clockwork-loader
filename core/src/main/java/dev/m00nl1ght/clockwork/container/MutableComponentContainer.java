@@ -39,6 +39,7 @@ public class MutableComponentContainer<T extends ComponentTarget> extends Compon
     }
 
     public <C> void setComponent(ComponentType<C, ? super T> componentType, C component) {
+        componentType.checkValue(getTarget(), component);
         components[componentType.getInternalIdx(targetType)] = component;
     }
 

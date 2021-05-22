@@ -29,7 +29,7 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_PLUGIN_PROCESSORS = "Plugin-Processors";
     private static final String HEADER_TARGET_ID = "Target-Id";
     private static final String HEADER_TARGET_EXTENDS = "Target-Extends";
-    private static final String HEADER_TARGET_INTERNAL_COMPONENTS = "Target-InternalComponents";
+    private static final String HEADER_TARGET_LINKED = "Target-Linked";
     private static final String HEADER_COMPONENT_ID = "Component-Id";
     private static final String HEADER_COMPONENT_TARGET = "Component-Target";
     private static final String HEADER_COMPONENT_EXTENDS = "Component-Extends";
@@ -104,7 +104,7 @@ public class ManifestPluginReader implements PluginReader {
                     final var compBuilder = ComponentDescriptor.builder(pluginId, componentId);
                     compBuilder.version(version);
                     compBuilder.componentClass(className);
-                    compBuilder.target(entryConfig.get(HEADER_COMPONENT_TARGET));
+                    compBuilder.target(Namespaces.combinedId(entryConfig.get(HEADER_COMPONENT_TARGET), pluginId));
                     entryConfig.getOptional(HEADER_COMPONENT_EXTENDS)
                             .ifPresent(e -> compBuilder.parent(Namespaces.combinedId(e, pluginId)));
                     entryConfig.getListOrSingletonOrEmpty(HEADER_COMPONENT_DEPENDENCIES)
@@ -120,8 +120,10 @@ public class ManifestPluginReader implements PluginReader {
                     final var builder = TargetDescriptor.builder(pluginId, targetId);
                     builder.version(version);
                     builder.targetClass(className);
-                    builder.parent(entryConfig.getOrNull(HEADER_TARGET_EXTENDS));
-                    entryConfig.getListOrSingletonOrEmpty(HEADER_TARGET_INTERNAL_COMPONENTS).forEach(builder::internalComponent);
+                    entryConfig.getOptional(HEADER_TARGET_EXTENDS)
+                            .ifPresent(e -> builder.parent(Namespaces.combinedId(e, pluginId)));
+                    entryConfig.getListOrSingletonOrEmpty(HEADER_TARGET_LINKED)
+                            .forEach(e -> builder.linkedTargetType(Namespaces.combinedId(e, pluginId)));
                     builder.extData(new AttributesWrapper(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.target(builder.build());
                 }

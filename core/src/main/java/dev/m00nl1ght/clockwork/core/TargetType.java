@@ -101,11 +101,11 @@ public class TargetType<T extends ComponentTarget> {
         return identityComponentType;
     }
 
-    public final List<TargetType<? super T>> getAllParents() {
-        if (parent == null) return Collections.emptyList();
+    public final List<TargetType<? super T>> getSelfAndAllParents() {
+        if (parent == null) return List.of(this);
         final var list = new ArrayList<TargetType<? super T>>();
         TargetType<? super T> type = this;
-        while ((type = type.parent) != null) list.add(type);
+        do list.add(type); while ((type = type.parent) != null);
         return List.copyOf(list);
     }
 

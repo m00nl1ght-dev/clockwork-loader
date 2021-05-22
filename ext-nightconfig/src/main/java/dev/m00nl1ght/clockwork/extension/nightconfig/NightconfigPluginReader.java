@@ -75,8 +75,8 @@ public class NightconfigPluginReader implements PluginReader {
             final var builder = ComponentDescriptor.builder(pluginId, conf.get("id"));
             builder.version(version);
             builder.componentClass(conf.get("class"));
-            builder.parent(conf.getOrElse("parent", () -> null));
-            builder.target(conf.get("target"));
+            conf.<String>getOptional("parent").ifPresent(e -> builder.parent(Namespaces.combinedId(e, pluginId)));
+            builder.target(Namespaces.combinedId(conf.get("target"), pluginId));
             final Optional<List<UnmodifiableConfig>> compDeps = conf.getOptional("dependency");
             compDeps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
             final Optional<Boolean> optional = conf.getOptional("optional");
@@ -93,9 +93,9 @@ public class NightconfigPluginReader implements PluginReader {
             final var builder = TargetDescriptor.builder(pluginId, conf.get("id"));
             builder.version(version);
             builder.targetClass(conf.get("class"));
-            builder.parent(conf.get("parent"));
-            final Optional<List<String>> internalComps = conf.getOptional("internalComponent");
-            internalComps.ifPresent(l -> l.forEach(builder::internalComponent));
+            conf.<String>getOptional("parent").ifPresent(e -> builder.parent(Namespaces.combinedId(e, pluginId)));
+            final Optional<List<String>> linkedTargets = conf.getOptional("linkedTargets");
+            linkedTargets.ifPresent(l -> l.forEach(e -> builder.linkedTargetType(Namespaces.combinedId(e, pluginId))));
             final UnmodifiableConfig targetExtData = conf.get("ext");
             builder.extData(targetExtData == null ? Config.EMPTY : new NightconfigWrapper(targetExtData));
             descriptorBuilder.target(builder.build());

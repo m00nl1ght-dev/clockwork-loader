@@ -273,17 +273,6 @@ public final class ClockworkLoader {
 
         }
 
-        // Add internal components of each target type.
-        for (final var targetType : core.getLoadedTargetTypes()) {
-            final var comps = targetType.getDescriptor().getInternalComponents();
-            for (final var comp : comps) {
-                final var compClass = findClass(comp, targetType.getPlugin());
-                if (compClass == null)
-                    throw PluginLoadingException.pluginClassNotFound(comp, targetType.getPlugin().getDescriptor());
-                buildInternalComponent(targetType, compClass);
-            }
-        }
-
         // The core now contains all the loaded plugins, targets and components.
         core.setState(State.POPULATED);
 
@@ -322,8 +311,12 @@ public final class ClockworkLoader {
 
         }
 
-        // Initialise the target types.
-        core.getLoadedTargetTypes().forEach(TargetType::init);
+        // Initialise the target types and add defined links between them.
+        for (final var targetType : core.getLoadedTargetTypes()) {
+            for (final var linkTo : targetType.getDescriptor().getLinkedTargetTypes())
+                linkTargetTypes(targetType, core.getTargetTypeOrThrow(linkTo));
+            targetType.init();
+        }
 
         // The core is now ready for use.
         core.setState(State.PROCESSED);
@@ -384,6 +377,8 @@ public final class ClockworkLoader {
             @NotNull RegisteredTargetType<T> targetType,
             @NotNull Class<C> componentClass) {
 
+        // TODO verify (or even auto-set?) parent (in class hierarchy)
+
         // First, fetch the parent target if there is any, and verify it.
         ComponentType<? super C, ? super T> parentType = null;
         if (descriptor.getParent() != null) {
@@ -407,13 +402,23 @@ public final class ClockworkLoader {
 
     }
 
-    private <C, T extends ComponentTarget> void buildInternalComponent(
-            @NotNull RegisteredTargetType<T> targetType,
-            @NotNull Class<C> compClass) {
+    private <A extends ComponentTarget, B extends ComponentTarget> void linkTargetTypes(
+            @NotNull RegisteredTargetType<A> linkFrom,
+            @NotNull RegisteredTargetType<B> linkTo) {
 
-        // TODO try to find parent?
-        new ComponentType<>(null, compClass, targetType);
+        @SuppressWarnings("unchecked")
+        final var extendsFrom = Optional.ofNullable(linkFrom.getParent()) // TODO test using test-component-c/d
+                .flatMap(p -> p.getComponentTypes().stream()
+                .filter(c -> c instanceof LinkingComponentType)
+                .map(c -> (LinkingComponentType<? super B, ? super A>) c)
+                .filter(c -> linkTo.isEquivalentTo(c.getInnerTargetType()))
+                .findFirst());
 
+        if (extendsFrom.isPresent()) {
+            new LinkingComponentType<>(extendsFrom.get(), linkTo, linkFrom);
+        } else {
+            new LinkingComponentType<>(null, linkTo, linkFrom);
+        }
     }
 
     /**
@@ -433,29 +438,6 @@ public final class ClockworkLoader {
             return clazz;
         } catch (ClassNotFoundException e) {
             throw PluginLoadingException.pluginClassNotFound(className, plugin.getDescriptor());
-        }
-    }
-
-    /**
-     * Finds a class in the internal module layer or any parent layers.
-     *
-     * @param descriptor either the qualified name of the class, or a target/component id
-     * @param plugin    any plugin from the classloader to be used
-     * @return the loaded class, or null if no such class was found
-     */
-    public static @Nullable Class<?> findClass(@NotNull String descriptor, @NotNull LoadedPlugin plugin) {
-        try {
-            final var core = plugin.getClockworkCore();
-            final var name = Namespaces.combinedIdOrNull(descriptor, plugin.getId());
-            if (name != null) {
-                final var foundTarget = core.getTargetType(name);
-                if (foundTarget.isPresent()) return foundTarget.get().getTargetClass();
-                final var foundComponent = core.getComponentType(name);
-                if (foundComponent.isPresent()) return foundComponent.get().getComponentClass();
-            }
-            return Class.forName(descriptor, false, plugin.getMainModule().getClassLoader());
-        } catch (ClassNotFoundException e) {
-            return null;
         }
     }
 

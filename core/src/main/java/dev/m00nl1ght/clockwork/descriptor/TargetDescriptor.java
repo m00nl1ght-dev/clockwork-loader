@@ -15,7 +15,7 @@ public final class TargetDescriptor {
     private final Version version;
     private final String parent;
     private final String targetClass;
-    private final List<String> internalComponents;
+    private final List<String> linkedTargetTypes;
     private final Config extData;
 
     TargetDescriptor(Builder builder) {
@@ -24,7 +24,7 @@ public final class TargetDescriptor {
         this.version = Objects.requireNonNull(builder.version);
         this.parent = builder.parentId;
         this.targetClass = Objects.requireNonNull(builder.targetClass);
-        this.internalComponents = List.copyOf(builder.internalComponents);
+        this.linkedTargetTypes = List.copyOf(builder.linkedTargetTypes);
         this.extData = builder.extData;
     }
 
@@ -48,8 +48,8 @@ public final class TargetDescriptor {
         return targetClass;
     }
 
-    public List<String> getInternalComponents() {
-        return internalComponents;
+    public List<String> getLinkedTargetTypes() {
+        return linkedTargetTypes;
     }
 
     public Config getExtData() {
@@ -74,7 +74,7 @@ public final class TargetDescriptor {
         private Version version;
         private String targetClass;
         private String parentId;
-        private final Set<String> internalComponents = new LinkedHashSet<>();
+        private final Set<String> linkedTargetTypes = new LinkedHashSet<>();
         private Config extData = Config.EMPTY;
 
         private Builder(String pluginId, String targetId) {
@@ -101,9 +101,9 @@ public final class TargetDescriptor {
             return this;
         }
 
-        public void internalComponent(String componentClass) {
-            if (componentClass == null) return;
-            internalComponents.add(componentClass);
+        public void linkedTargetType(String targetTypeId) {
+            if (targetTypeId == null) return;
+            linkedTargetTypes.add(targetTypeId);
         }
 
         public void extData(Config extData) {

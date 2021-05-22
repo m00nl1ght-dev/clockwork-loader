@@ -23,7 +23,9 @@ public abstract class ComponentContainer<T extends ComponentTarget> {
     }
 
     protected <C> C buildComponent(ComponentType<C, ? super T> componentType, T object) throws Throwable {
-        return componentType.factory.create(object);
+        final var value = componentType.factory.create(object);
+        componentType.checkValue(object, value);
+        return value;
     }
 
 }

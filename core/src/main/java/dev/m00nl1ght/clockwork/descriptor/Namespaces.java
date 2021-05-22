@@ -38,7 +38,7 @@ public class Namespaces {
         final var matcher = COMBINED_ID_PATTERN.matcher(input);
         if (matcher.matches()) {
             final var second = matcher.group(2);
-            if (second != null || input.equals(autoFirst)) return autoFirst;
+            if (second != null || input.equals(autoFirst)) return input;
             return combine(autoFirst, input);
         } else {
             return null;

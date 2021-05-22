@@ -1,5 +1,7 @@
 package dev.m00nl1ght.clockwork.util;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.Arrays;
@@ -16,15 +18,15 @@ public abstract class TypeRef<T> {
 
     private final Type type;
 
-    public static <T> TypeRef<T> of(Class<T> theClass) {
+    public static <T> @NotNull TypeRef<T> of(@NotNull Class<T> theClass) {
         return new TypeRef<>(theClass) {};
     }
 
-    public static <T> TypeRef<T> of(Type type) {
+    public static <T> @NotNull TypeRef<T> of(@NotNull Type type) {
         return new TypeRef<>(type) {};
     }
 
-    private TypeRef(Type type) {
+    private TypeRef(@NotNull Type type) {
         this.type = Objects.requireNonNull(type);
     }
 
@@ -42,15 +44,15 @@ public abstract class TypeRef<T> {
         }
     }
 
-    public final Type getType() {
+    public final @NotNull Type getType() {
         return type;
     }
 
-    public final String getSimpleName() {
+    public final @NotNull String getSimpleName() {
         return getSimpleName(type);
     }
 
-    public static String getSimpleName(Type type) {
+    public static @NotNull String getSimpleName(@NotNull Type type) {
         if (type instanceof Class) {
             return ((Class) type).getSimpleName();
         } else if (type instanceof ParameterizedType) {
@@ -64,7 +66,7 @@ public abstract class TypeRef<T> {
         }
     }
 
-    public final boolean tryFindAssignable(Class<?> other) {
+    public final boolean tryFindAssignable(@NotNull Class<?> other) {
         if (type instanceof Class) {
             return ((Class<?>) type).isAssignableFrom(other);
         } else {
