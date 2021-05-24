@@ -39,7 +39,7 @@ public abstract class ContextAwareEvent extends Event {
         try {
             return currentListeners.listeners[currentListenerIdx];
         } catch (NullPointerException | IndexOutOfBoundsException e) {
-            throw FormatUtil.rtExc("Event listener context is missing or currupted");
+            throw FormatUtil.rtExc("Event listener context is missing or currupted", e);
         }
     }
 

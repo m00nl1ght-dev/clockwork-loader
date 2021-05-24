@@ -6,10 +6,13 @@ import java.lang.invoke.MethodHandles;
 
 public interface ComponentFactory<T extends ComponentTarget, C> {
 
+    ComponentFactory EMPTY = t -> null;
+
     C create(T obj) throws Throwable;
 
+    @SuppressWarnings("unchecked")
     static <T extends ComponentTarget, C> ComponentFactory<T, C> emptyFactory() {
-        return t -> null;
+        return EMPTY;
     }
 
     @SuppressWarnings("unchecked")

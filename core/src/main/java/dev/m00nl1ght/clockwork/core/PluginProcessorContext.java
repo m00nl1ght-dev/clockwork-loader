@@ -28,7 +28,7 @@ public class PluginProcessorContext {
         return MethodHandles.privateLookupIn(targetClass, rootLookup);
     }
 
-    public <C, T extends ComponentTarget> ComponentFactory<T, C>
+    public <C extends Component<T>, T extends ComponentTarget> ComponentFactory<T, C>
     getComponentFactory(RegisteredComponentType<C, T> componentType) {
         Objects.requireNonNull(componentType);
         plugin.getClockworkCore().getState().require(ClockworkCore.State.POPULATED);
@@ -36,7 +36,7 @@ public class PluginProcessorContext {
         return componentType.getFactoryInternal();
     }
 
-    public <C, T extends ComponentTarget> void
+    public <C extends Component<T>, T extends ComponentTarget> void
     setComponentFactory(RegisteredComponentType<C, T> componentType, ComponentFactory<T, C> factory) {
         Objects.requireNonNull(componentType);
         Objects.requireNonNull(factory);

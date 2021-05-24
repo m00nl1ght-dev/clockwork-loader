@@ -3,14 +3,13 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ClockworkExtension;
 import dev.m00nl1ght.clockwork.core.ExtensionContext;
+import dev.m00nl1ght.clockwork.core.MainComponent;
 import org.jetbrains.annotations.NotNull;
 
-public final class CWLNightconfigExtension implements ClockworkExtension {
-
-    private final ClockworkCore core;
+public final class CWLNightconfigExtension extends MainComponent implements ClockworkExtension {
 
     public CWLNightconfigExtension(@NotNull ClockworkCore core) {
-        this.core = core;
+        super(core);
     }
 
     @Override

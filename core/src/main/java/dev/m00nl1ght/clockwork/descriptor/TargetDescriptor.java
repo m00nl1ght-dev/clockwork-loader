@@ -3,10 +3,7 @@ package dev.m00nl1ght.clockwork.descriptor;
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.version.Version;
 
-import java.util.LinkedHashSet;
-import java.util.List;
 import java.util.Objects;
-import java.util.Set;
 
 public final class TargetDescriptor {
 
@@ -15,7 +12,6 @@ public final class TargetDescriptor {
     private final Version version;
     private final String parent;
     private final String targetClass;
-    private final List<String> linkedTargetTypes;
     private final Config extData;
 
     TargetDescriptor(Builder builder) {
@@ -24,7 +20,6 @@ public final class TargetDescriptor {
         this.version = Objects.requireNonNull(builder.version);
         this.parent = builder.parentId;
         this.targetClass = Objects.requireNonNull(builder.targetClass);
-        this.linkedTargetTypes = List.copyOf(builder.linkedTargetTypes);
         this.extData = builder.extData;
     }
 
@@ -46,10 +41,6 @@ public final class TargetDescriptor {
 
     public String getTargetClass() {
         return targetClass;
-    }
-
-    public List<String> getLinkedTargetTypes() {
-        return linkedTargetTypes;
     }
 
     public Config getExtData() {
@@ -74,7 +65,6 @@ public final class TargetDescriptor {
         private Version version;
         private String targetClass;
         private String parentId;
-        private final Set<String> linkedTargetTypes = new LinkedHashSet<>();
         private Config extData = Config.EMPTY;
 
         private Builder(String pluginId, String targetId) {
@@ -99,11 +89,6 @@ public final class TargetDescriptor {
         public Builder parent(String parentId) {
             this.parentId = parentId == null ? null : Namespaces.combinedId(parentId, pluginId);
             return this;
-        }
-
-        public void linkedTargetType(String targetTypeId) {
-            if (targetTypeId == null) return;
-            linkedTargetTypes.add(targetTypeId);
         }
 
         public void extData(Config extData) {

@@ -14,7 +14,7 @@ public class ImmutableComponentContainer extends ComponentContainer {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
         this.components[0] = Objects.requireNonNull(object);
-        if (!targetType.getTargetClass().isAssignableFrom(object.getClass()))
+        if (!targetType.getTargetClass().isInstance(object))
             throw new IllegalArgumentException();
     }
 

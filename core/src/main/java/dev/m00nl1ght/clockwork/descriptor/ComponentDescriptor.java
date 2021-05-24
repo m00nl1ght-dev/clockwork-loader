@@ -89,7 +89,6 @@ public final class ComponentDescriptor {
         private Version version;
         private String componentClass;
         private String targetId;
-        private String parentId;
         private final Map<String, DependencyDescriptor> dependencies = new LinkedHashMap<>();
         private boolean factoryAccessEnabled = false;
         private boolean optional = false;
@@ -115,7 +114,6 @@ public final class ComponentDescriptor {
                 dependencies.computeIfAbsent(ClockworkCore.CORE_PLUGIN_ID, DependencyDescriptor::buildAnyVersion);
                 if (componentId != null) dependencies.computeIfAbsent(pluginId, DependencyDescriptor::buildAnyVersion);
                 if (targetId != null) dependencies.computeIfAbsent(Namespaces.first(targetId), DependencyDescriptor::buildAnyVersion);
-                if (parentId != null) dependencies.computeIfAbsent(parentId, DependencyDescriptor::buildAnyVersion);
             }
         }
 
@@ -126,11 +124,6 @@ public final class ComponentDescriptor {
 
         public Builder target(String targetId) {
             this.targetId = targetId;
-            return this;
-        }
-
-        public Builder parent(String parentId) {
-            this.parentId = parentId == null ? null : Namespaces.combinedId(parentId, pluginId);
             return this;
         }
 

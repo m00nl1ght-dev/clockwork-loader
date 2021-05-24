@@ -4,10 +4,8 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
-import java.nio.file.Path;
 import java.util.List;
 
 public class PluginLoadingException extends RuntimeException {
@@ -26,10 +24,6 @@ public class PluginLoadingException extends RuntimeException {
 
     public static PluginLoadingException generic(String msg, Throwable cause, Object... objects) {
         return new PluginLoadingException(FormatUtil.format(msg, objects), cause);
-    }
-
-    public static PluginLoadingException coreTargetMissing(String id) {
-        return generic("Internal target [] is missing", id);
     }
 
     public static PluginLoadingException fatalLoadingProblems(List<PluginLoadingProblem> problems) {
@@ -78,18 +72,6 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Multiple target definitions with the same id [] are present", existing);
     }
 
-    public static PluginLoadingException pluginMainModuleNotFound(PluginDescriptor plugin, String moduleName) {
-        return generic("Main module [] defined for plugin [] not found", moduleName, plugin.getId());
-    }
-
-    public static PluginLoadingException pluginMainModuleIllegal(PluginDescriptor plugin, String moduleName, String pId) {
-        if (pId == null) {
-            return generic("Main module [] defined for plugin [] is in a different layer", moduleName, plugin.getId());
-        } else {
-            return generic("Main module [] defined for plugin [] is owned by another plugin []", moduleName, plugin.getId(), pId);
-        }
-    }
-
     public static PluginLoadingException missingReader(String name) {
         return generic("No PluginReader with name [] is defined", name);
     }
@@ -118,20 +100,16 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), target.getId());
     }
 
-    public static PluginLoadingException invalidParentForComponent(ComponentDescriptor component, RegisteredComponentType<?, ?> parent) {
-        return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), component.getId());
-    }
-
     public static PluginLoadingException illegalSubtarget(TargetType<?> target, TargetType<?> other) {
         return generic("Class [] extends class [], but respective target [] does not extend target []", other.getTargetClass().getSimpleName(), target.getTargetClass().getSimpleName(), other, target);
     }
 
-    public static PluginLoadingException illegalSubcomponent(ComponentType<?, ?> component, ComponentType<?, ?> other) {
-        return generic("Class [] extends class [], but respective component [] does not extend component []", other.getComponentClass().getSimpleName(), component.getComponentClass().getSimpleName(), other, component);
-    }
-
     public static PluginLoadingException invalidTargetClass(TargetDescriptor target, Class<?> targetClass) {
         return generic("Target class [] defined for target type [] does not implement ComponentTarget interface", targetClass.getSimpleName(), target.getId());
+    }
+
+    public static PluginLoadingException invalidComponentClass(ComponentDescriptor component, Class<?> componentClass) {
+        return generic("Component class [] defined for component type [] does not properly implement Component<T>", componentClass.getSimpleName(), component.getId());
     }
 
     public static PluginLoadingException dependencyDuplicate(String of, DependencyDescriptor dependency, DependencyDescriptor existing) {
@@ -140,10 +118,6 @@ public class PluginLoadingException extends RuntimeException {
 
     public static PluginLoadingException pluginDuplicate(PluginDescriptor plugin, PluginDescriptor existing) {
         return generic("Multiple plugins with the same id [] are present", plugin.getId());
-    }
-
-    public static PluginLoadingException multipleModulesFound(PluginFinder locator, Path path) {
-        return generic("[] found multiple java modules in path []", locator, path);
     }
 
 }

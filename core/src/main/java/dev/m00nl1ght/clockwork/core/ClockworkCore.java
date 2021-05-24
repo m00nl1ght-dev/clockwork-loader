@@ -8,7 +8,7 @@ import java.util.*;
  * This class represents a collection of {@link LoadedPlugin}s,
  * and the {@link ComponentType}s and {@link TargetType}s they provide.
  */
-public class ClockworkCore implements ComponentTarget {
+public final class ClockworkCore implements ComponentTarget {
 
     public static final String CORE_PLUGIN_ID = "clockwork";
     public static final String CORE_TARGET_ID = CORE_PLUGIN_ID + ":core";
@@ -118,7 +118,8 @@ public class ClockworkCore implements ComponentTarget {
      * @param targetClass the class corresponding to the target of the desired ComponentType
      */
     @SuppressWarnings("unchecked")
-    public <C, T extends ComponentTarget> @NotNull Optional<RegisteredComponentType<C, T>> getComponentType(
+    public <C extends Component<T>, T extends ComponentTarget>
+    @NotNull Optional<RegisteredComponentType<C, T>> getComponentType(
             @NotNull Class<C> componentClass,
             @NotNull Class<T> targetClass) {
 
@@ -131,7 +132,8 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     @SuppressWarnings("unchecked")
-    public <C, T extends ComponentTarget> @NotNull RegisteredComponentType<C, T> getComponentTypeOrThrow(
+    public <C extends Component<T>, T extends ComponentTarget>
+    @NotNull RegisteredComponentType<C, T> getComponentTypeOrThrow(
             @NotNull Class<C> componentClass,
             @NotNull Class<T> targetClass) {
 
@@ -152,7 +154,8 @@ public class ClockworkCore implements ComponentTarget {
      * @param componentClass the class corresponding to the desired ComponentType
      */
     @SuppressWarnings("unchecked")
-    public <C> @NotNull Optional<RegisteredComponentType<C, ?>> getComponentType(
+    public <C extends Component<?>>
+    @NotNull Optional<RegisteredComponentType<C, ?>> getComponentType(
             @NotNull Class<C> componentClass) {
 
         final var type = classToComponentMap.get(componentClass);
@@ -161,7 +164,8 @@ public class ClockworkCore implements ComponentTarget {
     }
 
     @SuppressWarnings("unchecked")
-    public <C> @NotNull RegisteredComponentType<C, ?> getComponentTypeOrThrow(
+    public <C extends Component<?>>
+    @NotNull RegisteredComponentType<C, ?> getComponentTypeOrThrow(
             @NotNull Class<C> componentClass) {
 
         final var type = classToComponentMap.get(componentClass);
@@ -262,6 +266,7 @@ public class ClockworkCore implements ComponentTarget {
 
     void setCoreContainer(@NotNull ComponentContainer container) {
         Objects.requireNonNull(container);
+        state.require(State.PROCESSED);
         if (this.coreContainer != null) throw new IllegalStateException();
         this.coreContainer = container;
     }

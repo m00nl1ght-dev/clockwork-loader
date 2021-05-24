@@ -44,7 +44,7 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
 
     @Override
     public String toString() {
-        return eventType + "@" + componentType.toString() + "[" + priority + "]";
+        return eventType + "@" + componentType + "[" + priority + "]";
     }
 
     @Override

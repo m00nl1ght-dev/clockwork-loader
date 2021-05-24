@@ -24,8 +24,6 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         targetTypeB = core.getTargetTypeOrThrow(TestTarget_B.class);
         targetTypeC = core.getTargetTypeOrThrow(TestTarget_C.class);
         targetTypeD = core.getTargetTypeOrThrow(TestTarget_D.class);
-        final var nestedComp = targetTypeA.getOwnComponentType(TestTarget_C.class).orElseThrow();
-        nestedComp.setFactory(TestTarget_A::getTestTargetC);
         return env;
     }
 

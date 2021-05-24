@@ -61,7 +61,7 @@ public abstract class ClockworkTest {
     }
 
     protected TestEnvironment buildEnvironment(ClockworkCore core) {
-        return new TestEnvironment();
+        return new TestEnvironment(core);
     }
 
     protected void setupComplete() {}

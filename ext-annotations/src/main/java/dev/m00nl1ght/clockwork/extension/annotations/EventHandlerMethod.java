@@ -1,9 +1,6 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.events.listener.EventListener;
 import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
@@ -61,12 +58,19 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
             @NotNull ClockworkCore core,
             @NotNull Class<?> forClass) {
 
-        final var regComp = core.getComponentType(forClass);
-        if (regComp.isPresent()) return regComp.get();
-        if (!ComponentTarget.class.isAssignableFrom(forClass)) return null;
-        @SuppressWarnings("unchecked")
-        final var asTarget = core.getTargetType((Class<? extends ComponentTarget>) forClass);
-        return asTarget.map(TargetType::getIdentityComponentType).orElse(null);
+        if (Component.class.isAssignableFrom(forClass)) {
+            @SuppressWarnings("unchecked")
+            final var regComp = core.getComponentType((Class<? extends Component<?>>) forClass);
+            if (regComp.isPresent()) return regComp.get();
+        }
+
+        if (ComponentTarget.class.isAssignableFrom(forClass)) {
+            @SuppressWarnings("unchecked")
+            final var asTarget = core.getTargetType((Class<? extends ComponentTarget>) forClass);
+            return asTarget.map(TargetType::getIdentityComponentType).orElse(null);
+        }
+
+        return null;
     }
 
     private static @Nullable TypeRef<? extends Event> eventTypeRef(@NotNull Type paramType) {
@@ -100,7 +104,7 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
     }
 
     private @NotNull BiConsumer<C, E> buildConsumer() {
-        // TODO this breaks in JVM 1.15+ because of new hidden classes mechanics
+        // TODO this breaks in JVM 15+ because of new hidden classes mechanics
         try {
             final var handle = lookup.unreflect(method);
             final var callsite = LambdaMetafactory.metafactory(lookup,

@@ -10,7 +10,7 @@ public class StrictConfig implements Config {
     private final Config config;
     private final Set<String> queried = new HashSet<>();
 
-    public StrictConfig(Config config) {
+    protected StrictConfig(Config config) {
         this.config = Objects.requireNonNull(config);
     }
 
@@ -45,7 +45,7 @@ public class StrictConfig implements Config {
 
     @Override
     public Config immutable() {
-        return config.immutable();
+        return config.immutable().strict();
     }
 
     public Set<String> getQueried() {

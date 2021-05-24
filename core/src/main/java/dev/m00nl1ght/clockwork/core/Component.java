@@ -1,12 +1,14 @@
 package dev.m00nl1ght.clockwork.core;
 
+import org.jetbrains.annotations.NotNull;
+
 import java.util.Objects;
 
 public abstract class Component<T extends ComponentTarget> {
 
     protected final T target;
 
-    protected Component(T target) {
+    protected Component(@NotNull T target) {
         this.target = Objects.requireNonNull(target);
     }
 

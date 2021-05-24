@@ -6,7 +6,7 @@ import dev.m00nl1ght.clockwork.version.Version;
 
 import java.util.Objects;
 
-public final class RegisteredComponentType<C, T extends ComponentTarget> extends ComponentType<C, T> {
+public final class RegisteredComponentType<C extends Component<T>, T extends ComponentTarget> extends ComponentType<C, T> {
 
     private final LoadedPlugin plugin;
     private final ComponentDescriptor descriptor;
@@ -20,6 +20,14 @@ public final class RegisteredComponentType<C, T extends ComponentTarget> extends
         if (!componentClass.getName().equals(descriptor.getComponentClass())) throw new IllegalArgumentException();
         final var defaultFactory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), targetType.getTargetClass(), componentClass);
         if (defaultFactory != null) super.setFactory(defaultFactory);
+    }
+
+    @Override
+    public void checkValue(T target, C value) {
+        final var actualClass = value.getClass();
+        if (actualClass != componentClass) {
+            throw FormatUtil.rtExc("Unexpected component value of class [] in [], expected class []", actualClass, getId(), componentClass);
+        }
     }
 
     @Override

@@ -11,7 +11,6 @@ CWL-Component-AllowFactoryAccess: true
 
 Name: dev/m00nl1ght/clockwork/test/env/TestTarget_A.class
 CWL-Target-Id: test-target-a
-CWL-Target-Linked: [test-target-c]
 
 Name: dev/m00nl1ght/clockwork/test/env/TestTarget_B.class
 CWL-Target-Id: test-target-b

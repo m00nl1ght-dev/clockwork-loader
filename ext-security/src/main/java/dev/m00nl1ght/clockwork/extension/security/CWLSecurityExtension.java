@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.extension.security;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.MainComponent;
 import dev.m00nl1ght.clockwork.extension.security.internal.PolicyImpl;
 import dev.m00nl1ght.clockwork.extension.security.internal.ProviderImpl;
 import org.apache.logging.log4j.LogManager;
@@ -10,11 +11,13 @@ import java.security.*;
 import java.util.HashMap;
 import java.util.Objects;
 
-public final class CWLSecurityExtension {
+public final class CWLSecurityExtension extends MainComponent {
 
     static final Logger LOGGER = LogManager.getLogger("Clockwork-Ext-Security");
 
-    private CWLSecurityExtension(ClockworkCore core) {}
+    private CWLSecurityExtension(ClockworkCore core) {
+        super(core);
+    }
 
     public static final Permissions ALL_PERMISSIONS = allPermissions();
     private static Permissions allPermissions() {

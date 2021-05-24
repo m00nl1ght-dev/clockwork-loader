@@ -21,7 +21,7 @@ public abstract class AbstractIndexedPluginFinder implements PluginFinder {
 
     @Override
     public Set<String> getAvailablePlugins(LoadingContext context) {
-        if (index != null) Set.copyOf(index.keySet());
+        if (index != null) return Set.copyOf(index.keySet());
         index = new HashMap<>();
         indexPlugins(context).forEach(p -> index.put(p, null));
         return Set.copyOf(index.keySet());

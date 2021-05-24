@@ -2,13 +2,17 @@ package dev.m00nl1ght.clockwork.core;
 
 import dev.m00nl1ght.clockwork.container.ImmutableComponentContainer;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
-import dev.m00nl1ght.clockwork.descriptor.*;
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.interfaces.impl.ExactComponentInterfaceImpl;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 import dev.m00nl1ght.clockwork.version.Version;
 import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
@@ -216,8 +220,8 @@ public final class ClockworkLoader {
 
             // Patch the module to give PluginProcessors access to its classes via deep reflection.
             if (mainModule.getLayer() == layerController.layer()) {
-                for (var pn : mainModule.getPackages()) {
-                    layerController.addOpens(mainModule, pn, LOCAL_MODULE);
+                for (var packageName : mainModule.getPackages()) {
+                    layerController.addOpens(mainModule, packageName, LOCAL_MODULE);
                 }
             }
 
@@ -311,11 +315,16 @@ public final class ClockworkLoader {
 
         }
 
-        // Initialise the target types and add defined links between them.
+        // Initialise the target types.
         for (final var targetType : core.getLoadedTargetTypes()) {
-            for (final var linkTo : targetType.getDescriptor().getLinkedTargetTypes())
-                linkTargetTypes(targetType, core.getTargetTypeOrThrow(linkTo));
             targetType.init();
+        }
+
+        // Warn if any component type has no factory assigned.
+        for (final var componentType : core.getLoadedComponentTypes()) {
+            if (componentType.getFactoryInternal() == ComponentFactory.EMPTY) {
+                LOGGER.warn("No factory or valid constructor available for component type {}", componentType);
+            }
         }
 
         // The core is now ready for use.
@@ -325,7 +334,7 @@ public final class ClockworkLoader {
 
     /**
      * Constructs a new ModuleManager for the specific set of plugin definitions.
-     * This constructor is called during plugin loading, after all definitions have been located,
+     * This is called during plugin loading, after all definitions have been located,
      * but before any components or classes are loaded.
      */
     private @NotNull Controller buildModuleLayer(@NotNull Collection<@NotNull PluginReference> plugins) {
@@ -371,40 +380,27 @@ public final class ClockworkLoader {
 
     }
 
-    private <C, T extends ComponentTarget> void buildComponent(
+    private <T extends ComponentTarget> void buildComponent(
             @NotNull LoadedPlugin plugin,
             @NotNull ComponentDescriptor descriptor,
             @NotNull RegisteredTargetType<T> targetType,
-            @NotNull Class<C> componentClass) {
+            @NotNull Class<?> componentClass) {
 
-        // TODO verify class hierarchy?
+        // Verify component class and generic type.
+        if (!ReflectionUtil.tryFindSupertype(componentClass, Component.class, targetType.getTargetClass()))
+            throw PluginLoadingException.invalidComponentClass(descriptor, componentClass);
+
+        // Cast the component class to its generic type.
+        @SuppressWarnings("unchecked")
+        final var compCasted = (Class<? extends Component<T>>) componentClass;
 
         // Construct the new ComponentType.
-        final var component = new RegisteredComponentType<>(plugin, descriptor, targetType, componentClass);
+        final var component = new RegisteredComponentType<>(plugin, descriptor, targetType, compCasted);
 
         // Then add it to the core and plugin.
         plugin.getClockworkCore().addLoadedComponentType(component);
         plugin.addLoadedComponentType(component);
 
-    }
-
-    private <A extends ComponentTarget, B extends ComponentTarget> void linkTargetTypes(
-            @NotNull RegisteredTargetType<A> linkFrom,
-            @NotNull RegisteredTargetType<B> linkTo) {
-
-        @SuppressWarnings("unchecked")
-        final var extendsFrom = Optional.ofNullable(linkFrom.getParent()) // TODO test using test-component-c/d
-                .flatMap(p -> p.getComponentTypes().stream()
-                .filter(c -> c instanceof LinkingComponentType)
-                .map(c -> (LinkingComponentType<? super B, ? super A>) c)
-                .filter(c -> linkTo.isEquivalentTo(c.getInnerTargetType()))
-                .findFirst());
-
-        if (extendsFrom.isPresent()) {
-            new LinkingComponentType<>(extendsFrom.get(), linkTo, linkFrom);
-        } else {
-            new LinkingComponentType<>(null, linkTo, linkFrom);
-        }
     }
 
     /**

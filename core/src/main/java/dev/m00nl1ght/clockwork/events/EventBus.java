@@ -16,6 +16,8 @@ import java.util.function.BiConsumer;
 
 public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGroup> {
 
+    // TODO add methods for linking/forwarding
+
     @NotNull Set<@NotNull EventDispatcher<? extends B, ?>> getEventDispatchers();
 
     <E extends B, T extends ComponentTarget>

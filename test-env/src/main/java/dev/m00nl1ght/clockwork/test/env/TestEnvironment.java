@@ -1,12 +1,13 @@
 package dev.m00nl1ght.clockwork.test.env;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.MainComponent;
 import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
 
 import java.io.File;
 import java.util.Objects;
 
-public class TestEnvironment {
+public class TestEnvironment extends MainComponent {
 
     public static final File ENV_DIR = new File(".").getAbsoluteFile();
     public static final File PLUGINS_DIR = new File(ENV_DIR, "plugins");
@@ -22,7 +23,8 @@ public class TestEnvironment {
 
     private EventBusImpl testEventBus;
 
-    public TestEnvironment() {
+    public TestEnvironment(ClockworkCore core) {
+        super(core);
         ENV_DIR.mkdirs();
         PLUGINS_DIR.mkdirs();
         PLUGIN_DATA_DIR.mkdirs();

@@ -52,7 +52,7 @@ public interface ComponentInterface<I, T extends ComponentTarget> {
 
     @NotNull Collection<TargetType<? extends T>> getCompatibleTargetTypes();
 
-    static @NotNull int[] buildIdxArray(@NotNull TypeRef<?> interfaceType, @NotNull TargetType<?> targetType) {
+    static int[] buildIdxArray(@NotNull TypeRef<?> interfaceType, @NotNull TargetType<?> targetType) {
         return targetType.getComponentTypes().stream()
                 .filter(comp -> interfaceType.tryFindAssignable(comp.getComponentClass()))
                 .mapToInt(ComponentType::getInternalIdx).toArray();
