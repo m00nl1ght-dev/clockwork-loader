@@ -2,9 +2,9 @@ package dev.m00nl1ght.clockwork.debug.profiler;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventDispatcher;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.EventDispatcher;
+import dev.m00nl1ght.clockwork.event.EventListener;
 
 import java.util.HashMap;
 import java.util.List;

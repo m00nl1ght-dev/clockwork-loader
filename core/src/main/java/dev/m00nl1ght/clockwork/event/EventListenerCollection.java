@@ -1,9 +1,8 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.impl.EventListenerCollectionImpl;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.impl.bus.EventListenerCollectionImpl;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collection;

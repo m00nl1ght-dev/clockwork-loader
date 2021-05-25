@@ -1,8 +1,10 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.event.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.EventListenerCollection;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.EventListener;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

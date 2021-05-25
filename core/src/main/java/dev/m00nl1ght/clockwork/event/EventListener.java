@@ -1,8 +1,7 @@
-package dev.m00nl1ght.clockwork.events.listener;
+package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.events.Event;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
@@ -12,19 +11,19 @@ import java.util.function.BiConsumer;
 
 public abstract class EventListener<E extends Event, T extends ComponentTarget, C> {
 
-    public static final Comparator<EventListener<?, ?, ?>> PRIORITY_ORDER =
-            Comparator.comparingInt(o -> o.priority.ordinal());
+    public static final Comparator<EventListener<?, ?, ?>> PHASE_ORDER =
+            Comparator.comparingInt(o -> o.phase.ordinal());
 
     protected final ComponentType<C, T> componentType;
-    protected final EventListenerPriority priority;
     protected final TypeRef<E> eventType;
+    protected final Phase phase;
 
     protected EventListener(@NotNull TypeRef<E> eventType,
                             @NotNull ComponentType<C, T> componentType,
-                            @NotNull EventListenerPriority priority) {
+                            @NotNull EventListener.Phase phase) {
 
         this.componentType = Objects.requireNonNull(componentType);
-        this.priority = Objects.requireNonNull(priority);
+        this.phase = Objects.requireNonNull(phase);
         this.eventType = Objects.requireNonNull(eventType);
     }
 
@@ -36,15 +35,15 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
         return componentType;
     }
 
-    public @NotNull EventListenerPriority getPriority() {
-        return priority;
+    public @NotNull EventListener.Phase getPriority() {
+        return phase;
     }
 
     public abstract @NotNull BiConsumer<C, E> getConsumer();
 
     @Override
     public String toString() {
-        return eventType + "@" + componentType + "[" + priority + "]";
+        return eventType + "@" + componentType + "[" + phase + "]";
     }
 
     @Override
@@ -59,6 +58,26 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
     @Override
     public int hashCode() {
         return Objects.hash(componentType, eventType);
+    }
+
+    public enum Phase {
+
+        PRE(false),
+        EARLY(true),
+        NORMAL(true),
+        LATE(true),
+        POST(false);
+
+        private final boolean modificationAllowed;
+
+        Phase(boolean modificationAllowed) {
+            this.modificationAllowed = modificationAllowed;
+        }
+
+        public boolean isModificationAllowed() {
+            return modificationAllowed;
+        }
+
     }
 
 }

@@ -1,13 +1,13 @@
-package dev.m00nl1ght.clockwork.events.impl;
+package dev.m00nl1ght.clockwork.event.impl.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
-import dev.m00nl1ght.clockwork.events.CompiledListeners;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
+import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
-public abstract class ContextAwareEvent extends Event {
+public abstract class EventWithContext extends Event {
 
     private CompiledListeners currentListeners;
     private int currentListenerIdx = -1;

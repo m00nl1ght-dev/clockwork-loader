@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.EventListener;
 
 public class LinkedEventProfilerEntry<E extends Event, T extends ComponentTarget, C> extends EventProfilerEntry<E, T, C> {
 

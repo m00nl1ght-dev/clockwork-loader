@@ -12,21 +12,21 @@ import java.util.*;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
-public class ExactComponentInterfaceImpl<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
+public class ComponentInterfaceImplExact<I, T extends ComponentTarget> implements ComponentInterface<I, T> {
 
     protected final TypeRef<I> interfaceType;
     protected final TargetType<T> targetType;
 
     protected final int[] compIds;
 
-    public ExactComponentInterfaceImpl(@NotNull TypeRef<I> interfaceType, @NotNull TargetType<T> targetType) {
+    public ComponentInterfaceImplExact(@NotNull TypeRef<I> interfaceType, @NotNull TargetType<T> targetType) {
         this.interfaceType = Objects.requireNonNull(interfaceType);
         this.targetType = Objects.requireNonNull(targetType);
         targetType.requireInitialised();
         this.compIds = ComponentInterface.buildIdxArray(interfaceType, targetType);
     }
 
-    public ExactComponentInterfaceImpl(@NotNull Class<I> interfaceClass, @NotNull TargetType<T> targetType) {
+    public ComponentInterfaceImplExact(@NotNull Class<I> interfaceClass, @NotNull TargetType<T> targetType) {
         this(TypeRef.of(interfaceClass), targetType);
     }
 

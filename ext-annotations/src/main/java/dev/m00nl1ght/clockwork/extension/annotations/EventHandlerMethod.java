@@ -1,9 +1,8 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
@@ -33,7 +32,7 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
             @NotNull ClockworkCore core,
             @NotNull Method method,
             @NotNull Lookup lookup,
-            @NotNull EventListenerPriority priority) {
+            @NotNull EventListener.Phase phase) {
 
         final var handlerClass = method.getDeclaringClass();
         final var params = method.getGenericParameterTypes();
@@ -43,14 +42,14 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
             if (!(params[0] instanceof Class) || eventType == null) return null;
             final var component = findComponentType(core, (Class<?>) params[0]);
             if (component == null) return null;
-            return new EventHandlerMethod<>(eventType, component, priority, lookup, method);
+            return new EventHandlerMethod<>(eventType, component, phase, lookup, method);
         } else {
             if (params.length != 1) return null;
             final var eventType = eventTypeRef(params[0]);
             if (eventType == null) return null;
             final var component = findComponentType(core, handlerClass);
             if (component == null) return null;
-            return new EventHandlerMethod<>(eventType, component, priority, lookup, method);
+            return new EventHandlerMethod<>(eventType, component, phase, lookup, method);
         }
     }
 
@@ -94,11 +93,11 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
     private EventHandlerMethod(
             @NotNull TypeRef<E> eventType,
             @NotNull ComponentType<C, T> componentType,
-            @NotNull EventListenerPriority priority,
+            @NotNull EventListener.Phase phase,
             @NotNull Lookup lookup,
             @NotNull Method method) {
 
-        super(eventType, componentType, priority);
+        super(eventType, componentType, phase);
         this.lookup = lookup;
         this.method = method;
     }

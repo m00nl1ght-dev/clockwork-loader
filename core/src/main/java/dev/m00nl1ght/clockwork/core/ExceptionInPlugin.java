@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 

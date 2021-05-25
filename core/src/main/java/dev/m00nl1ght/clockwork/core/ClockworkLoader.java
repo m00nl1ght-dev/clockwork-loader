@@ -8,7 +8,7 @@ import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.PluginFinder;
-import dev.m00nl1ght.clockwork.interfaces.impl.ExactComponentInterfaceImpl;
+import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -87,7 +87,7 @@ public final class ClockworkLoader {
 
     public synchronized void collectExtensionsFromParent() {
         if (parent != null) {
-            final var extInterface = new ExactComponentInterfaceImpl<>(ClockworkExtension.class, parent.getCoreTargetType());
+            final var extInterface = new ComponentInterfaceImplExact<>(ClockworkExtension.class, parent.getCoreTargetType());
             extInterface.apply(parent, e -> e.registerFeatures(extensionContext));
         }
     }

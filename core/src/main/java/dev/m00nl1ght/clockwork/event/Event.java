@@ -1,7 +1,8 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
+import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
 import org.jetbrains.annotations.NotNull;
 
 public abstract class Event {

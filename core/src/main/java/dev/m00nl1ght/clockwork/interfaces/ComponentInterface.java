@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImpl;
-import dev.m00nl1ght.clockwork.interfaces.impl.ExactComponentInterfaceImpl;
+import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
@@ -21,7 +21,7 @@ public interface ComponentInterface<I, T extends ComponentTarget> {
 
         Objects.requireNonNull(targetType).requireInitialised();
         if (targetType.getDirectSubtargets().isEmpty()) {
-            return new ExactComponentInterfaceImpl<>(interfaceType, targetType);
+            return new ComponentInterfaceImplExact<>(interfaceType, targetType);
         } else {
             return new ComponentInterfaceImpl<>(interfaceType, targetType);
         }

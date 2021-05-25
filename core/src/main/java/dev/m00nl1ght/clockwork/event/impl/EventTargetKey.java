@@ -1,8 +1,8 @@
-package dev.m00nl1ght.clockwork.events.impl;
+package dev.m00nl1ght.clockwork.event.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.Event;
+import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 

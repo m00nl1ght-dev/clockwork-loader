@@ -1,7 +1,10 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.event.impl;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.events.impl.EventTargetKey;
+import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.event.EventListenerCollection;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -9,6 +12,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("unchecked")
 public final class EventListeners {
@@ -37,6 +41,22 @@ public final class EventListeners {
 
     public @NotNull Set<@NotNull EventListenerCollection<?, ?>> getCollections() {
         return Set.copyOf(map.values());
+    }
+
+    public <T extends ComponentTarget>
+    @NotNull Set<@NotNull EventListenerCollection<?, T>> getCollections(TargetType<T> targetType) {
+        return map.values().stream()
+                .filter(lc -> lc.getTargetType() == targetType)
+                .map(lc -> (EventListenerCollection<?, T>) lc)
+                .collect(Collectors.toUnmodifiableSet());
+    }
+
+    public <E extends Event>
+    @NotNull Set<@NotNull EventListenerCollection<E, ?>> getCollections(TypeRef<E> eventType) {
+        return map.values().stream()
+                .filter(lc -> lc.getEventType().equals(eventType))
+                .map(lc -> (EventListenerCollection<E, ?>) lc)
+                .collect(Collectors.toUnmodifiableSet());
     }
 
     public interface CollectionFactory {

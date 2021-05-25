@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.test.env;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.MainComponent;
-import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
+import dev.m00nl1ght.clockwork.event.impl.bus.EventBusImpl;
 
 import java.io.File;
 import java.util.Objects;

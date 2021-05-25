@@ -1,24 +1,21 @@
-package dev.m00nl1ght.clockwork.events;
+package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.ComponentType;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventBusProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.Profilable;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
-import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
-import dev.m00nl1ght.clockwork.events.listener.SimpleEventListener;
+import dev.m00nl1ght.clockwork.event.impl.forwarding.EventForwardingPolicyByComponent;
+import dev.m00nl1ght.clockwork.event.impl.forwarding.EventForwardingPolicyByLambda;
+import dev.m00nl1ght.clockwork.event.impl.listener.EventListenerSimple;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Set;
 import java.util.function.BiConsumer;
+import java.util.function.Function;
 
 public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGroup> {
-
-    // TODO add methods for linking/forwarding
-
-    @NotNull Set<@NotNull EventDispatcher<? extends B, ?>> getEventDispatchers();
 
     <E extends B, T extends ComponentTarget>
     @NotNull EventDispatcher<E, T> getEventDispatcher(
@@ -46,6 +43,29 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
         return getListenerCollection(TypeRef.of(eventClass), targetType);
     }
 
+    <S extends ComponentTarget, D extends ComponentTarget>
+    boolean addForwardingPolicy(@NotNull EventForwardingPolicy<S, D> forwardingPolicy);
+
+    <S extends ComponentTarget, D extends ComponentTarget>
+    boolean removeForwardingPolicy(@NotNull EventForwardingPolicy<S, D> forwardingPolicy);
+
+    @NotNull Set<@NotNull EventForwardingPolicy<?, ?>> getForwardingPolicies();
+
+    default <S extends ComponentTarget, D extends ComponentTarget>
+    void addForwardingPolicy(@NotNull TargetType<D> destination,
+                             @NotNull ComponentType<D, S> linkingComponent) {
+
+        addForwardingPolicy(new EventForwardingPolicyByComponent<>(destination, linkingComponent));
+    }
+
+    default <S extends ComponentTarget, D extends ComponentTarget>
+    void addForwardingPolicy(@NotNull TargetType<S> source,
+                             @NotNull TargetType<D> destination,
+                             @NotNull Function<S, D> targetMapper) {
+
+        addForwardingPolicy(new EventForwardingPolicyByLambda<>(source, destination, targetMapper));
+    }
+
     default <E extends B, T extends ComponentTarget, C>
     boolean addListener(@NotNull EventListener<E, T, C> listener) {
         final var targetType = listener.getComponentType().getTargetType();
@@ -57,9 +77,9 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull TypeRef<E> eventType,
             @NotNull ComponentType<C, T> componentType,
             @NotNull BiConsumer<C, E> consumer,
-            @NotNull EventListenerPriority priority) {
+            @NotNull EventListener.Phase phase) {
 
-        final var listener = new SimpleEventListener<>(eventType, componentType, priority, consumer);
+        final var listener = new EventListenerSimple<>(eventType, componentType, phase, consumer);
         addListener(listener);
         return listener;
     }
@@ -70,7 +90,7 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull ComponentType<C, T> componentType,
             @NotNull BiConsumer<C, E> consumer) {
 
-        return addListener(eventType, componentType, consumer, EventListenerPriority.NORMAL);
+        return addListener(eventType, componentType, consumer, EventListener.Phase.NORMAL);
     }
 
     default <E extends B, T extends ComponentTarget, C>
@@ -78,9 +98,9 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull Class<E> eventClass,
             @NotNull ComponentType<C, T> componentType,
             @NotNull BiConsumer<C, E> consumer,
-            @NotNull EventListenerPriority priority) {
+            @NotNull EventListener.Phase phase) {
 
-        return addListener(TypeRef.of(eventClass), componentType, consumer, priority);
+        return addListener(TypeRef.of(eventClass), componentType, consumer, phase);
     }
 
     default <E extends B, T extends ComponentTarget, C>
@@ -89,7 +109,7 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull ComponentType<C, T> componentType,
             @NotNull BiConsumer<C, E> consumer) {
 
-        return addListener(TypeRef.of(eventClass), componentType, consumer, EventListenerPriority.NORMAL);
+        return addListener(TypeRef.of(eventClass), componentType, consumer, EventListener.Phase.NORMAL);
     }
 
     default <E extends B, T extends ComponentTarget, C>
@@ -98,10 +118,10 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull TargetType<T> targetType,
             @NotNull Class<C> componentClass,
             @NotNull BiConsumer<C, E> consumer,
-            @NotNull EventListenerPriority priority) {
+            @NotNull EventListener.Phase phase) {
 
         final var component = targetType.getOwnComponentTypeOrThrow(componentClass);
-        return addListener(eventType, component, consumer, priority);
+        return addListener(eventType, component, consumer, phase);
     }
 
     default <E extends B, T extends ComponentTarget, C>
@@ -111,7 +131,7 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull Class<C> componentClass,
             @NotNull BiConsumer<C, E> consumer) {
 
-        return addListener(eventType, targetType, componentClass, consumer, EventListenerPriority.NORMAL);
+        return addListener(eventType, targetType, componentClass, consumer, EventListener.Phase.NORMAL);
     }
 
     default <E extends B, T extends ComponentTarget, C>
@@ -120,9 +140,9 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull TargetType<T> targetType,
             @NotNull Class<C> componentClass,
             @NotNull BiConsumer<C, E> consumer,
-            @NotNull EventListenerPriority priority) {
+            @NotNull EventListener.Phase phase) {
 
-        return addListener(TypeRef.of(eventClass), targetType, componentClass, consumer, priority);
+        return addListener(TypeRef.of(eventClass), targetType, componentClass, consumer, phase);
     }
 
     default <E extends B, T extends ComponentTarget, C>
@@ -132,7 +152,7 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
             @NotNull Class<C> componentClass,
             @NotNull BiConsumer<C, E> consumer) {
 
-        return addListener(TypeRef.of(eventClass), targetType, componentClass, consumer, EventListenerPriority.NORMAL);
+        return addListener(TypeRef.of(eventClass), targetType, componentClass, consumer, EventListener.Phase.NORMAL);
     }
 
 }

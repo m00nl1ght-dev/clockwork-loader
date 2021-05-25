@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
+import dev.m00nl1ght.clockwork.event.impl.bus.EventBusImpl;
 import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;

@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.extension.annotations;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginProcessor;
 import dev.m00nl1ght.clockwork.core.PluginProcessorContext;
-import dev.m00nl1ght.clockwork.events.listener.EventListenerPriority;
+import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 import org.jetbrains.annotations.NotNull;
@@ -68,7 +68,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
         for (var method : handlerClass.getDeclaredMethods()) {
             final var annotation = method.getAnnotation(EventHandler.class);
             if (annotation != null) {
-                final var priority = annotation == null ? EventListenerPriority.NORMAL : annotation.value();
+                final var priority = annotation == null ? EventListener.Phase.NORMAL : annotation.value();
                 if (lookup == null) lookup = context.getReflectiveAccess(handlerClass);
                 final var handler = EventHandlerMethod.build(context.getPlugin().getClockworkCore(), method, lookup, priority);
                 if (handler != null) {

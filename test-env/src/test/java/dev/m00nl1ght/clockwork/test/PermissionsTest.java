@@ -2,8 +2,8 @@ package dev.m00nl1ght.clockwork.test;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
-import dev.m00nl1ght.clockwork.events.EventDispatcher;
-import dev.m00nl1ght.clockwork.events.impl.EventBusImpl;
+import dev.m00nl1ght.clockwork.event.EventDispatcher;
+import dev.m00nl1ght.clockwork.event.impl.bus.EventBusImpl;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
 import dev.m00nl1ght.clockwork.extension.security.CWLSecurityExtension;
 import dev.m00nl1ght.clockwork.extension.security.SecurityConfig;

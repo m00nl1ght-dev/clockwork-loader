@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.debug.profiler;
 
-import dev.m00nl1ght.clockwork.events.EventBus;
-import dev.m00nl1ght.clockwork.events.EventDispatcher;
+import dev.m00nl1ght.clockwork.event.EventBus;
+import dev.m00nl1ght.clockwork.event.EventDispatcher;
 
 import java.util.LinkedHashSet;
 import java.util.List;

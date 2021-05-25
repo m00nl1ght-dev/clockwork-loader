@@ -1,13 +1,13 @@
-package dev.m00nl1ght.clockwork.events.impl;
+package dev.m00nl1ght.clockwork.event.impl.bus;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
-import dev.m00nl1ght.clockwork.events.CompiledListeners;
-import dev.m00nl1ght.clockwork.events.Event;
-import dev.m00nl1ght.clockwork.events.EventDispatcher;
-import dev.m00nl1ght.clockwork.events.EventListenerCollection;
-import dev.m00nl1ght.clockwork.events.listener.EventListener;
+import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.EventDispatcher;
+import dev.m00nl1ght.clockwork.event.EventListenerCollection;
+import dev.m00nl1ght.clockwork.event.EventListener;
+import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 
 import java.util.Collection;
@@ -15,7 +15,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public class ExactEventDispatcherImpl<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
+public class EventDispatcherImplExact<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
 
     protected final EventListenerCollection.Observer observer = this::onListenersChanged;
 
@@ -26,7 +26,7 @@ public class ExactEventDispatcherImpl<E extends Event, T extends ComponentTarget
     protected EventDispatcherProfilerGroup<E, T> profilerGroup;
     protected CompiledListeners compiledListeners;
 
-    public ExactEventDispatcherImpl(TypeRef<E> eventType, TargetType<T> targetType) {
+    public EventDispatcherImplExact(TypeRef<E> eventType, TargetType<T> targetType) {
         this.eventType = Objects.requireNonNull(eventType);
         this.targetType = Objects.requireNonNull(targetType);
         targetType.requireInitialised();
