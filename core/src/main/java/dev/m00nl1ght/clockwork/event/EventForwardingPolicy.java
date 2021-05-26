@@ -11,9 +11,9 @@ public interface EventForwardingPolicy<S extends ComponentTarget, D extends Comp
     @NotNull TargetType<D> getDestinationTargetType();
 
     <E extends Event> void bind(@NotNull EventListenerCollection<E, S> source,
-                                @NotNull EventListenerCollection<E, D> destination);
+                                @NotNull EventListenerCollection<E, ?> destination);
 
     <E extends Event> void unbind(@NotNull EventListenerCollection<E, S> source,
-                                  @NotNull EventListenerCollection<E, D> destination);
+                                  @NotNull EventListenerCollection<E, ?> destination);
 
 }

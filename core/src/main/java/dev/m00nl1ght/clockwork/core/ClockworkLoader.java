@@ -277,6 +277,11 @@ public final class ClockworkLoader {
 
         }
 
+        // Make sure all plugins have a valid main component.
+        for (final var plugin : core.getLoadedPlugins()) {
+            plugin.getMainComponent();
+        }
+
         // The core now contains all the loaded plugins, targets and components.
         core.setState(State.POPULATED);
 

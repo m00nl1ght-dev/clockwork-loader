@@ -15,7 +15,7 @@ import java.util.stream.Collectors;
 
 public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
 
-    protected final EventListenerCollection.Observer observer = this::onListenersChanged;
+    protected final EventListenerCollection.ChangeObserver<E> observer = this::onListenersChanged;
 
     protected final TypeRef<E> eventType;
     protected final TargetType<T> targetType;
@@ -74,7 +74,8 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
     public <S extends T> void setListenerCollection(EventListenerCollection<E, S> collection) {
         checkCompatibility(collection.getTargetType());
         final var idx = collection.getTargetType().getSubtargetIdxFirst() - idxOffset;
-        final var old = listenerCollections[idx];
+        @SuppressWarnings("unchecked")
+        final var old = (EventListenerCollection<E, S>) listenerCollections[idx];
         if (old != null) old.removeObserver(observer);
         listenerCollections[idx] = collection;
         compiledListeners[idx] = null;

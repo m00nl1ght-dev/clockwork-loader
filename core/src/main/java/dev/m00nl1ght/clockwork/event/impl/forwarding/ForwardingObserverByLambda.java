@@ -1,69 +1,64 @@
 package dev.m00nl1ght.clockwork.event.impl.forwarding;
 
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.event.Event;
+import dev.m00nl1ght.clockwork.event.EventBus;
 import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.event.EventListenerCollection;
+import dev.m00nl1ght.clockwork.event.impl.listener.EventListenerForwardingByLambda;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Function;
 
-public final class ForwardingObserverByLambda<E extends Event, S extends ComponentTarget, D extends ComponentTarget> implements EventListenerCollection.Observer {
+public final class ForwardingObserverByLambda<B extends Event, S extends ComponentTarget, D extends ComponentTarget> implements EventListenerCollection.Observer<B> {
 
-    private final EventListenerCollection<E, ? extends S> source;
-    private final EventListenerCollection<E, D> destination;
-    private final Function<S, D> mapperFunction;
+    private final TargetType<S> sourceTarget;
+    private final TargetType<D> destinationTarget;
+    private final Function<S, D> targetMapper;
+    private final EventBus<B> eventBus;
 
-    public static <E extends Event, S extends ComponentTarget, D extends ComponentTarget> void bind(
-            @NotNull EventListenerCollection<E, ? extends S> source,
-            @NotNull EventListenerCollection<E, D> destination,
-            @NotNull Function<S, D> mapperFunction) {
+    public ForwardingObserverByLambda(
+            @NotNull TargetType<S> sourceTarget,
+            @NotNull TargetType<D> destinationTarget,
+            @NotNull Function<S, D> targetMapper,
+            @NotNull EventBus<B> eventBus) {
 
-        source.addObserver(new ForwardingObserverByLambda<>(source, destination, mapperFunction));
-    }
-
-    private ForwardingObserverByLambda(
-            @NotNull EventListenerCollection<E, ? extends S> source,
-            @NotNull EventListenerCollection<E, D> destination,
-            @NotNull Function<S, D> mapperFunction) {
-
-        this.source = Objects.requireNonNull(source);
-        this.destination = Objects.requireNonNull(destination);
-        this.mapperFunction = Objects.requireNonNull(mapperFunction);
-        source.get().forEach(l -> onAdded(source, l));
+        this.sourceTarget = Objects.requireNonNull(sourceTarget);
+        this.destinationTarget = Objects.requireNonNull(destinationTarget);
+        this.targetMapper = Objects.requireNonNull(targetMapper);
+        this.eventBus = Objects.requireNonNull(eventBus);
     }
 
     @Override
-    public void onChange(EventListenerCollection<?, ?> collection) {
-        // NO-OP
+    public <E extends B, T extends ComponentTarget, C>
+    void onAdded(EventListenerCollection<E, T> collection, EventListener<E, T, C> listener) {
+        final var source = eventBus.getListenerCollection(listener.getEventType(), sourceTarget);
+        source.add(new EventListenerForwardingByLambda<>(listener, sourceTarget, destinationTarget, targetMapper));
     }
 
     @Override
-    public void onAdded(EventListenerCollection<?, ?> collection, EventListener<?, ?, ?> listener) {
-        @SuppressWarnings("unchecked")
-        final var casted = (EventListener<E, S, ?>) listener;
-        //destination.add(new ForwardingEventListener<>(casted, destination.getTargetType(), mapperFunction)); TODO
-    }
-
-    @Override
-    public void onRemoved(EventListenerCollection<?, ?> collection, EventListener<?, ?, ?> listener) {
-        @SuppressWarnings("unchecked")
-        final var casted = (EventListener<E, S, ?>) listener;
-        //destination.remove(new ForwardingEventListener<>(casted, destination.getTargetType(), mapperFunction)); TODO
+    public <E extends B, T extends ComponentTarget, C>
+    void onRemoved(EventListenerCollection<E, T> collection, EventListener<E, T, C> listener) {
+        final var source = eventBus.getListenerCollection(listener.getEventType(), sourceTarget);
+        source.remove(new EventListenerForwardingByLambda<>(listener, sourceTarget, destinationTarget, targetMapper));
     }
 
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (!(o instanceof ForwardingObserverByLambda)) return false;
-        ForwardingObserverByLambda<?, ?, ?> that = (ForwardingObserverByLambda<?, ?, ?>) o;
-        return source == that.source && destination == that.destination;
+        final var that = (ForwardingObserverByLambda<?, ?, ?>) o;
+        return sourceTarget == that.sourceTarget
+                && destinationTarget == that.destinationTarget
+                && targetMapper.equals(that.targetMapper)
+                && eventBus == that.eventBus;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(source, destination);
+        return Objects.hash(sourceTarget, destinationTarget, targetMapper, eventBus);
     }
 
 }

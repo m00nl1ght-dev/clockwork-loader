@@ -17,7 +17,7 @@ import java.util.Set;
 
 public class EventDispatcherImplExact<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
 
-    protected final EventListenerCollection.Observer observer = this::onListenersChanged;
+    protected final EventListenerCollection.ChangeObserver observer = this::onListenersChanged;
 
     protected final TypeRef<E> eventType;
     protected final TargetType<T> targetType;

@@ -29,19 +29,34 @@ public interface EventListenerCollection<E extends Event, T extends ComponentTar
 
     boolean remove(EventListener<E, T, ?> listener);
 
-    boolean addObserver(Observer observer);
+    boolean addObserver(Observer<? super E> observer);
 
-    boolean removeObserver(Observer observer);
+    boolean removeObserver(Observer<? super E> observer);
 
-    interface Observer {
+    interface Observer<B extends Event> {
 
-        void onChange(EventListenerCollection<?, ?> collection);
+        <E extends B, T extends ComponentTarget, C>
+        void onAdded(EventListenerCollection<E, T> collection, EventListener<E, T, C> listener);
 
-        default void onAdded(EventListenerCollection<?, ?> collection, EventListener<?, ?, ?> listener) {
+        <E extends B, T extends ComponentTarget, C>
+        void onRemoved(EventListenerCollection<E, T> collection, EventListener<E, T, C> listener);
+
+    }
+
+    interface ChangeObserver<B extends Event> extends Observer<B> {
+
+        <E extends B, T extends ComponentTarget>
+        void onChange(EventListenerCollection<E, T> collection);
+
+        @Override
+        default <E extends B, T extends ComponentTarget, C>
+        void onAdded(EventListenerCollection<E, T> collection, EventListener<E, T, C> listener) {
             onChange(collection);
         }
 
-        default void onRemoved(EventListenerCollection<?, ?> collection, EventListener<?, ?, ?> listener) {
+        @Override
+        default <E extends B, T extends ComponentTarget, C>
+        void onRemoved(EventListenerCollection<E, T> collection, EventListener<E, T, C> listener) {
             onChange(collection);
         }
 

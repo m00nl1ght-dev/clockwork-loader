@@ -88,6 +88,7 @@ public class EventBusImpl implements EventBus<Event> {
         return true;
     }
 
+    // TODO
     protected <E extends Event, S extends ComponentTarget, D extends ComponentTarget>
     void tryBind(EventListenerCollection<E, ?> collection, EventForwardingPolicy<S, D> policy, boolean unbind) {
         if (policy.getSourceTargetType() == collection.getTargetType()) {
@@ -140,6 +141,11 @@ public class EventBusImpl implements EventBus<Event> {
     @Override
     public boolean supportsProfilers() {
         return true;
+    }
+
+    @Override
+    public Class<Event> getBaseEventClass() {
+        return Event.class;
     }
 
 }

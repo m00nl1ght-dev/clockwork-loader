@@ -155,4 +155,6 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
         return addListener(TypeRef.of(eventClass), targetType, componentClass, consumer, EventListener.Phase.NORMAL);
     }
 
+    Class<B> getBaseEventClass();
+
 }

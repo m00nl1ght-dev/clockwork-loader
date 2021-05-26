@@ -38,14 +38,14 @@ public class EventForwardingPolicyByComponent<S extends ComponentTarget, D exten
 
     @Override
     public <E extends Event> void bind(@NotNull EventListenerCollection<E, S> source,
-                                       @NotNull EventListenerCollection<E, D> destination) {
+                                       @NotNull EventListenerCollection<E, ?> destination) {
 
         // TODO
     }
 
     @Override
     public <E extends Event> void unbind(@NotNull EventListenerCollection<E, S> source,
-                                         @NotNull EventListenerCollection<E, D> destination) {
+                                         @NotNull EventListenerCollection<E, ?> destination) {
 
         // TODO
     }

@@ -4,35 +4,65 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
+import dev.m00nl1ght.clockwork.util.FormatUtil;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
 
-public class EventListenerForwardingByLambda<E extends Event, T extends ComponentTarget, I extends ComponentTarget, C> extends EventListener<E, T, T> {
+public class EventListenerForwardingByLambda<E extends Event, S extends ComponentTarget, D extends ComponentTarget, DL extends ComponentTarget, C> extends EventListener<E, S, S> {
 
-    protected final EventListener<E, ? extends I, C> innerListener;
-    protected final Function<T, I> targetFunction;
+    protected final EventListener<E, DL, C> innerListener;
+    protected final TargetType<D> destinationTargetType;
+    protected final Function<S, D> targetMapper;
     protected final BiConsumer<C, E> innerConsumer;
+    protected final BiConsumer<S, E> outerConsumer;
     protected final int cIdx, tIdxF, tIdxL;
 
-    public EventListenerForwardingByLambda(EventListener<E, ? extends I, C> innerListener, TargetType<T> targetType, Function<T, I> targetFunction) {
-        super(Objects.requireNonNull(innerListener).getEventType(), targetType.getIdentityComponentType(), innerListener.getPriority());
+    public EventListenerForwardingByLambda(@NotNull EventListener<E, DL, C> innerListener,
+                                           @NotNull TargetType<S> sourceTargetType,
+                                           @NotNull TargetType<D> destinationTargetType,
+                                           @NotNull Function<S, D> targetMapper) {
+
+        super(Objects.requireNonNull(innerListener).getEventType(),
+                sourceTargetType.getIdentityComponentType(), innerListener.getPriority());
+
         this.innerListener = innerListener;
         this.innerConsumer = innerListener.getConsumer();
         this.cIdx = innerListener.getComponentType().getInternalIdx();
         this.tIdxF = innerListener.getComponentType().getTargetType().getSubtargetIdxFirst();
         this.tIdxL = innerListener.getComponentType().getTargetType().getSubtargetIdxLast();
-        this.targetFunction = Objects.requireNonNull(targetFunction);
+        this.destinationTargetType = Objects.requireNonNull(destinationTargetType);
+        this.targetMapper = Objects.requireNonNull(targetMapper);
+
+        if (destinationTargetType.isEquivalentTo(innerListener.getComponentType().getTargetType())) {
+            this.outerConsumer = this::invokeExact;
+        } else if (innerListener.getComponentType().getTargetType().isEquivalentTo(destinationTargetType)) {
+            this.outerConsumer = this::invoke;
+        } else {
+            throw FormatUtil.rtExc("Broken event forwarding, invalid listener []", this);
+        }
     }
 
     @Override
-    public BiConsumer<T, E> getConsumer() {
-        return this::invoke;
+    public BiConsumer<S, E> getConsumer() {
+        return outerConsumer;
     }
 
-    private void invoke(T target, E event) {
-        final var innerTarget = targetFunction.apply(target);
+    private void invokeExact(S target, E event) {
+        final var innerTarget = targetMapper.apply(target);
+        if (innerTarget == null) return;
+        final var container = innerTarget.getComponentContainer();
+        @SuppressWarnings("unchecked")
+        final C innerComponent = (C) container.getComponent(cIdx);
+        if (innerComponent != null) {
+            innerConsumer.accept(innerComponent, event);
+        }
+    }
+
+    private void invoke(S target, E event) {
+        final var innerTarget = targetMapper.apply(target);
         if (innerTarget == null) return;
         final var container = innerTarget.getComponentContainer();
         final var tIdx = container.getTargetType().getSubtargetIdxFirst();
@@ -45,7 +75,7 @@ public class EventListenerForwardingByLambda<E extends Event, T extends Componen
         }
     }
 
-    public EventListener<E, ? extends I, C> getInnerListener() {
+    public EventListener<E, DL, C> getInnerListener() {
         return innerListener;
     }
 
@@ -54,8 +84,8 @@ public class EventListenerForwardingByLambda<E extends Event, T extends Componen
         if (this == o) return true;
         if (!(o instanceof EventListenerForwardingByLambda)) return false;
         if (!super.equals(o)) return false;
-        EventListenerForwardingByLambda<?, ?, ?, ?> that = (EventListenerForwardingByLambda<?, ?, ?, ?>) o;
-        return innerListener.equals(that.innerListener);
+        final var that = (EventListenerForwardingByLambda<?, ?, ?, ?, ?>) o;
+        return innerListener.equals(that.innerListener) && targetMapper.equals(that.targetMapper);
     }
 
     @Override

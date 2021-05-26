@@ -36,12 +36,14 @@ public final class LoadedPlugin {
     }
 
     @SuppressWarnings("unchecked")
-    public ComponentType<?, ClockworkCore> getMainComponent() {
+    public ComponentType<? extends MainComponent, ClockworkCore> getMainComponent() {
         final var component = clockworkCore.getComponentTypeOrThrow(getId());
         if (component.getTargetType().getTargetClass() != ClockworkCore.class) {
             throw new RuntimeException("Main component invalid: " + component);
+        } else if (!MainComponent.class.isAssignableFrom(component.getComponentClass())) {
+            throw new RuntimeException("Main component class does not inherit from MainComponent: " + component);
         } else {
-            return (ComponentType<?, ClockworkCore>) component;
+            return (ComponentType<? extends MainComponent, ClockworkCore>) component;
         }
     }
 
