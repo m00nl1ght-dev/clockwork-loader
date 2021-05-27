@@ -60,19 +60,22 @@ public class EventListenerCollectionImpl<E extends Event, T extends ComponentTar
     }
 
     @Override
-    public boolean addObserver(Observer<? super E> observer) {
+    public boolean addObserver(Observer<? super E> observer, boolean notifyNow) {
         Objects.requireNonNull(observer);
         if (observers == null) observers = new LinkedList<>();
         if (observers.contains(observer)) return false;
         observers.add(observer);
+        if (notifyNow) get().forEach(l -> observer.onAdded(this, l));
         return true;
     }
 
     @Override
-    public boolean removeObserver(Observer<? super E> observer) {
+    public boolean removeObserver(Observer<? super E> observer, boolean notifyNow) {
         Objects.requireNonNull(observer);
         if (observers == null) return false;
-        return observers.remove(observer);
+        if (!observers.remove(observer)) return false;
+        if (notifyNow) get().forEach(l -> observer.onRemoved(this, l));
+        return true;
     }
 
 }

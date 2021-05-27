@@ -4,15 +4,18 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import dev.m00nl1ght.clockwork.event.*;
 import dev.m00nl1ght.clockwork.event.impl.listener.EventListenerForwardingByLambda;
+import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public class EventForwardingPolicyByLambda<B extends Event, S extends ComponentTarget, D extends ComponentTarget> implements EventForwardingPolicy<B, S, D> {
 
     private final TargetType<S> sourceTarget;
     private final TargetType<D> destinationTarget;
+    private final Predicate<TypeRef<? extends B>> eventTypeFilter;
     private final Function<S, D> targetMapper;
     private final EventBus<B> eventBus;
 
@@ -21,11 +24,13 @@ public class EventForwardingPolicyByLambda<B extends Event, S extends ComponentT
     public EventForwardingPolicyByLambda(
             @NotNull TargetType<S> sourceTarget,
             @NotNull TargetType<D> destinationTarget,
+            @NotNull Predicate<TypeRef<? extends B>> eventTypeFilter,
             @NotNull Function<S, D> targetMapper,
             @NotNull EventBus<B> eventBus) {
 
         this.sourceTarget = Objects.requireNonNull(sourceTarget);
         this.destinationTarget = Objects.requireNonNull(destinationTarget);
+        this.eventTypeFilter = Objects.requireNonNull(eventTypeFilter);
         this.targetMapper = Objects.requireNonNull(targetMapper);
         this.eventBus = Objects.requireNonNull(eventBus);
     }
@@ -50,33 +55,21 @@ public class EventForwardingPolicyByLambda<B extends Event, S extends ComponentT
     }
 
     @Override
-    public <E extends Event> void bind(@NotNull EventListenerCollection<E, S> source,
-                                       @NotNull EventListenerCollection<E, ?> destination) {
-
-        // TODO
+    public <E extends B> void bind(@NotNull EventListenerCollection<E, ?> listeners) {
+        if (!eventTypeFilter.test(listeners.getEventType())) return;
+        if (destinationTarget.isEquivalentTo(listeners.getTargetType())
+                || listeners.getTargetType().isEquivalentTo(destinationTarget)) {
+            listeners.addObserver(observer, true);
+        }
     }
 
     @Override
-    public <E extends Event> void unbind(@NotNull EventListenerCollection<E, S> source,
-                                         @NotNull EventListenerCollection<E, ?> destination) {
-
-        // TODO
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
-        final var that = (EventForwardingPolicyByLambda<?, ?, ?>) o;
-        return sourceTarget.equals(that.sourceTarget)
-                && destinationTarget.equals(that.destinationTarget)
-                && targetMapper.equals(that.targetMapper)
-                && eventBus.equals(that.eventBus);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hash(sourceTarget, destinationTarget, targetMapper, eventBus);
+    public <E extends B> void unbind(@NotNull EventListenerCollection<E, ?> listeners) {
+        if (!eventTypeFilter.test(listeners.getEventType())) return;
+        if (destinationTarget.isEquivalentTo(listeners.getTargetType())
+                || listeners.getTargetType().isEquivalentTo(destinationTarget)) {
+            listeners.removeObserver(observer, true);
+        }
     }
 
     private class Observer implements EventListenerCollection.Observer<B> {

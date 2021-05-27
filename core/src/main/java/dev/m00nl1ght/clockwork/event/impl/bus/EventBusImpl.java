@@ -8,10 +8,10 @@ import dev.m00nl1ght.clockwork.event.*;
 import dev.m00nl1ght.clockwork.event.impl.EventDispatchers;
 import dev.m00nl1ght.clockwork.event.impl.EventListeners;
 import dev.m00nl1ght.clockwork.event.impl.EventTargetKey;
+import dev.m00nl1ght.clockwork.util.MapToSet;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
-import java.util.HashSet;
 import java.util.Objects;
 import java.util.Set;
 
@@ -20,7 +20,7 @@ public class EventBusImpl implements EventBus<Event> {
     protected final EventDispatchers dispatchers = new EventDispatchers(this::buildDispatcher);
     protected final EventListeners listeners = new EventListeners(this::buildListenerCollection);
 
-    protected final Set<EventForwardingPolicy<Event, ?, ?>> forwardingPolicies = new HashSet<>();
+    protected final MapToSet<TargetType<?>, EventForwardingPolicy<Event, ?, ?>> forwardingPolicies = new MapToSet<>();
 
     protected EventBusProfilerGroup profilerGroup;
 
@@ -64,8 +64,8 @@ public class EventBusImpl implements EventBus<Event> {
             final var dispatcher = dispatchers.getDispatcherOrNull(compKey);
             if (dispatcher != null) dispatcher.setListenerCollection(collection);
         }
-        for (final var policy : forwardingPolicies) {
-            tryBind(collection, policy, false);
+        for (final var policy : forwardingPolicies.get(key.getTargetType().getRoot())) {
+            policy.bind(collection);
         }
         return collection;
     }
@@ -74,9 +74,13 @@ public class EventBusImpl implements EventBus<Event> {
     public <S extends ComponentTarget, D extends ComponentTarget>
     boolean addForwardingPolicy(@NotNull EventForwardingPolicy<Event, S, D> forwardingPolicy) {
         if (forwardingPolicy.getEventBus() != this) throw new IllegalArgumentException();
-        if (!forwardingPolicies.add(forwardingPolicy)) return false;
-        listeners.getCollections(forwardingPolicy.getSourceTargetType())
-                .forEach(lc -> tryBind(lc, forwardingPolicy, false));
+        final var rootDest = forwardingPolicy.getDestinationTargetType().getRoot();
+        if (!forwardingPolicies.addValue(rootDest, forwardingPolicy)) return false;
+        for (final var col : listeners.getCollections()) {
+            if (col.getTargetType().getRoot() == rootDest) {
+                forwardingPolicy.bind(col);
+            }
+        }
         return true;
     }
 
@@ -84,39 +88,19 @@ public class EventBusImpl implements EventBus<Event> {
     public <S extends ComponentTarget, D extends ComponentTarget>
     boolean removeForwardingPolicy(@NotNull EventForwardingPolicy<Event, S, D> forwardingPolicy) {
         if (forwardingPolicy.getEventBus() != this) throw new IllegalArgumentException();
-        if (!forwardingPolicies.remove(forwardingPolicy)) return false;
-        listeners.getCollections(forwardingPolicy.getSourceTargetType())
-                .forEach(lc -> tryBind(lc, forwardingPolicy, true));
-        return true;
-    }
-
-    // TODO
-    protected <E extends Event, S extends ComponentTarget, D extends ComponentTarget>
-    void tryBind(EventListenerCollection<E, ?> collection, EventForwardingPolicy<Event, S, D> policy, boolean unbind) {
-        if (policy.getSourceTargetType() == collection.getTargetType()) {
-            @SuppressWarnings("unchecked")
-            final var source = (EventListenerCollection<E, S>) collection;
-            final var destKey = EventTargetKey.of(source.getEventType(), policy.getDestinationTargetType());
-            final var dest = listeners.getCollectionOrNull(destKey);
-            if (dest != null) {
-                if (unbind) policy.unbind(source, dest);
-                else policy.bind(source, dest);
-            }
-        } else if (policy.getDestinationTargetType() == collection.getTargetType()) {
-            @SuppressWarnings("unchecked")
-            final var dest = (EventListenerCollection<E, D>) collection;
-            final var sourceKey = EventTargetKey.of(dest.getEventType(), policy.getSourceTargetType());
-            final var source = listeners.getCollectionOrNull(sourceKey);
-            if (source != null) {
-                if (unbind) policy.unbind(source, dest);
-                else policy.bind(source, dest);
+        final var rootDest = forwardingPolicy.getDestinationTargetType().getRoot();
+        if (!forwardingPolicies.removeValue(rootDest, forwardingPolicy)) return false;
+        for (final var col : listeners.getCollections()) {
+            if (col.getTargetType().getRoot() == rootDest) {
+                forwardingPolicy.unbind(col);
             }
         }
+        return true;
     }
 
     @Override
     public @NotNull Set<@NotNull EventForwardingPolicy<Event, ?, ?>> getForwardingPolicies() {
-        return Set.copyOf(forwardingPolicies);
+        return forwardingPolicies.getAll();
     }
 
     @Override

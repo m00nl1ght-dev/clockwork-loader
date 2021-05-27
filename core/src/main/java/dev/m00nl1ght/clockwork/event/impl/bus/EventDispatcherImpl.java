@@ -76,10 +76,10 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
         final var idx = collection.getTargetType().getSubtargetIdxFirst() - idxOffset;
         @SuppressWarnings("unchecked")
         final var old = (EventListenerCollection<E, S>) listenerCollections[idx];
-        if (old != null) old.removeObserver(observer);
+        if (old != null) old.removeObserver(observer, false);
         listenerCollections[idx] = collection;
         compiledListeners[idx] = null;
-        collection.addObserver(observer);
+        collection.addObserver(observer, false);
     }
 
     @Override

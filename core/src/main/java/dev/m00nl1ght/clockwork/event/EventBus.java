@@ -14,6 +14,7 @@ import org.jetbrains.annotations.NotNull;
 import java.util.Set;
 import java.util.function.BiConsumer;
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGroup> {
 
@@ -53,9 +54,28 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
 
     default <S extends ComponentTarget, D extends ComponentTarget>
     void addForwardingPolicy(@NotNull TargetType<D> destination,
+                             @NotNull ComponentType<D, S> linkingComponent,
+                             @NotNull Predicate<TypeRef<? extends B>> eventTypeFilter) {
+
+        addForwardingPolicy(new EventForwardingPolicyByComponent<>(
+                destination, linkingComponent, eventTypeFilter, this));
+    }
+
+    default <S extends ComponentTarget, D extends ComponentTarget>
+    void addForwardingPolicy(@NotNull TargetType<D> destination,
                              @NotNull ComponentType<D, S> linkingComponent) {
 
-        addForwardingPolicy(new EventForwardingPolicyByComponent<>(destination, linkingComponent, this));
+        addForwardingPolicy(destination, linkingComponent, e -> true);
+    }
+
+    default <S extends ComponentTarget, D extends ComponentTarget>
+    void addForwardingPolicy(@NotNull TargetType<S> source,
+                             @NotNull TargetType<D> destination,
+                             @NotNull Predicate<TypeRef<? extends B>> eventTypeFilter,
+                             @NotNull Function<S, D> targetMapper) {
+
+        addForwardingPolicy(new EventForwardingPolicyByLambda<>(
+                source, destination, eventTypeFilter, targetMapper, this));
     }
 
     default <S extends ComponentTarget, D extends ComponentTarget>
@@ -63,7 +83,7 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
                              @NotNull TargetType<D> destination,
                              @NotNull Function<S, D> targetMapper) {
 
-        addForwardingPolicy(new EventForwardingPolicyByLambda<>(source, destination, targetMapper, this));
+        addForwardingPolicy(source, destination, e -> true, targetMapper);
     }
 
     default <E extends B, T extends ComponentTarget, C>

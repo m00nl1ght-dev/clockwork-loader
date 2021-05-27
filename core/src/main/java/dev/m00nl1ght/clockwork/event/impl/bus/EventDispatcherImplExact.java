@@ -66,10 +66,10 @@ public class EventDispatcherImplExact<E extends Event, T extends ComponentTarget
     @SuppressWarnings("unchecked")
     public <S extends T> void setListenerCollection(EventListenerCollection<E, S> collection) {
         checkCompatibility(collection.getTargetType());
-        if (listenerCollection != null) listenerCollection.removeObserver(observer);
+        if (listenerCollection != null) listenerCollection.removeObserver(observer, false);
         listenerCollection = (EventListenerCollection<E, T>) collection;
         compiledListeners = null;
-        collection.addObserver(observer);
+        collection.addObserver(observer, false);
     }
 
     @Override

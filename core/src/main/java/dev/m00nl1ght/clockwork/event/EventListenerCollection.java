@@ -29,9 +29,9 @@ public interface EventListenerCollection<E extends Event, T extends ComponentTar
 
     boolean remove(EventListener<E, T, ?> listener);
 
-    boolean addObserver(Observer<? super E> observer);
+    boolean addObserver(Observer<? super E> observer, boolean notifyNow);
 
-    boolean removeObserver(Observer<? super E> observer);
+    boolean removeObserver(Observer<? super E> observer, boolean notifyNow);
 
     interface Observer<B extends Event> {
 

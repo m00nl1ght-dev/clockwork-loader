@@ -11,11 +11,11 @@ import java.util.function.BiConsumer;
 
 public class EventListenerForwardingByComponent<E extends Event, S extends ComponentTarget, D extends ComponentTarget, C> extends EventListener<E, S, D> {
 
-    protected final EventListener<E, D, C> innerListener;
+    protected final EventListener<E, ? super D, C> innerListener;
     protected final BiConsumer<C, E> innerConsumer;
     protected final int cIdx;
 
-    public EventListenerForwardingByComponent(@NotNull EventListener<E, D, C> innerListener,
+    public EventListenerForwardingByComponent(@NotNull EventListener<E, ? super D, C> innerListener,
                                               @NotNull ComponentType<D, S> componentType) {
 
         super(Objects.requireNonNull(innerListener).getEventType(), componentType, innerListener.getPriority());
@@ -38,7 +38,7 @@ public class EventListenerForwardingByComponent<E extends Event, S extends Compo
         }
     }
 
-    public EventListener<E, D, C> getInnerListener() {
+    public EventListener<E, ? super D, C> getInnerListener() {
         return innerListener;
     }
 
