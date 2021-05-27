@@ -23,7 +23,6 @@ subprojects {
     java {
         withSourcesJar()
         // withJavadocJar()
-        modularity.getInferModulePath() set true
     }
 
     sourceSets {

@@ -25,10 +25,10 @@ dependencies {
     implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
     runtimeOnly group: 'com.electronwill.night-config', name: 'toml', version: nightconfigVersion
 
-    testPluginACompile project(':core')
-    testPluginACompile project(':test-env')
-    testPluginACompile project(':ext-annotations')
-    testPluginACompile group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+    testPluginAImplementation project(':core')
+    testPluginAImplementation project(':test-env')
+    testPluginAImplementation project(':ext-annotations')
+    testPluginAImplementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')
