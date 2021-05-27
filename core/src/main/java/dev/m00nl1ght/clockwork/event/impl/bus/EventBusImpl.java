@@ -64,7 +64,7 @@ public class EventBusImpl implements EventBus<Event> {
             final var dispatcher = dispatchers.getDispatcherOrNull(compKey);
             if (dispatcher != null) dispatcher.setListenerCollection(collection);
         }
-        for (final var policy : forwardingPolicies.get(key.getTargetType().getRoot())) {
+        for (final var policy : forwardingPolicies.getValues(key.getTargetType().getRoot())) {
             policy.bind(collection);
         }
         return collection;

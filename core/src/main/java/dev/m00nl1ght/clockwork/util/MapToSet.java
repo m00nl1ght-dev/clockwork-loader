@@ -16,11 +16,9 @@ public class MapToSet<K, V> extends AbstractMap<K, Set<V>> {
     }
 
     public boolean addValue(K key, V value) {
-        final var values = map.getOrDefault(key, Set.of());
-        if (values.contains(value)) return false;
-        @SuppressWarnings("unchecked")
-        final var newValues = (Set<V>) Set.of(values.toArray(), value);
-        map.put(key, newValues);
+        final var values = new HashSet<>(map.getOrDefault(key, Set.of()));
+        if (!values.add(value)) return false;
+        map.put(key, Set.copyOf(values));
         return true;
     }
 
@@ -29,6 +27,10 @@ public class MapToSet<K, V> extends AbstractMap<K, Set<V>> {
         if (!values.remove(value)) return false;
         map.put(key, Set.copyOf(values));
         return true;
+    }
+
+    public Set<V> getValues(K key) {
+        return map.getOrDefault(key, Set.of());
     }
 
     public Set<V> getAll() {
