@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 CWL-Plugin-Id: test-env
-CWL-Plugin-Version: 0.5
+CWL-Plugin-Version: 0.7
 CWL-Plugin-Display-Name: Test Environment
 CWL-Plugin-Description: Test environment for CWL dev workspace
 CWL-Plugin-Authors: m00nl1ght

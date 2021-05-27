@@ -1,6 +1,6 @@
 plugin_id = "clockwork"
 display_name = "Clockwork Plugin Loader"
-version = "0.5"
+version = "0.7"
 authors = ["m00nl1ght"]
 main_class = "dev.m00nl1ght.clockwork.core.CWLPlugin"
 description = '''

@@ -1,6 +1,6 @@
 plugin_id = "cwl-plugin-repo"
 display_name = "[CWL-Extension] Plugin Repository support"
-version = "0.5"
+version = "0.7"
 authors = ["m00nl1ght"]
 main_class = "dev.m00nl1ght.clockwork.extension.pluginrepo.CWLPluginRepoExtension"
 description = '''
@@ -9,4 +9,4 @@ An extension for the Clockwork Loader that allows loading plugins from an online
 
 [[dependency]]
 id = "clockwork"
-version = "0.5"
+version = "0.7"

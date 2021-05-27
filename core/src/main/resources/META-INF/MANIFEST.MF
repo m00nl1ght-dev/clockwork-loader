@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 CWL-Plugin-Id: clockwork
-CWL-Plugin-Version: 0.5
+CWL-Plugin-Version: 0.7
 CWL-Plugin-Display-Name: Clockwork Plugin Loader
 CWL-Plugin-Description: Universal plugin framework for Java
 CWL-Plugin-Authors: m00nl1ght

@@ -1,6 +1,6 @@
 plugin_id = "cwl-nightconfig"
 display_name = "[CWL-Extension] NightConfig support"
-version = "0.5"
+version = "0.7"
 authors = ["m00nl1ght"]
 main_class = "dev.m00nl1ght.clockwork.extension.nightconfig.CWLNightconfigExtension"
 description = '''
@@ -9,4 +9,4 @@ An extension for the Clockwork Loader that supports loading configs unsing Night
 
 [[dependency]]
 id = "clockwork"
-version = "0.5"
+version = "0.7"

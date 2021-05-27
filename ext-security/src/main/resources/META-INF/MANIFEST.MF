@@ -1,10 +1,10 @@
 Manifest-Version: 1.0
 CWL-Plugin-Id: cwl-security
-CWL-Plugin-Version: 0.5
+CWL-Plugin-Version: 0.7
 CWL-Plugin-Display-Name: [CWL-Extension] Security Policy
 CWL-Plugin-Description: An extension for the Clockwork Loader that provides a security policy implementation for plugin environments.
 CWL-Plugin-Authors: m00nl1ght
 
 Name: dev/m00nl1ght/clockwork/extension/security/CWLSecurityExtension.class
 CWL-Component-Id: cwl-security
-CWL-Component-Requires: clockwork[0.5]
+CWL-Component-Requires: clockwork[0.7]

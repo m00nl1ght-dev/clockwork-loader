@@ -1,6 +1,6 @@
 Manifest-Version: 1.0
 CWL-Plugin-Id: test-plugin-a
-CWL-Plugin-Version: 0.5
+CWL-Plugin-Version: 0.7
 CWL-Plugin-Display-Name: Test Plugin A
 CWL-Plugin-Description: Test Plugin for Dev environment
 CWL-Plugin-Authors: m00nl1ght

@@ -1,6 +1,6 @@
 plugin_id = "test-plugin-a"
 display_name = "Test Plugin A"
-version = "0.5"
+version = "0.7"
 authors = ["m00nl1ght"]
 processors = ["extension.annotations.eventhandler"]
 main_class = "dev.m00nl1ght.clockwork.test.plugin.a.TestPlugin_A"
