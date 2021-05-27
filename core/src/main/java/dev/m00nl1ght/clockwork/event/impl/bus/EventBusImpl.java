@@ -20,7 +20,7 @@ public class EventBusImpl implements EventBus<Event> {
     protected final EventDispatchers dispatchers = new EventDispatchers(this::buildDispatcher);
     protected final EventListeners listeners = new EventListeners(this::buildListenerCollection);
 
-    protected final Set<EventForwardingPolicy<?, ?>> forwardingPolicies = new HashSet<>();
+    protected final Set<EventForwardingPolicy<Event, ?, ?>> forwardingPolicies = new HashSet<>();
 
     protected EventBusProfilerGroup profilerGroup;
 
@@ -72,7 +72,8 @@ public class EventBusImpl implements EventBus<Event> {
 
     @Override
     public <S extends ComponentTarget, D extends ComponentTarget>
-    boolean addForwardingPolicy(@NotNull EventForwardingPolicy<S, D> forwardingPolicy) {
+    boolean addForwardingPolicy(@NotNull EventForwardingPolicy<Event, S, D> forwardingPolicy) {
+        if (forwardingPolicy.getEventBus() != this) throw new IllegalArgumentException();
         if (!forwardingPolicies.add(forwardingPolicy)) return false;
         listeners.getCollections(forwardingPolicy.getSourceTargetType())
                 .forEach(lc -> tryBind(lc, forwardingPolicy, false));
@@ -81,7 +82,8 @@ public class EventBusImpl implements EventBus<Event> {
 
     @Override
     public <S extends ComponentTarget, D extends ComponentTarget>
-    boolean removeForwardingPolicy(@NotNull EventForwardingPolicy<S, D> forwardingPolicy) {
+    boolean removeForwardingPolicy(@NotNull EventForwardingPolicy<Event, S, D> forwardingPolicy) {
+        if (forwardingPolicy.getEventBus() != this) throw new IllegalArgumentException();
         if (!forwardingPolicies.remove(forwardingPolicy)) return false;
         listeners.getCollections(forwardingPolicy.getSourceTargetType())
                 .forEach(lc -> tryBind(lc, forwardingPolicy, true));
@@ -90,7 +92,7 @@ public class EventBusImpl implements EventBus<Event> {
 
     // TODO
     protected <E extends Event, S extends ComponentTarget, D extends ComponentTarget>
-    void tryBind(EventListenerCollection<E, ?> collection, EventForwardingPolicy<S, D> policy, boolean unbind) {
+    void tryBind(EventListenerCollection<E, ?> collection, EventForwardingPolicy<Event, S, D> policy, boolean unbind) {
         if (policy.getSourceTargetType() == collection.getTargetType()) {
             @SuppressWarnings("unchecked")
             final var source = (EventListenerCollection<E, S>) collection;
@@ -113,7 +115,7 @@ public class EventBusImpl implements EventBus<Event> {
     }
 
     @Override
-    public @NotNull Set<@NotNull EventForwardingPolicy<?, ?>> getForwardingPolicies() {
+    public @NotNull Set<@NotNull EventForwardingPolicy<Event, ?, ?>> getForwardingPolicies() {
         return Set.copyOf(forwardingPolicies);
     }
 

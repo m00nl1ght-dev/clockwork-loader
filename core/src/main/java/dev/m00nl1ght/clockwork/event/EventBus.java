@@ -44,18 +44,18 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
     }
 
     <S extends ComponentTarget, D extends ComponentTarget>
-    boolean addForwardingPolicy(@NotNull EventForwardingPolicy<S, D> forwardingPolicy);
+    boolean addForwardingPolicy(@NotNull EventForwardingPolicy<B, S, D> forwardingPolicy);
 
     <S extends ComponentTarget, D extends ComponentTarget>
-    boolean removeForwardingPolicy(@NotNull EventForwardingPolicy<S, D> forwardingPolicy);
+    boolean removeForwardingPolicy(@NotNull EventForwardingPolicy<B, S, D> forwardingPolicy);
 
-    @NotNull Set<@NotNull EventForwardingPolicy<?, ?>> getForwardingPolicies();
+    @NotNull Set<@NotNull EventForwardingPolicy<B, ?, ?>> getForwardingPolicies();
 
     default <S extends ComponentTarget, D extends ComponentTarget>
     void addForwardingPolicy(@NotNull TargetType<D> destination,
                              @NotNull ComponentType<D, S> linkingComponent) {
 
-        addForwardingPolicy(new EventForwardingPolicyByComponent<>(destination, linkingComponent));
+        addForwardingPolicy(new EventForwardingPolicyByComponent<>(destination, linkingComponent, this));
     }
 
     default <S extends ComponentTarget, D extends ComponentTarget>
@@ -63,7 +63,7 @@ public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGr
                              @NotNull TargetType<D> destination,
                              @NotNull Function<S, D> targetMapper) {
 
-        addForwardingPolicy(new EventForwardingPolicyByLambda<>(source, destination, targetMapper));
+        addForwardingPolicy(new EventForwardingPolicyByLambda<>(source, destination, targetMapper, this));
     }
 
     default <E extends B, T extends ComponentTarget, C>

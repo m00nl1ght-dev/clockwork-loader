@@ -4,11 +4,13 @@ import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;
 import org.jetbrains.annotations.NotNull;
 
-public interface EventForwardingPolicy<S extends ComponentTarget, D extends ComponentTarget> {
+public interface EventForwardingPolicy<B extends Event, S extends ComponentTarget, D extends ComponentTarget> {
 
     @NotNull TargetType<S> getSourceTargetType();
 
     @NotNull TargetType<D> getDestinationTargetType();
+
+    @NotNull EventBus<B> getEventBus();
 
     <E extends Event> void bind(@NotNull EventListenerCollection<E, S> source,
                                 @NotNull EventListenerCollection<E, ?> destination);
