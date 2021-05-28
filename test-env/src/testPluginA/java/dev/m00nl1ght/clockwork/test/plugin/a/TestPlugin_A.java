@@ -10,6 +10,7 @@ import dev.m00nl1ght.clockwork.test.env.security.PermissionTestEvent;
 
 import java.io.FileWriter;
 import java.io.IOException;
+import java.lang.invoke.MethodHandles;
 
 public class TestPlugin_A extends MainComponent {
 
@@ -114,6 +115,11 @@ public class TestPlugin_A extends MainComponent {
         } catch (IOException e) {
             throw new RuntimeException("Failed to write test file", e);
         }
+    }
+
+    @Override
+    protected MethodHandles.Lookup getReflectiveAccess() {
+        return MethodHandles.lookup();
     }
 
 }

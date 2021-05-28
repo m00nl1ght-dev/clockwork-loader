@@ -7,7 +7,9 @@ public interface PluginProcessor {
 
     default void onLoadingStart(@NotNull ClockworkCore core, @Nullable ClockworkCore parentCore) {}
 
-    void process(@NotNull PluginProcessorContext context);
+    default void processEarly(@NotNull PluginProcessorContext context) {}
+
+    default void processLate(@NotNull PluginProcessorContext context) {}
 
     default void onLoadingComplete(@NotNull ClockworkCore core) {}
 

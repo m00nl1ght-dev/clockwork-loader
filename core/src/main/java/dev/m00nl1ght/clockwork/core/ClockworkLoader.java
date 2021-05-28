@@ -295,30 +295,7 @@ public final class ClockworkLoader {
         }
 
         // Apply the plugin processors defined to each plugin respectively.
-        for (final var plugin : core.getLoadedPlugins()) {
-
-            // Get the processors, and skip the plugin if there are none.
-            final var processors = plugin.getDescriptor().getProcessors();
-            if (processors.isEmpty()) continue;
-
-            // Now apply the processors.
-            final var context = new PluginProcessorContext(plugin, INTERNAL_LOOKUP);
-            for (var name : processors) {
-                final var optional = name.startsWith("?");
-                if (optional) name = name.substring(1);
-                final var processor = extensionContext.getProcessorRegistry().get(name);
-                if (processor == null) {
-                    if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
-                } else {
-                    try {
-                        processor.process(context);
-                    } catch (Throwable t) {
-                        throw PluginLoadingException.inProcessor(plugin, name, t);
-                    }
-                }
-            }
-
-        }
+        applyPluginProcessors();
 
         // Initialise the target types.
         for (final var targetType : core.getLoadedTargetTypes()) {
@@ -335,6 +312,38 @@ public final class ClockworkLoader {
         // The core is now ready for use.
         core.setState(State.PROCESSED);
         return core;
+    }
+
+    private void applyPluginProcessors() {
+        for (final var plugin : core.getLoadedPlugins()) {
+
+            // Get the processors, and skip the plugin if there are none.
+            final var processors = plugin.getDescriptor().getProcessors();
+            if (processors.isEmpty()) continue;
+
+            // Now apply the processors.
+            final var context = new PluginProcessorContext(plugin, INTERNAL_LOOKUP);
+            for (var name : processors) {
+
+                final var optional = name.startsWith("?");
+                if (optional) name = name.substring(1);
+
+                final var processor = extensionContext.getProcessorRegistry().get(name);
+                if (processor == null) {
+                    if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
+                } else {
+                    try {
+                        if (core.getState() == State.INITIALISED) {
+                            processor.processLate(context);
+                        } else {
+                            processor.processEarly(context);
+                        }
+                    } catch (Throwable t) {
+                        throw PluginLoadingException.inProcessor(plugin, name, t);
+                    }
+                }
+            }
+        }
     }
 
     /**
@@ -451,6 +460,9 @@ public final class ClockworkLoader {
         // Init the components and update the state of the core.
         container.initComponents();
         core.setState(State.INITIALISED);
+
+        // Apply the plugin processors defined to each plugin respectively.
+        applyPluginProcessors();
 
         // Notify all registered plugin processors.
         for (final var entry : extensionContext.getProcessorRegistry().getRegistered().entrySet()) {

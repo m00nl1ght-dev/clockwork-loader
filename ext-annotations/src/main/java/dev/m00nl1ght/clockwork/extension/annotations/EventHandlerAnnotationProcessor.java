@@ -3,6 +3,7 @@ package dev.m00nl1ght.clockwork.extension.annotations;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.PluginProcessor;
 import dev.m00nl1ght.clockwork.core.PluginProcessorContext;
+import dev.m00nl1ght.clockwork.core.PluginProcessorContext.AccessLevel;
 import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
@@ -38,7 +39,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
     }
 
     @Override
-    public void process(@NotNull PluginProcessorContext context) {
+    public void processLate(@NotNull PluginProcessorContext context) {
         if (handlers == null) throw new IllegalStateException();
         for (final var component : context.getPlugin().getComponentTypes()) {
             try {
@@ -69,7 +70,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
             final var annotation = method.getAnnotation(EventHandler.class);
             if (annotation != null) {
                 final var priority = annotation == null ? EventListener.Phase.NORMAL : annotation.value();
-                if (lookup == null) lookup = context.getReflectiveAccess(handlerClass);
+                if (lookup == null) lookup = context.getReflectiveAccess(handlerClass, AccessLevel.FULL);
                 final var handler = EventHandlerMethod.build(context.getPlugin().getClockworkCore(), method, lookup, priority);
                 if (handler != null) {
                     collected.add(handler);

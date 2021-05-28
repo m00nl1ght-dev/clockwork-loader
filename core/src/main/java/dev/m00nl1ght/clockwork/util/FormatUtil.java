@@ -29,6 +29,10 @@ public class FormatUtil {
         return new IllegalArgumentException(format(msg, objects));
     }
 
+    public static IllegalAccessException illAccExc(String msg, Object... objects) {
+        return new IllegalAccessException(format(msg, objects));
+    }
+
     public static IllegalStateException illStateExc(String msg, Object... objects) {
         return new IllegalStateException(format(msg, objects));
     }
