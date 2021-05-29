@@ -9,7 +9,6 @@ module dev.m00nl1ght.clockwork.extension.security {
     opens dev.m00nl1ght.clockwork.extension.security to dev.m00nl1ght.clockwork;
 
     requires dev.m00nl1ght.clockwork;
-    requires org.apache.logging.log4j;
 
     requires static org.jetbrains.annotations;
 

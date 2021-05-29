@@ -7,7 +7,6 @@ module dev.m00nl1ght.clockwork.test {
     requires dev.m00nl1ght.clockwork.extension.nightconfig;
     requires dev.m00nl1ght.clockwork.extension.annotations;
     requires dev.m00nl1ght.clockwork.extension.security;
-    requires org.apache.logging.log4j;
     requires org.junit.jupiter.api;
 
 }

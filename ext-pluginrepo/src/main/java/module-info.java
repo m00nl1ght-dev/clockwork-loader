@@ -6,7 +6,6 @@ module dev.m00nl1ght.clockwork.extension.jarinjar {
     opens dev.m00nl1ght.clockwork.extension.pluginrepo to dev.m00nl1ght.clockwork;
 
     requires dev.m00nl1ght.clockwork;
-    requires org.apache.logging.log4j;
 
     requires static org.jetbrains.annotations;
 

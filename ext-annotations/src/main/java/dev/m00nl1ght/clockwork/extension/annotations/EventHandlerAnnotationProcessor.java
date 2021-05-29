@@ -75,7 +75,7 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
                 if (handler != null) {
                     collected.add(handler);
                 } else {
-                    CWLAnnotationsExtension.LOGGER.error("Invalid event handler {}#{}", handlerClass, method.getName());
+                    CWLAnnotationsExtension.LOGGER.error("Invalid event handler: ", handlerClass + "#" + method.getName());
                 }
             }
         }

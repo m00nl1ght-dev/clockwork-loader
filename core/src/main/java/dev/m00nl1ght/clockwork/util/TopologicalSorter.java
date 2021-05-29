@@ -4,7 +4,7 @@ import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.Map;
 
-public abstract class AbstractTopologicalSorter<N, D> {
+public abstract class TopologicalSorter<N, D> {
 
     private final Map<String, Node<N>> nodes = new HashMap<>();
 

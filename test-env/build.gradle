@@ -22,13 +22,13 @@ dependencies {
     implementation project(':ext-nightconfig')
     implementation project(':ext-pluginrepo')
     implementation project(':ext-security')
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
+
+    runtimeOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
     runtimeOnly group: 'com.electronwill.night-config', name: 'toml', version: nightconfigVersion
 
     testPluginAImplementation project(':core')
     testPluginAImplementation project(':test-env')
     testPluginAImplementation project(':ext-annotations')
-    testPluginAImplementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 
     testImplementation(platform('org.junit:junit-bom:5.7.0'))
     testImplementation('org.junit.jupiter:junit-jupiter')

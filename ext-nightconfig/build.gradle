@@ -2,8 +2,6 @@
 dependencies {
     api project(':core')
     api group: 'com.electronwill.night-config', name: 'core', version: nightconfigVersion
-
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
 }
 
 publishing {

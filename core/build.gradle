@@ -1,6 +1,6 @@
 
 dependencies {
-    implementation group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
+    compileOnly group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
 }
 
 publishing {

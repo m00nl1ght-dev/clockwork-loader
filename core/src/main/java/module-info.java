@@ -19,9 +19,9 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.event.impl.event;
     exports dev.m00nl1ght.clockwork.event.impl.bus;
     exports dev.m00nl1ght.clockwork.event.impl.forwarding;
+    exports dev.m00nl1ght.clockwork.logger;
 
-    requires org.apache.logging.log4j;
-
+    requires static org.apache.logging.log4j;
     requires static org.jetbrains.annotations;
 
 }

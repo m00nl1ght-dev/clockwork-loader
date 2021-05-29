@@ -4,8 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.MainComponent;
 import dev.m00nl1ght.clockwork.extension.security.internal.PolicyImpl;
 import dev.m00nl1ght.clockwork.extension.security.internal.ProviderImpl;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import dev.m00nl1ght.clockwork.logger.Logger;
 
 import java.security.*;
 import java.util.HashMap;
@@ -13,7 +12,7 @@ import java.util.Objects;
 
 public final class CWLSecurityExtension extends MainComponent {
 
-    static final Logger LOGGER = LogManager.getLogger("Clockwork-Ext-Security");
+    static final Logger LOGGER = Logger.create("Clockwork-Ext-Security");
 
     private CWLSecurityExtension(ClockworkCore core) {
         super(core);

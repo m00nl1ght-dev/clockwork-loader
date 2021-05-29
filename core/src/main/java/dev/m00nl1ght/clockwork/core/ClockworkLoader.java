@@ -9,13 +9,13 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
+import dev.m00nl1ght.clockwork.logger.Logger;
+import dev.m00nl1ght.clockwork.logger.impl.SysOutLogging;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
-import dev.m00nl1ght.clockwork.util.AbstractTopologicalSorter;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
+import dev.m00nl1ght.clockwork.util.TopologicalSorter;
 import dev.m00nl1ght.clockwork.version.Version;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -36,7 +36,7 @@ import java.util.stream.Collectors;
  */
 public final class ClockworkLoader {
 
-    private static final Logger LOGGER = LogManager.getLogger("Clockwork-Loader");
+    private static final Logger LOGGER = Logger.create("Clockwork-Loader");
     private static final Module LOCAL_MODULE = ClockworkLoader.class.getModule();
     private static final Lookup INTERNAL_LOOKUP = MethodHandles.lookup();
 
@@ -45,11 +45,13 @@ public final class ClockworkLoader {
     static {
         final var version = Runtime.version();
         if (version.feature() != TARGET_JAVA_VERSION)
-            LOGGER.warn("The current Java version {} is not fully supported. " +
-                    "CWL was developed for Java {}. Using any other version can cause instability and crashes.",
+            LOGGER.warn("The current Java version [] is not fully supported. " +
+                    "CWL was developed for Java []. Using any other version can cause instability and crashes.",
                     version, TARGET_JAVA_VERSION);
         if (ClockworkLoader.class.getModule().getName() == null)
             throw FormatUtil.rtExc("Core module was not loaded correctly (the module is unnamed)");
+        if (LOGGER instanceof SysOutLogging.SysOutLogger)
+            LOGGER.warn("No supported logging framework detected. Printing logs to SOUT.");
     }
 
     public static @NotNull ClockworkLoader build(@NotNull ClockworkConfig config) {
@@ -168,7 +170,7 @@ public final class ClockworkLoader {
                 final var finder = found.get(bestMatch.get());
                 final var ref = finder.find(loadingContext, wanted.getPlugin(), bestMatch.get())
                         .orElseThrow(() -> FormatUtil.rtExc("PluginFinder [] failed to find []", finder, wanted));
-                LOGGER.info("Plugin {} was located by {}", ref, finder);
+                LOGGER.info("Plugin [] was located by []", ref, finder);
                 loadingContext.getVerifiers().forEach(v -> v.verifyPlugin(ref));
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
@@ -305,7 +307,7 @@ public final class ClockworkLoader {
         // Warn if any component type has no factory assigned.
         for (final var componentType : core.getLoadedComponentTypes()) {
             if (componentType.getFactoryInternal() == ComponentFactory.EMPTY) {
-                LOGGER.warn("No factory or valid constructor available for component type {}", componentType);
+                LOGGER.warn("No factory or valid constructor available for component type []", componentType);
             }
         }
 
@@ -483,7 +485,7 @@ public final class ClockworkLoader {
         return INTERNAL_LOOKUP;
     }
 
-    private class ComponentSorter extends AbstractTopologicalSorter<ComponentDescriptor, DependencyDescriptor> {
+    private class ComponentSorter extends TopologicalSorter<ComponentDescriptor, DependencyDescriptor> {
 
         @Override
         public String idFor(ComponentDescriptor obj) {
@@ -527,7 +529,7 @@ public final class ClockworkLoader {
 
     }
 
-    private class TargetSorter extends AbstractTopologicalSorter<TargetDescriptor, String> {
+    private class TargetSorter extends TopologicalSorter<TargetDescriptor, String> {
 
         @Override
         public String idFor(TargetDescriptor obj) {

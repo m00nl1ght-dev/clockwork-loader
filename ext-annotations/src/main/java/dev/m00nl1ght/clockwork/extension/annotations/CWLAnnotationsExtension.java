@@ -6,8 +6,7 @@ import dev.m00nl1ght.clockwork.core.ExtensionContext;
 import dev.m00nl1ght.clockwork.core.MainComponent;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventBus;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import dev.m00nl1ght.clockwork.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -15,7 +14,7 @@ import java.util.Objects;
 
 public final class CWLAnnotationsExtension extends MainComponent implements ClockworkExtension {
 
-    static final Logger LOGGER = LogManager.getLogger("Clockwork-Ext-Annotations");
+    static final Logger LOGGER = Logger.create("Clockwork-Ext-Annotations");
 
     private EventHandlers collectedHandlers;
 
