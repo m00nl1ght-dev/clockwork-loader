@@ -21,6 +21,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.event.impl.forwarding;
     exports dev.m00nl1ght.clockwork.logger;
 
+    requires static org.slf4j;
     requires static org.apache.logging.log4j;
     requires static org.jetbrains.annotations;
 

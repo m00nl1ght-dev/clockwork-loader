@@ -9,12 +9,14 @@ import java.util.function.Function;
 public abstract class Logger {
 
     private static final String LOG4J_SUPPORT = "dev.m00nl1ght.clockwork.logger.impl.Log4jLogging";
+    private static final String SLF4J_SUPPORT = "dev.m00nl1ght.clockwork.logger.impl.Slf4jLogging";
 
     private static Function<String, Logger> loggerFactory;
 
     static { init(); }
     private static void init() {
         if (tryLoadFactory(LOG4J_SUPPORT)) return;
+        if (tryLoadFactory(SLF4J_SUPPORT)) return;
         loggerFactory = new SysOutLogging();
     }
 
