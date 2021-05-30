@@ -1,16 +1,14 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
+import dev.m00nl1ght.clockwork.jigsaw.JigsawStrategyConfig;
 import dev.m00nl1ght.clockwork.reader.PluginReaderConfig;
-import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.verifier.PluginVerifierConfig;
 
 import java.nio.file.Path;
-import java.util.LinkedHashSet;
-import java.util.LinkedList;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 import java.util.stream.Collectors;
 
 public final class ClockworkConfig {
@@ -19,6 +17,7 @@ public final class ClockworkConfig {
     private final Set<PluginFinderConfig> finders;
     private final Set<PluginReaderConfig> readers;
     private final Set<PluginVerifierConfig> verifiers;
+    private final JigsawStrategyConfig jigsawStrategy;
     private final Set<Path> libModulePath;
 
     private ClockworkConfig(Builder builder) {
@@ -27,6 +26,7 @@ public final class ClockworkConfig {
         this.readers = Set.copyOf(builder.readers);
         this.verifiers = Set.copyOf(builder.verifiers);
         this.libModulePath = Set.copyOf(builder.libModulePath);
+        this.jigsawStrategy = builder.jigsawStrategy;
     }
 
     private ClockworkConfig(Config data) {
@@ -45,6 +45,7 @@ public final class ClockworkConfig {
         this.libModulePath = Set.copyOf(data.getListOrSingletonOrEmpty("libModulePath")
                 .stream().map(Path::of)
                 .collect(Collectors.toUnmodifiableSet()));
+        this.jigsawStrategy = JigsawStrategyConfig.from(data.getSubconfigOrEmpty("jigsawStrategy"));
     }
 
     public List<DependencyDescriptor> getWantedPlugins() {
@@ -61,6 +62,10 @@ public final class ClockworkConfig {
 
     public Set<PluginVerifierConfig> getVerifiers() {
         return verifiers;
+    }
+
+    public JigsawStrategyConfig getJigsawStrategy() {
+        return jigsawStrategy;
     }
 
     public Set<Path> getLibModulePath() {
@@ -83,9 +88,12 @@ public final class ClockworkConfig {
         private final Set<PluginVerifierConfig> verifiers = new LinkedHashSet<>();
         private final Set<Path> libModulePath = new LinkedHashSet<>();
 
+        private JigsawStrategyConfig jigsawStrategy;
+
         private Builder() {}
 
         public ClockworkConfig build() {
+            if (jigsawStrategy == null) jigsawStrategy = JigsawStrategyConfig.from(Config.EMPTY);
             return new ClockworkConfig(this);
         }
 
@@ -121,6 +129,10 @@ public final class ClockworkConfig {
         public Builder addToLibModulePath(Path modulePath) {
             this.libModulePath.add(modulePath);
             return this;
+        }
+
+        public void setJigsawStrategy(JigsawStrategyConfig jigsawConfig) {
+            this.jigsawStrategy = Objects.requireNonNull(jigsawConfig);
         }
 
     }

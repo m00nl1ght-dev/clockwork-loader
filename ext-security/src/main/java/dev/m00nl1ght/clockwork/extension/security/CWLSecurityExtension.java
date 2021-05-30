@@ -9,6 +9,7 @@ import dev.m00nl1ght.clockwork.logger.Logger;
 import java.security.*;
 import java.util.HashMap;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public final class CWLSecurityExtension extends MainComponent {
 
@@ -60,25 +61,27 @@ public final class CWLSecurityExtension extends MainComponent {
 
         core.getState().requireOrAfter(ClockworkCore.State.POPULATED);
 
-        final var optClassLoader = core.getModuleLayer().modules().stream()
-                .findFirst().map(Module::getClassLoader);
+        final var classLoaders = core.getModuleLayers().stream()
+                .flatMap(m -> m.modules().stream())
+                .map(Module::getClassLoader)
+                .collect(Collectors.toUnmodifiableSet());
 
-        if (optClassLoader.isEmpty()) return;
-        final var classLoader = optClassLoader.get();
+        if (classLoaders.isEmpty()) return;
 
         final var unconditionalPerms = securityConfig.buildSharedPermissions();
         final var declaredPerms = new HashMap<ProtectionDomain, Permissions>();
 
         for (final var plugin : core.getLoadedPlugins()) {
             final var mainClass = plugin.getMainComponent().getComponentClass();
-            if (mainClass.getClassLoader() != classLoader) continue;
             final var permissions = securityConfig.buildPluginPermissions(plugin);
             if (permissions != EMPTY_PERMISSIONS) {
                 declaredPerms.put(mainClass.getProtectionDomain(), permissions);
             }
         }
 
-        PolicyImpl.putContext(classLoader, unconditionalPerms, declaredPerms);
+        for (final var classLoader : classLoaders) {
+            PolicyImpl.putContext(classLoader, unconditionalPerms, declaredPerms);
+        }
 
     }
 

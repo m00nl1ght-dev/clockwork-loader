@@ -20,6 +20,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.event.impl.bus;
     exports dev.m00nl1ght.clockwork.event.impl.forwarding;
     exports dev.m00nl1ght.clockwork.logger;
+    exports dev.m00nl1ght.clockwork.jigsaw;
 
     requires static org.slf4j;
     requires static org.apache.logging.log4j;

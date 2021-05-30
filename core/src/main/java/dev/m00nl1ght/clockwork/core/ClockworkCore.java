@@ -19,13 +19,13 @@ public final class ClockworkCore implements ComponentTarget {
     private final Map<String, RegisteredComponentType<?, ?>> loadedComponents = new LinkedHashMap<>();
     private final Map<Class<?>, RegisteredComponentType<?, ?>> classToComponentMap = new LinkedHashMap<>();
 
-    private final ModuleLayer moduleLayer;
+    private final List<ModuleLayer> moduleLayers;
 
     private volatile State state = State.POPULATING;
     private ComponentContainer coreContainer;
 
-    protected ClockworkCore(@NotNull ModuleLayer moduleLayer) {
-        this.moduleLayer = Objects.requireNonNull(moduleLayer);
+    protected ClockworkCore(@NotNull List<@NotNull ModuleLayer> moduleLayers) {
+        this.moduleLayers = Objects.requireNonNull(moduleLayers);
     }
 
     /**
@@ -195,8 +195,8 @@ public final class ClockworkCore implements ComponentTarget {
         return coreContainer;
     }
 
-    public @NotNull ModuleLayer getModuleLayer() {
-        return moduleLayer;
+    public @NotNull List<@NotNull ModuleLayer> getModuleLayers() {
+        return moduleLayers;
     }
 
     /**

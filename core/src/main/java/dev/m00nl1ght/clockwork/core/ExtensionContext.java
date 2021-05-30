@@ -4,6 +4,8 @@ import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.NestedPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.jigsaw.JigsawStrategyFlat;
+import dev.m00nl1ght.clockwork.jigsaw.JigsawStrategyType;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.Registry;
@@ -16,6 +18,7 @@ public class ExtensionContext {
     private final Registry<PluginFinderType> finderTypeRegistry = new Registry<>(PluginFinderType.class);
     private final Registry<PluginVerifierType> verifierTypeRegistry = new Registry<>(PluginVerifierType.class);
     private final Registry<PluginProcessor> processorRegistry = new Registry<>(PluginProcessor.class);
+    private final Registry<JigsawStrategyType> jigsawTypeRegistry = new Registry<>(JigsawStrategyType.class);
 
     public ExtensionContext(boolean registerDefaults) {
         if (registerDefaults) {
@@ -23,6 +26,7 @@ public class ExtensionContext {
             ModuleLayerPluginFinder.registerTo(finderTypeRegistry);
             ModulePathPluginFinder.registerTo(finderTypeRegistry);
             NestedPluginFinder.registerTo(finderTypeRegistry);
+            JigsawStrategyFlat.registerTo(jigsawTypeRegistry);
         }
     }
 
@@ -40,6 +44,10 @@ public class ExtensionContext {
 
     public @NotNull Registry<PluginProcessor> getProcessorRegistry() {
         return processorRegistry;
+    }
+
+    public @NotNull Registry<JigsawStrategyType> getJigsawTypeRegistry() {
+        return jigsawTypeRegistry;
     }
 
 }

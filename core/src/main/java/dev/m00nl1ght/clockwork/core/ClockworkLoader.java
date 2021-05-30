@@ -9,6 +9,7 @@ import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
 import dev.m00nl1ght.clockwork.fnder.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
+import dev.m00nl1ght.clockwork.jigsaw.JigsawStrategy;
 import dev.m00nl1ght.clockwork.logger.Logger;
 import dev.m00nl1ght.clockwork.logger.impl.SysOutLogging;
 import dev.m00nl1ght.clockwork.reader.ManifestPluginReader;
@@ -19,11 +20,8 @@ import dev.m00nl1ght.clockwork.version.Version;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.lang.ModuleLayer.Controller;
 import java.lang.invoke.MethodHandles;
 import java.lang.invoke.MethodHandles.Lookup;
-import java.lang.module.ModuleFinder;
-import java.nio.file.Path;
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
@@ -37,7 +35,6 @@ import java.util.stream.Collectors;
 public final class ClockworkLoader {
 
     private static final Logger LOGGER = Logger.create("Clockwork-Loader");
-    private static final Module LOCAL_MODULE = ClockworkLoader.class.getModule();
     private static final Lookup INTERNAL_LOOKUP = MethodHandles.lookup();
 
     private static final int TARGET_JAVA_VERSION = 14;
@@ -201,8 +198,9 @@ public final class ClockworkLoader {
         }
 
         // Create the new ModuleLayer and the ClockworkCore instance.
-        final var layerController = buildModuleLayer(pluginReferences);
-        core = new ClockworkCore(layerController.layer());
+        final var layerMap = buildModuleLayers(pluginReferences);
+        final var moduleLayers = layerMap.values().stream().distinct().collect(Collectors.toList());
+        core = new ClockworkCore(moduleLayers);
 
         // First add the plugins inherited from the parent.
         if (parent != null) {
@@ -216,16 +214,11 @@ public final class ClockworkLoader {
         for (final var pluginReference : pluginReferences) {
 
             // Find the main module of the plugin, build the LoadedPlugin object and add it to the core.
-            final var mainModule = layerController.layer().findModule(pluginReference.getModuleName()).orElseThrow();
+            final var layer = layerMap.get(pluginReference);
+            if (layer == null) throw FormatUtil.rtExc("No module layer present for plugin []", pluginReference);
+            final var mainModule = layer.findModule(pluginReference.getModuleName()).orElseThrow();
             final var plugin = new LoadedPlugin(pluginReference.getDescriptor(), core, mainModule);
             core.addLoadedPlugin(plugin);
-
-            // Patch the module to give PluginProcessors access to its classes via deep reflection.
-            if (mainModule.getLayer() == layerController.layer()) {
-                for (var packageName : mainModule.getPackages()) {
-                    layerController.addOpens(mainModule, packageName, LOCAL_MODULE);
-                }
-            }
 
         }
 
@@ -349,20 +342,18 @@ public final class ClockworkLoader {
     }
 
     /**
-     * Constructs a new ModuleManager for the specific set of plugin definitions.
+     * Constructs new ModuleLayers for the specific set of plugin definitions,
+     * using the configured {@link JigsawStrategy}.
      * This is called during plugin loading, after all definitions have been located,
      * but before any components or classes are loaded.
      */
-    private @NotNull Controller buildModuleLayer(@NotNull Collection<@NotNull PluginReference> plugins) {
+    private @NotNull Map<@NotNull PluginReference, @NotNull ModuleLayer>
+    buildModuleLayers(@NotNull Collection<@NotNull PluginReference> plugins) {
         try {
-            final var parentLayer = parent == null ? ModuleLayer.boot() : parent.getModuleLayer();
-            final var modules = plugins.stream().map(PluginReference::getModuleName).collect(Collectors.toUnmodifiableList());
-            final var finders = plugins.stream().map(PluginReference::getModuleFinder).collect(Collectors.toUnmodifiableList());
-            final var pluginMF = ModuleFinder.compose(finders.toArray(ModuleFinder[]::new));
-            final var libraryMF = ModuleFinder.of(config.getLibModulePath().toArray(Path[]::new));
-            final var combinedMF = ModuleFinder.compose(pluginMF, libraryMF);
-            final var config = parentLayer.configuration().resolveAndBind(ModuleFinder.of(), combinedMF, modules);
-            return ModuleLayer.defineModulesWithOneLoader(config, List.of(parentLayer), null);
+            final var jigsawConfig = config.getJigsawStrategy();
+            final var strategyType = extensionContext.getJigsawTypeRegistry().get(jigsawConfig.getType());
+            final var strategy = strategyType.build(jigsawConfig);
+            return strategy.buildModuleLayers(plugins, config.getLibModulePath(), parent);
         } catch (Exception e) {
             throw PluginLoadingException.resolvingModules(e, null);
         }
