@@ -29,6 +29,7 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.config.impl;
     exports dev.m00nl1ght.clockwork.component;
     exports dev.m00nl1ght.clockwork.component.impl;
+    exports dev.m00nl1ght.clockwork.loader.classloading;
 
     requires static org.slf4j;
     requires static org.apache.logging.log4j;

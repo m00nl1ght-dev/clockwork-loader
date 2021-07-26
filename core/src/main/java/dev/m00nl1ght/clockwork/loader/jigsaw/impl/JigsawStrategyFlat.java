@@ -1,6 +1,8 @@
 package dev.m00nl1ght.clockwork.loader.jigsaw.impl;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
+import dev.m00nl1ght.clockwork.loader.classloading.ClockworkClassLoader;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
@@ -36,6 +38,7 @@ public final class JigsawStrategyFlat implements JigsawStrategy {
     public @NotNull Map<@NotNull PluginReference, @NotNull ModuleLayer>
     buildModuleLayers(@NotNull Collection<@NotNull PluginReference> plugins,
                       @NotNull Set<@NotNull Path> libModulePath,
+                      @NotNull List<@NotNull ClassTransformer> transformers,
                       @Nullable ClockworkCore parent) {
 
         final var parentLayers = parent == null ? List.of(ModuleLayer.boot()) : parent.getModuleLayers();
@@ -46,7 +49,8 @@ public final class JigsawStrategyFlat implements JigsawStrategy {
         final var combinedMF = ModuleFinder.compose(pluginMF, libraryMF);
         final var parentConfs = parentLayers.stream().map(ModuleLayer::configuration).collect(Collectors.toList());
         final var config = Configuration.resolveAndBind(ModuleFinder.of(), parentConfs, combinedMF, modules);
-        final var controller = ModuleLayer.defineModulesWithOneLoader(config, parentLayers, null);
+        final var classLoader = new ClockworkClassLoader(config, parentLayers, transformers);
+        final var controller = ModuleLayer.defineModules(config, parentLayers, m -> classLoader);
         final var localModule = ClockworkLoader.class.getModule();
         for (final var module : controller.layer().modules())
             for (var packageName : module.getPackages())

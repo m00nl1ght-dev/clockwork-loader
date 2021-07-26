@@ -9,6 +9,7 @@ import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
+import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.loader.verifier.PluginVerifierType;
 import org.jetbrains.annotations.NotNull;
@@ -20,6 +21,7 @@ public class ExtensionContext {
     private final Registry<PluginVerifierType> verifierTypeRegistry = new Registry<>(PluginVerifierType.class);
     private final Registry<PluginProcessor> processorRegistry = new Registry<>(PluginProcessor.class);
     private final Registry<JigsawStrategyType> jigsawTypeRegistry = new Registry<>(JigsawStrategyType.class);
+    private final Registry<ClassTransformer> transformerRegistry = new Registry<>(ClassTransformer.class);
 
     public ExtensionContext(boolean registerDefaults) {
         if (registerDefaults) {
@@ -49,6 +51,10 @@ public class ExtensionContext {
 
     public @NotNull Registry<JigsawStrategyType> getJigsawTypeRegistry() {
         return jigsawTypeRegistry;
+    }
+
+    public @NotNull Registry<ClassTransformer> getTransformerRegistry() {
+        return transformerRegistry;
     }
 
 }

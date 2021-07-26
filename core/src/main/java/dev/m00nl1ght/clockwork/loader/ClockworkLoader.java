@@ -8,6 +8,7 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
@@ -201,8 +202,14 @@ public final class ClockworkLoader {
             for (var p : skippedProblems) LOGGER.info(p.format());
         }
 
+        // Collect and sort class transformers.
+        final var transformers = extensionContext.getTransformerRegistry()
+                .getRegistered().values().stream()
+                .sorted(Comparator.comparing(ClassTransformer::priority))
+                .collect(Collectors.toList());
+
         // Create the new ModuleLayer and the ClockworkCore instance.
-        final var layerMap = buildModuleLayers(pluginReferences);
+        final var layerMap = buildModuleLayers(pluginReferences, transformers);
         final var moduleLayers = layerMap.values().stream().distinct().collect(Collectors.toList());
         controller = ClockworkCore.create(moduleLayers);
         core = controller.getCore();
@@ -354,13 +361,15 @@ public final class ClockworkLoader {
      * This is called during plugin loading, after all definitions have been located,
      * but before any components or classes are loaded.
      */
-    private @NotNull Map<@NotNull PluginReference, @NotNull ModuleLayer>
-    buildModuleLayers(@NotNull Collection<@NotNull PluginReference> plugins) {
+    private @NotNull Map<@NotNull PluginReference, @NotNull ModuleLayer> buildModuleLayers(
+            @NotNull Collection<@NotNull PluginReference> plugins,
+            @NotNull List<@NotNull ClassTransformer> transformers) {
+
         try {
             final var jigsawConfig = config.getJigsawStrategy();
             final var strategyType = extensionContext.getJigsawTypeRegistry().get(jigsawConfig.getType());
             final var strategy = strategyType.build(jigsawConfig);
-            return strategy.buildModuleLayers(plugins, config.getLibModulePath(), parent);
+            return strategy.buildModuleLayers(plugins, config.getLibModulePath(), transformers, parent);
         } catch (Exception e) {
             throw PluginLoadingException.resolvingModules(e, null);
         }
