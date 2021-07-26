@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.loader.PluginLoadingException;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
 import java.util.*;
@@ -60,7 +61,7 @@ public class TargetType<T extends ComponentTarget> {
         return componentTypes;
     }
 
-    public Set<ComponentType<?, T>> getOwnComponentTypes() {
+    public final Set<ComponentType<?, T>> getOwnComponentTypes() {
         return Collections.unmodifiableSet(ownComponentTypes);
     }
 
@@ -71,27 +72,27 @@ public class TargetType<T extends ComponentTarget> {
      * @param componentClass the class corresponding to the desired ComponentType
      */
     @SuppressWarnings("unchecked")
-    public <C> Optional<? extends ComponentType<C, ? super T>> getComponentType(Class<C> componentClass) {
+    public final <C> Optional<? extends ComponentType<C, ? super T>> getComponentType(Class<C> componentClass) {
         return componentTypes.stream()
                 .filter(c -> c.getComponentClass() == componentClass)
                 .map(c -> (ComponentType<C, ? super T>) c)
                 .findFirst();
     }
 
-    public <C> ComponentType<C, ? super T> getComponentTypeOrThrow(Class<C> componentClass) {
+    public final <C> ComponentType<C, ? super T> getComponentTypeOrThrow(Class<C> componentClass) {
         return getComponentType(componentClass)
                 .orElseThrow(() -> new RuntimeException("Missing component type for class: " + componentClass));
     }
 
     @SuppressWarnings("unchecked")
-    public <C> Optional<? extends ComponentType<C, T>> getOwnComponentType(Class<C> componentClass) {
+    public final <C> Optional<? extends ComponentType<C, T>> getOwnComponentType(Class<C> componentClass) {
         return ownComponentTypes.stream()
                 .filter(c -> c.getComponentClass() == componentClass)
                 .map(c -> (ComponentType<C, T>) c)
                 .findFirst();
     }
 
-    public <C> ComponentType<C, T> getOwnComponentTypeOrThrow(Class<C> componentClass) {
+    public final <C> ComponentType<C, T> getOwnComponentTypeOrThrow(Class<C> componentClass) {
         return getOwnComponentType(componentClass)
                 .orElseThrow(() -> new RuntimeException("Missing component type for class: " + componentClass));
     }
@@ -146,9 +147,7 @@ public class TargetType<T extends ComponentTarget> {
         return targetClass.getSimpleName();
     }
 
-    // ### Internal ###
-
-    protected final synchronized void init() {
+    protected synchronized void init() {
         if (this.componentTypes != null)
             throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
 
@@ -177,7 +176,7 @@ public class TargetType<T extends ComponentTarget> {
         this.componentTypes = List.copyOf(componentList);
     }
 
-    synchronized void registerComponentType(ComponentType<?, T> componentType) {
+    protected synchronized void registerComponentType(ComponentType<?, T> componentType) {
         requireNotInitialised();
         if (componentType.targetType != this) throw new IllegalArgumentException();
         if (ownComponentTypes.contains(componentType)) throw new IllegalStateException();

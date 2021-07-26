@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
-import dev.m00nl1ght.clockwork.core.LoadingContext;
+import dev.m00nl1ght.clockwork.loader.LoadingContext;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.fnder.AbstractIndexedPluginFinder;
-import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig;
-import dev.m00nl1ght.clockwork.fnder.PluginFinderConfig.Builder;
-import dev.m00nl1ght.clockwork.fnder.PluginFinderType;
-import dev.m00nl1ght.clockwork.reader.PluginReader;
-import dev.m00nl1ght.clockwork.reader.PluginReaderUtil;
+import dev.m00nl1ght.clockwork.loader.fnder.AbstractIndexedPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.util.*;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;

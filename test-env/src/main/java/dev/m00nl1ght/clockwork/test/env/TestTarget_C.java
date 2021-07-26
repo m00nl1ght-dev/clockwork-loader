@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.test.env;
 
-import dev.m00nl1ght.clockwork.container.ImmutableComponentContainer;
+import dev.m00nl1ght.clockwork.core.ImmutableComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.TargetType;

@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.ClockworkExtension;
-import dev.m00nl1ght.clockwork.core.ExtensionContext;
+import dev.m00nl1ght.clockwork.loader.ClockworkExtension;
+import dev.m00nl1ght.clockwork.loader.ExtensionContext;
 import dev.m00nl1ght.clockwork.core.MainComponent;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventBus;

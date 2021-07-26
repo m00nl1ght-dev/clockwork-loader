@@ -1,7 +1,14 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
+import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.PluginLoadingException;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
+import java.lang.invoke.MethodHandles;
 import java.util.*;
 
 /**
@@ -24,7 +31,11 @@ public final class ClockworkCore implements ComponentTarget {
     private volatile State state = State.POPULATING;
     private ComponentContainer coreContainer;
 
-    protected ClockworkCore(@NotNull List<@NotNull ModuleLayer> moduleLayers) {
+    public static Controller create(@NotNull List<@NotNull ModuleLayer> moduleLayers) {
+        return new Controller(new ClockworkCore(moduleLayers));
+    }
+
+    private ClockworkCore(@NotNull List<@NotNull ModuleLayer> moduleLayers) {
         this.moduleLayers = Objects.requireNonNull(moduleLayers);
     }
 
@@ -256,41 +267,109 @@ public final class ClockworkCore implements ComponentTarget {
 
     }
 
-    // ### Internal ###
+    public static final class Controller {
 
-    void setState(@NotNull State state) {
-        Objects.requireNonNull(state);
-        state.requireOrAfter(this.state);
-        this.state = state;
-    }
+        private final ClockworkCore core;
 
-    void setCoreContainer(@NotNull ComponentContainer container) {
-        Objects.requireNonNull(container);
-        state.require(State.PROCESSED);
-        if (this.coreContainer != null) throw new IllegalStateException();
-        this.coreContainer = container;
-    }
+        private Controller(ClockworkCore core) {
+            this.core = core;
+        }
 
-    void addLoadedPlugin(@NotNull LoadedPlugin loadedPlugin) {
-        state.require(State.POPULATING);
-        final var existing = loadedPlugins.putIfAbsent(loadedPlugin.getId(), loadedPlugin);
-        if (existing != null) throw PluginLoadingException.pluginDuplicate(loadedPlugin.getDescriptor(), existing.getDescriptor());
-    }
+        public void setState(@NotNull State state) {
+            Objects.requireNonNull(state);
+            state.requireOrAfter(core.state);
+            core.state = state;
+        }
 
-    void addLoadedTargetType(@NotNull RegisteredTargetType<?> targetType) {
-        state.require(State.POPULATING);
-        final var existingByName = loadedTargets.putIfAbsent(targetType.getId(), targetType);
-        if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(targetType.getDescriptor(), existingByName.getId());
-        final var existingByClass = classToTargetMap.putIfAbsent(targetType.getTargetClass(), targetType);
-        if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(targetType.getDescriptor(), existingByClass.getId());
-    }
+        public void setCoreContainer(@NotNull ComponentContainer container) {
+            Objects.requireNonNull(container);
+            core.state.require(State.PROCESSED);
+            if (core.coreContainer != null) throw new IllegalStateException();
+            core.coreContainer = container;
+        }
 
-    void addLoadedComponentType(@NotNull RegisteredComponentType<?, ?> componentType) {
-        state.require(State.POPULATING);
-        final var existingByName = loadedComponents.putIfAbsent(componentType.getId(), componentType);
-        if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());
-        final var existingByClass = classToComponentMap.putIfAbsent(componentType.getComponentClass(), componentType);
-        if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(componentType.getDescriptor(), existingByClass.getId());
+        public void addLoadedPlugin(@NotNull LoadedPlugin plugin) {
+            core.state.require(State.POPULATING);
+            if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
+            final var existing = core.loadedPlugins.putIfAbsent(plugin.getId(), plugin);
+            if (existing != null) throw PluginLoadingException.pluginDuplicate(plugin.getDescriptor(), existing.getDescriptor());
+        }
+
+        public void addLoadedTargetType(@NotNull RegisteredTargetType<?> targetType) {
+            core.state.require(State.POPULATING);
+            if (targetType.getClockworkCore() != core) throw new IllegalArgumentException();
+            final var existingByName = core.loadedTargets.putIfAbsent(targetType.getId(), targetType);
+            if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(targetType.getDescriptor(), existingByName.getId());
+            final var existingByClass = core.classToTargetMap.putIfAbsent(targetType.getTargetClass(), targetType);
+            if (existingByClass != null) throw PluginLoadingException.targetClassDuplicate(targetType.getDescriptor(), existingByClass.getId());
+            targetType.getPlugin().addLoadedTargetType(targetType);
+        }
+
+        public void addLoadedComponentType(@NotNull RegisteredComponentType<?, ?> componentType) {
+            core.state.require(State.POPULATING);
+            if (componentType.getClockworkCore() != core) throw new IllegalArgumentException();
+            final var existingByName = core.loadedComponents.putIfAbsent(componentType.getId(), componentType);
+            if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());
+            final var existingByClass = core.classToComponentMap.putIfAbsent(componentType.getComponentClass(), componentType);
+            if (existingByClass != null) throw PluginLoadingException.componentClassDuplicate(componentType.getDescriptor(), existingByClass.getId());
+            componentType.getPlugin().addLoadedComponentType(componentType);
+        }
+
+        public @NotNull LoadedPlugin definePlugin(@NotNull PluginDescriptor descriptor,
+                                                  @NotNull Module mainModule) {
+            return new LoadedPlugin(descriptor, core, mainModule);
+        }
+
+        public <T extends ComponentTarget>
+        @NotNull RegisteredTargetType<T> defineTargetType(@NotNull LoadedPlugin plugin,
+                                                          @Nullable TargetType<? super T> parent,
+                                                          @NotNull TargetDescriptor descriptor,
+                                                          @NotNull Class<T> targetClass) {
+            if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
+            return new RegisteredTargetType<>(plugin, parent, descriptor, targetClass);
+        }
+
+        public <T extends ComponentTarget, C extends Component<T>>
+        @NotNull RegisteredComponentType<C, T> defineComponentType(@NotNull LoadedPlugin plugin,
+                                                                   @NotNull ComponentDescriptor descriptor,
+                                                                   @NotNull RegisteredTargetType<T> targetType,
+                                                                   @NotNull Class<C> componentClass) {
+            if (targetType.getClockworkCore() != core) throw new IllegalArgumentException();
+            if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
+            return new RegisteredComponentType<>(plugin, descriptor, targetType, componentClass);
+        }
+
+        public void initTargetType(@NotNull RegisteredTargetType<?> targetType) {
+            if (targetType.getClockworkCore() != core) throw new IllegalArgumentException();
+            targetType.init();
+        }
+
+        public <T extends ComponentTarget, C extends Component<T>>
+        @NotNull ComponentFactory<T, C> getComponentFactory(@NotNull RegisteredComponentType<C, T> componentType) {
+            return componentType.getFactoryInternal();
+        }
+
+        public <T extends ComponentTarget, C extends Component<T>>
+        void setComponentFactory(@NotNull RegisteredComponentType<C, T> componentType,
+                                 @NotNull ComponentFactory<T, C> factory) {
+            componentType.setFactoryInternal(factory);
+        }
+
+        public boolean createDefaultComponentFactory(@NotNull RegisteredComponentType<?, ?> componentType,
+                                                     @NotNull MethodHandles.Lookup lookup) {
+            return componentType.createDefaultFactory(lookup);
+        }
+
+        public @Nullable MethodHandles.Lookup getReflectiveAccess(@NotNull LoadedPlugin plugin) {
+            if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
+            final var mainComponent = plugin.getMainComponent().get(core);
+            return mainComponent == null ? null : mainComponent.getReflectiveAccess();
+        }
+
+        public @NotNull ClockworkCore getCore() {
+            return core;
+        }
+
     }
 
     @Override

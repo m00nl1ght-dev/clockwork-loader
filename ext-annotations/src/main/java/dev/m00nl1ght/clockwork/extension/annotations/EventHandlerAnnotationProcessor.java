@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.PluginProcessor;
-import dev.m00nl1ght.clockwork.core.PluginProcessorContext;
-import dev.m00nl1ght.clockwork.core.PluginProcessorContext.AccessLevel;
+import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
+import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
+import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext.AccessLevel;
 import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.Registry;

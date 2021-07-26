@@ -1,10 +1,10 @@
 package dev.m00nl1ght.clockwork.test;
 
-import dev.m00nl1ght.clockwork.core.ClockworkConfig;
+import dev.m00nl1ght.clockwork.loader.ClockworkConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
-import dev.m00nl1ght.clockwork.fnder.ModulePathPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;

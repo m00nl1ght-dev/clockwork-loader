@@ -2,10 +2,9 @@ module dev.m00nl1ght.clockwork {
 
     exports dev.m00nl1ght.clockwork.core;
     exports dev.m00nl1ght.clockwork.descriptor;
-    exports dev.m00nl1ght.clockwork.container;
-    exports dev.m00nl1ght.clockwork.fnder;
-    exports dev.m00nl1ght.clockwork.reader;
-    exports dev.m00nl1ght.clockwork.verifier;
+    exports dev.m00nl1ght.clockwork.loader.fnder;
+    exports dev.m00nl1ght.clockwork.loader.reader;
+    exports dev.m00nl1ght.clockwork.loader.verifier;
     exports dev.m00nl1ght.clockwork.event;
     exports dev.m00nl1ght.clockwork.event.impl;
     exports dev.m00nl1ght.clockwork.event.impl.listener;
@@ -20,7 +19,9 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.event.impl.bus;
     exports dev.m00nl1ght.clockwork.event.impl.forwarding;
     exports dev.m00nl1ght.clockwork.logger;
-    exports dev.m00nl1ght.clockwork.jigsaw;
+    exports dev.m00nl1ght.clockwork.loader.jigsaw;
+    exports dev.m00nl1ght.clockwork.loader;
+    exports dev.m00nl1ght.clockwork.loader.processor;
 
     requires static org.slf4j;
     requires static org.apache.logging.log4j;

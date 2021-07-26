@@ -4,6 +4,7 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
 
+import java.lang.invoke.MethodHandles;
 import java.util.Objects;
 
 public final class RegisteredComponentType<C extends Component<T>, T extends ComponentTarget> extends ComponentType<C, T> {
@@ -18,8 +19,6 @@ public final class RegisteredComponentType<C extends Component<T>, T extends Com
         if (!plugin.getId().equals(descriptor.getPluginId())) throw new IllegalArgumentException();
         if (!targetType.getId().equals(descriptor.getTargetId())) throw new IllegalArgumentException();
         if (!componentClass.getName().equals(descriptor.getComponentClass())) throw new IllegalArgumentException();
-        final var defaultFactory = ComponentFactory.buildDefaultFactory(ClockworkLoader.getInternalLookup(), targetType.getTargetClass(), componentClass);
-        if (defaultFactory != null) super.setFactory(defaultFactory);
     }
 
     @Override
@@ -50,6 +49,13 @@ public final class RegisteredComponentType<C extends Component<T>, T extends Com
 
     void setFactoryInternal(ComponentFactory<T, C> factory) {
         super.setFactory(factory);
+    }
+
+    boolean createDefaultFactory(MethodHandles.Lookup lookup) {
+        final var defaultFactory = ComponentFactory.buildDefaultFactory(lookup, targetType.getTargetClass(), componentClass);
+        if (defaultFactory == null) return false;
+        super.setFactory(defaultFactory);
+        return true;
     }
 
     public LoadedPlugin getPlugin() {
