@@ -15,7 +15,7 @@ public final class ComponentDescriptor {
     private final String targetId;
     private final String componentClass;
     private final List<DependencyDescriptor> dependencies;
-    private final boolean factoryAccessEnabled;
+    private final boolean factoryChangesAllowed;
     private final boolean optional;
     private final Config extData;
 
@@ -26,7 +26,7 @@ public final class ComponentDescriptor {
         this.targetId = Objects.requireNonNull(builder.targetId);
         this.componentClass = Objects.requireNonNull(builder.componentClass);
         this.dependencies = List.copyOf(builder.dependencies.values());
-        this.factoryAccessEnabled = builder.factoryAccessEnabled;
+        this.factoryChangesAllowed = builder.factoryChangesAllowed;
         this.optional = builder.optional;
         this.extData = Objects.requireNonNull(builder.extData);
     }
@@ -59,8 +59,8 @@ public final class ComponentDescriptor {
         return optional;
     }
 
-    public boolean isFactoryAccessEnabled() {
-        return factoryAccessEnabled;
+    public boolean factoryChangesAllowed() {
+        return factoryChangesAllowed;
     }
 
     public Config getExtData() {
@@ -90,7 +90,7 @@ public final class ComponentDescriptor {
         private String componentClass;
         private String targetId;
         private final Map<String, DependencyDescriptor> dependencies = new LinkedHashMap<>();
-        private boolean factoryAccessEnabled = false;
+        private boolean factoryChangesAllowed = false;
         private boolean optional = false;
         private Config extData = Config.EMPTY;
 
@@ -142,8 +142,8 @@ public final class ComponentDescriptor {
             return optional(true);
         }
 
-        public void factoryAccessEnabled(boolean factoryAccessEnabled) {
-            this.factoryAccessEnabled = factoryAccessEnabled;
+        public void factoryChangesAllowed(boolean factoryChangesAllowed) {
+            this.factoryChangesAllowed = factoryChangesAllowed;
         }
 
         public void extData(Config extData) {

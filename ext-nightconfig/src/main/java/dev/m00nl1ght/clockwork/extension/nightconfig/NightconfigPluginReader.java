@@ -80,8 +80,8 @@ public class NightconfigPluginReader implements PluginReader {
             compDeps.ifPresent(l -> l.forEach(d -> builder.dependency(buildDep(d))));
             final Optional<Boolean> optional = conf.getOptional("optional");
             optional.ifPresent(builder::optional);
-            final Optional<Boolean> factoryAccess = conf.getOptional("factoryAccess");
-            factoryAccess.ifPresent(builder::factoryAccessEnabled);
+            final Optional<Boolean> factoryChanges = conf.getOptional("factoryChangesAllowed");
+            factoryChanges.ifPresent(builder::factoryChangesAllowed);
             final UnmodifiableConfig componentExtData = conf.get("ext");
             builder.extData(componentExtData == null ? Config.EMPTY : new NightconfigWrapper(componentExtData));
             descriptorBuilder.component(builder.build());

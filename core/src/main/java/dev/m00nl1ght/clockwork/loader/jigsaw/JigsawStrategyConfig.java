@@ -2,6 +2,7 @@ package dev.m00nl1ght.clockwork.loader.jigsaw;
 
 import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.loader.jigsaw.impl.JigsawStrategyFlat;
 
 import java.util.Objects;
 

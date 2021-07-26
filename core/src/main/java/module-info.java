@@ -22,6 +22,13 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.loader.jigsaw;
     exports dev.m00nl1ght.clockwork.loader;
     exports dev.m00nl1ght.clockwork.loader.processor;
+    exports dev.m00nl1ght.clockwork.loader.fnder.impl;
+    exports dev.m00nl1ght.clockwork.loader.jigsaw.impl;
+    exports dev.m00nl1ght.clockwork.loader.reader.impl;
+    exports dev.m00nl1ght.clockwork.debug.profiler.impl;
+    exports dev.m00nl1ght.clockwork.config.impl;
+    exports dev.m00nl1ght.clockwork.component;
+    exports dev.m00nl1ght.clockwork.component.impl;
 
     requires static org.slf4j;
     requires static org.apache.logging.log4j;

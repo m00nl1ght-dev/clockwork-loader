@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.test.env;
 
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.component.TargetType;
 
 public class TestTarget_B extends TestTarget_A {
 

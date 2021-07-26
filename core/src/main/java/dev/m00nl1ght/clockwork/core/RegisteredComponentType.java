@@ -1,5 +1,8 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.component.ComponentFactory;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.version.Version;
@@ -30,21 +33,10 @@ public final class RegisteredComponentType<C extends Component<T>, T extends Com
     }
 
     @Override
-    public ComponentFactory<T, C> getFactory() {
-        if (!descriptor.isFactoryAccessEnabled())
-            throw FormatUtil.illStateExc("Factory access is not enabled on component []", this);
-        return super.getFactory();
-    }
-
-    @Override
     public void setFactory(ComponentFactory<T, C> factory) {
-        if (!descriptor.isFactoryAccessEnabled())
-            throw FormatUtil.illStateExc("Factory access is not enabled on component []", this);
+        if (!descriptor.factoryChangesAllowed())
+            throw FormatUtil.illStateExc("Factory changes are not enabled on component []", this);
         super.setFactory(factory);
-    }
-
-    ComponentFactory<T, C> getFactoryInternal() {
-        return super.getFactory();
     }
 
     void setFactoryInternal(ComponentFactory<T, C> factory) {

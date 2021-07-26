@@ -1,5 +1,7 @@
-package dev.m00nl1ght.clockwork.config;
+package dev.m00nl1ght.clockwork.config.impl;
 
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig.Builder;
 
 import java.util.*;

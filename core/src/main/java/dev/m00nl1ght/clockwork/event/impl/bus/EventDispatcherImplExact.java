@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.event.impl.bus;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.impl.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventDispatcher;
 import dev.m00nl1ght.clockwork.event.EventListenerCollection;
@@ -29,7 +29,7 @@ public class EventDispatcherImplExact<E extends Event, T extends ComponentTarget
     public EventDispatcherImplExact(TypeRef<E> eventType, TargetType<T> targetType) {
         this.eventType = Objects.requireNonNull(eventType);
         this.targetType = Objects.requireNonNull(targetType);
-        targetType.requireInitialised();
+        targetType.requireLocked();
     }
 
     protected CompiledListeners compileListeners() {

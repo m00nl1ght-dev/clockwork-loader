@@ -1,6 +1,6 @@
-package dev.m00nl1ght.clockwork.debug.profiler;
+package dev.m00nl1ght.clockwork.debug.profiler.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
 

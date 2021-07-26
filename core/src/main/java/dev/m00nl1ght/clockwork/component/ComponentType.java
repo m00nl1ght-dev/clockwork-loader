@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.component;
 
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 
@@ -8,7 +8,7 @@ public class ComponentType<C, T extends ComponentTarget> {
 
     protected final Class<C> componentClass;
     protected final TargetType<T> targetType;
-    protected final TargetType<? super T> rootType;
+    protected final TargetType<? super T> rootTargetType;
 
     private int internalIdx = -1;
 
@@ -17,7 +17,7 @@ public class ComponentType<C, T extends ComponentTarget> {
     public ComponentType(TargetType<T> targetType, Class<C> componentClass) {
         this.targetType = Objects.requireNonNull(targetType);
         this.componentClass = Objects.requireNonNull(componentClass);
-        this.rootType = targetType.getRoot();
+        this.rootTargetType = targetType.getRoot();
         this.targetType.registerComponentType(this);
     }
 
@@ -34,14 +34,14 @@ public class ComponentType<C, T extends ComponentTarget> {
     }
 
     public final int getInternalIdx(TargetType<?> forType) {
-        if (forType.getRoot() != rootType) checkCompatibility(forType);
+        if (forType.getRoot() != rootTargetType) checkCompatibility(forType);
         return internalIdx;
     }
 
     @SuppressWarnings("unchecked")
     public C get(T object) {
         final var container = object.getComponentContainer();
-        if (container.getTargetType().getRoot() != rootType) checkCompatibility(container.getTargetType());
+        if (container.getTargetType().getRoot() != rootTargetType) checkCompatibility(container.getTargetType());
         try {
             return (C) container.getComponent(internalIdx);
         } catch (Exception e) {
@@ -54,24 +54,12 @@ public class ComponentType<C, T extends ComponentTarget> {
         return factory;
     }
 
-    public void checkValue(T target, C value) {
-        // NO-OP
-    }
-
     public void setFactory(ComponentFactory<T, C> factory) {
         this.factory = Objects.requireNonNull(factory);
     }
 
-    public final boolean isInitialised() {
-        return internalIdx >= 0;
-    }
-
-    public final void requireInitialised() {
-        if (internalIdx < 0) throw FormatUtil.illStateExc("ComponentType [] is not initialised", this);
-    }
-
-    public final void requireNotInitialised() {
-        if (internalIdx >= 0) throw FormatUtil.illStateExc("ComponentType [] is initialised", this);
+    public void checkValue(T target, C value) {
+        // NO-OP
     }
 
     @Override
@@ -79,22 +67,39 @@ public class ComponentType<C, T extends ComponentTarget> {
         return componentClass.getSimpleName() + "@" + targetType.toString();
     }
 
-    // ### Internal ###
-
     protected void checkCompatibility(TargetType<?> otherTarget) {
-        this.requireInitialised();
-        targetType.requireInitialised();
+        targetType.requireLocked();
+        if (this.internalIdx < 0) throw new IllegalStateException();
         if (!otherTarget.isEquivalentTo(this.targetType)) {
             final var msg = "Cannot access component [] (registered to target []) from different target []";
             throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherTarget));
         }
     }
 
-    protected final synchronized void init(int internalIdx) {
+    protected final synchronized void setInternalIdx(int internalIdx) {
         if (internalIdx < 0) throw new IllegalArgumentException();
-        this.requireNotInitialised();
-        targetType.requireNotInitialised();
+        if (this.internalIdx >= 0) throw new IllegalStateException();
+        targetType.requireNotLocked();
         this.internalIdx = internalIdx;
+    }
+
+    public static class Identity<T extends ComponentTarget> extends ComponentType<T, T> {
+
+        public Identity(TargetType<T> targetType) {
+            super(targetType, targetType.getTargetClass());
+            setFactory(t -> t);
+        }
+
+        @Override
+        public void checkValue(T target, T value) {
+            if (target != value) throw new RuntimeException("Invalid value: " + value);
+        }
+
+        @Override
+        public String toString() {
+            return "<Identity>@" + targetType.toString();
+        }
+
     }
 
 }

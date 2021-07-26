@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.interfaces;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentType;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImpl;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
 import dev.m00nl1ght.clockwork.util.TypeRef;
@@ -19,7 +19,7 @@ public interface ComponentInterface<I, T extends ComponentTarget> {
             @NotNull TypeRef<I> interfaceType,
             @NotNull TargetType<T> targetType) {
 
-        Objects.requireNonNull(targetType).requireInitialised();
+        Objects.requireNonNull(targetType).requireLocked();
         if (targetType.getDirectSubtargets().isEmpty()) {
             return new ComponentInterfaceImplExact<>(interfaceType, targetType);
         } else {

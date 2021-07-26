@@ -1,7 +1,8 @@
-package dev.m00nl1ght.clockwork.loader.reader;
+package dev.m00nl1ght.clockwork.loader.reader.impl;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 
 import java.io.IOException;
 import java.lang.module.ModuleFinder;

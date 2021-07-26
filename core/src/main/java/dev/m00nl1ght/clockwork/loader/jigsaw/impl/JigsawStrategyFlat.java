@@ -1,8 +1,11 @@
-package dev.m00nl1ght.clockwork.loader.jigsaw;
+package dev.m00nl1ght.clockwork.loader.jigsaw.impl;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
+import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyConfig;
+import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
 import dev.m00nl1ght.clockwork.util.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;

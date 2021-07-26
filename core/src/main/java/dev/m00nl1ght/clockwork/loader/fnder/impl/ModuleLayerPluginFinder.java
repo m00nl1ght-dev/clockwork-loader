@@ -1,10 +1,12 @@
-package dev.m00nl1ght.clockwork.loader.fnder;
+package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
 import dev.m00nl1ght.clockwork.loader.LoadingContext;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.loader.reader.PluginReaderUtil;
+import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.util.Registry;
 
 import java.lang.module.ResolvedModule;

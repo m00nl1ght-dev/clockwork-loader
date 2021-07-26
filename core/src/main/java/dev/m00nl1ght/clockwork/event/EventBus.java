@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.event;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
-import dev.m00nl1ght.clockwork.core.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.EventBusProfilerGroup;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentType;
+import dev.m00nl1ght.clockwork.component.TargetType;
+import dev.m00nl1ght.clockwork.debug.profiler.impl.EventBusProfilerGroup;
 import dev.m00nl1ght.clockwork.debug.profiler.Profilable;
 import dev.m00nl1ght.clockwork.event.impl.forwarding.EventForwardingPolicyByComponent;
 import dev.m00nl1ght.clockwork.event.impl.forwarding.EventForwardingPolicyByLambda;

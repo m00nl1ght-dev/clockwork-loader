@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.event.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventDispatcher;
 import dev.m00nl1ght.clockwork.util.TypeRef;

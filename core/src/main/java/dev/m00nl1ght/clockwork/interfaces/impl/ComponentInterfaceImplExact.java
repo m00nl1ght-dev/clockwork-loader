@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.interfaces.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.ComponentType;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
 import dev.m00nl1ght.clockwork.util.TypeRef;
 import org.jetbrains.annotations.NotNull;
@@ -22,7 +22,7 @@ public class ComponentInterfaceImplExact<I, T extends ComponentTarget> implement
     public ComponentInterfaceImplExact(@NotNull TypeRef<I> interfaceType, @NotNull TargetType<T> targetType) {
         this.interfaceType = Objects.requireNonNull(interfaceType);
         this.targetType = Objects.requireNonNull(targetType);
-        targetType.requireInitialised();
+        targetType.requireLocked();
         this.compIds = ComponentInterface.buildIdxArray(interfaceType, targetType);
     }
 

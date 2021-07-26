@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.component.*;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
@@ -337,16 +338,6 @@ public final class ClockworkCore implements ComponentTarget {
             if (targetType.getClockworkCore() != core) throw new IllegalArgumentException();
             if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
             return new RegisteredComponentType<>(plugin, descriptor, targetType, componentClass);
-        }
-
-        public void initTargetType(@NotNull RegisteredTargetType<?> targetType) {
-            if (targetType.getClockworkCore() != core) throw new IllegalArgumentException();
-            targetType.init();
-        }
-
-        public <T extends ComponentTarget, C extends Component<T>>
-        @NotNull ComponentFactory<T, C> getComponentFactory(@NotNull RegisteredComponentType<C, T> componentType) {
-            return componentType.getFactoryInternal();
         }
 
         public <T extends ComponentTarget, C extends Component<T>>

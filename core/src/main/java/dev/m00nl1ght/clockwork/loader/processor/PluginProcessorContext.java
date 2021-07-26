@@ -1,5 +1,8 @@
 package dev.m00nl1ght.clockwork.loader.processor;
 
+import dev.m00nl1ght.clockwork.core.Component;
+import dev.m00nl1ght.clockwork.component.ComponentFactory;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.jetbrains.annotations.NotNull;
@@ -66,13 +69,6 @@ public final class PluginProcessorContext {
         // If none of these options worked, fallback to public lookup.
         return INTERNAL_LOOKUP.in(targetClass);
 
-    }
-
-    public <C extends Component<T>, T extends ComponentTarget>
-    @NotNull ComponentFactory<T, C> getComponentFactory(@NotNull RegisteredComponentType<C, T> componentType) {
-        Objects.requireNonNull(componentType);
-        this.checkPluginAccess(componentType.getPlugin());
-        return controller.getComponentFactory(componentType);
     }
 
     public <C extends Component<T>, T extends ComponentTarget>

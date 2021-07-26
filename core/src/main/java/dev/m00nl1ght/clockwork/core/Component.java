@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.core;
 
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

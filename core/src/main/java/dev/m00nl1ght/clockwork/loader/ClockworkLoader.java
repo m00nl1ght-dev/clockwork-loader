@@ -1,20 +1,21 @@
 package dev.m00nl1ght.clockwork.loader;
 
-import dev.m00nl1ght.clockwork.core.ImmutableComponentContainer;
+import dev.m00nl1ght.clockwork.component.*;
+import dev.m00nl1ght.clockwork.component.impl.SimpleComponentContainer;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.loader.fnder.ModuleLayerPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
 import dev.m00nl1ght.clockwork.logger.Logger;
 import dev.m00nl1ght.clockwork.logger.impl.SysOutLogging;
-import dev.m00nl1ght.clockwork.loader.reader.ManifestPluginReader;
+import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 import dev.m00nl1ght.clockwork.util.TopologicalSorter;
@@ -296,14 +297,14 @@ public final class ClockworkLoader {
         // Apply the plugin processors defined to each plugin respectively.
         applyPluginProcessors();
 
-        // Initialise the target types.
+        // Lock all target types.
         for (final var targetType : core.getLoadedTargetTypes()) {
-            controller.initTargetType(targetType);
+            targetType.lock();
         }
 
         // If any component type has no factory assigned, try creating a default one.
         for (final var componentType : core.getLoadedComponentTypes()) {
-            if (controller.getComponentFactory(componentType) == ComponentFactory.EMPTY) {
+            if (componentType.getFactory() == ComponentFactory.EMPTY) {
                 if (!controller.createDefaultComponentFactory(componentType, INTERNAL_LOOKUP)) {
                     LOGGER.warn("No factory or valid constructor available for component type []", componentType);
                 }
@@ -451,7 +452,7 @@ public final class ClockworkLoader {
         final var coreTarget = core.getTargetTypeOrThrow(ClockworkCore.class);
 
         // Build the component container and set it.
-        final var container = new ImmutableComponentContainer(coreTarget, core);
+        final var container = new SimpleComponentContainer(coreTarget, core);
         controller.setCoreContainer(container);
 
         // Init the components and update the state of the core.

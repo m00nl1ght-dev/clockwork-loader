@@ -1,16 +1,18 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.component.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentType;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
-import dev.m00nl1ght.clockwork.core.TargetType;
 
 import java.util.Objects;
 
-public class ImmutableComponentContainer extends ComponentContainer {
+public class SimpleComponentContainer extends ComponentContainer {
 
     protected final Object[] components;
 
-    public ImmutableComponentContainer(TargetType<?> targetType, Object object) {
+    public SimpleComponentContainer(TargetType<?> targetType, Object object) {
         super(targetType);
         this.components = new Object[targetType.getComponentTypes().size()];
         this.components[0] = Objects.requireNonNull(object);
@@ -33,6 +35,14 @@ public class ImmutableComponentContainer extends ComponentContainer {
                 throw ExceptionInPlugin.inComponentInit(comp, t);
             }
         }
+    }
+
+    protected <C, T extends ComponentTarget> C
+    buildComponent(ComponentType<C, T> componentType, Object target) throws Throwable {
+        final var castedTarget = componentType.getTargetType().getTargetClass().cast(target);
+        final var value = componentType.getFactory().create(castedTarget);
+        componentType.checkValue(castedTarget, value);
+        return value;
     }
 
     @Override

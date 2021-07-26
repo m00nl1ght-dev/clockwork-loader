@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.event.impl.event;
 
-import dev.m00nl1ght.clockwork.core.ComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentContainer;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;

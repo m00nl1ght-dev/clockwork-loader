@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.interfaces.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentContainer;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Iterator;

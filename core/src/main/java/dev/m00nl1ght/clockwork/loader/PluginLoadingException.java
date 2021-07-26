@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.loader;
 
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;

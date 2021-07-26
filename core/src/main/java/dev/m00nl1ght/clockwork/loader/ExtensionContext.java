@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.loader;
 
-import dev.m00nl1ght.clockwork.loader.fnder.ModuleLayerPluginFinder;
-import dev.m00nl1ght.clockwork.loader.fnder.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.loader.fnder.NestedPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.ModulePathPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.NestedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
-import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyFlat;
+import dev.m00nl1ght.clockwork.loader.jigsaw.impl.JigsawStrategyFlat;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
-import dev.m00nl1ght.clockwork.loader.reader.ManifestPluginReader;
+import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.loader.verifier.PluginVerifierType;

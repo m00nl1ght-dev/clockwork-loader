@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.component;
 
 import dev.m00nl1ght.clockwork.loader.PluginLoadingException;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -12,7 +12,7 @@ public class TargetType<T extends ComponentTarget> {
     protected final Class<T> targetClass;
     protected final TargetType<? super T> root;
     protected final TargetType<? super T> parent;
-    protected final IdentityComponentType<T> identityComponentType;
+    protected final ComponentType.Identity<T> identityComponentType;
 
     private final List<TargetType<? extends T>> directSubtargets = new LinkedList<>();
     private final List<TargetType<?>> allSubtargets;
@@ -23,7 +23,7 @@ public class TargetType<T extends ComponentTarget> {
 
     public TargetType(TargetType<? super T> parent, Class<T> targetClass) {
         this.targetClass = Objects.requireNonNull(targetClass);
-        this.identityComponentType = new IdentityComponentType<>(this);
+        this.identityComponentType = new ComponentType.Identity<>(this);
         this.parent = parent;
         if (this.parent == null) {
             this.root = this;
@@ -32,9 +32,9 @@ public class TargetType<T extends ComponentTarget> {
             synchronized (this.parent) {
                 this.root = this.parent.root;
                 if (!this.parent.targetClass.isAssignableFrom(targetClass))
-                    throw FormatUtil.illArgExc("Heap pollution: Incompatible parent target [] for []", parent, this);
-                if (this.parent.isInitialised())
-                    throw FormatUtil.illStateExc("Parent TargetType [] is already initialised", this.parent);
+                    throw FormatUtil.illArgExc("Incompatible parent target [] for []", parent, this);
+                if (this.parent.isLocked())
+                    throw FormatUtil.illStateExc("Parent TargetType [] is locked", this.parent);
                 this.parent.directSubtargets.add(this);
                 this.allSubtargets = this.parent.allSubtargets;
             }
@@ -111,14 +111,14 @@ public class TargetType<T extends ComponentTarget> {
 
     @SuppressWarnings("unchecked")
     public final List<TargetType<? extends T>> getAllSubtargets() {
-        requireInitialised();
+        requireLocked();
         return IntStream.rangeClosed(subtargetIdxFirst, subtargetIdxLast)
                 .mapToObj(i -> (TargetType<? extends T>) allSubtargets.get(i))
                 .collect(Collectors.toUnmodifiableList());
     }
 
     public final List<TargetType<? extends T>> getDirectSubtargets() {
-        requireInitialised();
+        requireLocked();
         return Collections.unmodifiableList(directSubtargets);
     }
 
@@ -130,16 +130,16 @@ public class TargetType<T extends ComponentTarget> {
         return subtargetIdxLast;
     }
 
-    public final boolean isInitialised() {
+    public final boolean isLocked() {
         return componentTypes != null;
     }
 
-    public final void requireInitialised() {
-        if (componentTypes == null) throw FormatUtil.illStateExc("TargetType [] is not initialised", this);
+    public final void requireLocked() {
+        if (componentTypes == null) throw FormatUtil.illStateExc("TargetType [] is not locked yet", this);
     }
 
-    public final void requireNotInitialised() {
-        if (componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is initialised", this);
+    public final void requireNotLocked() {
+        if (componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is locked", this);
     }
 
     @Override
@@ -147,16 +147,16 @@ public class TargetType<T extends ComponentTarget> {
         return targetClass.getSimpleName();
     }
 
-    protected synchronized void init() {
+    public synchronized void lock() {
         if (this.componentTypes != null)
-            throw FormatUtil.illStateExc("TargetType [] is already initialised", this);
+            throw FormatUtil.illStateExc("TargetType [] is already locked", this);
 
         final var componentList = new LinkedList<ComponentType<?, ? super T>>();
         if (parent == null) {
             this.populateSubtargets();
         } else {
             if (parent.componentTypes == null)
-                throw FormatUtil.illStateExc("Parent TargetType [] is not initialised", parent);
+                throw FormatUtil.illStateExc("Parent TargetType [] is not locked", parent);
             componentList.addAll(parent.componentTypes);
             this.verifySiblings();
         }
@@ -167,7 +167,7 @@ public class TargetType<T extends ComponentTarget> {
             final var component = componentList.get(i);
             final var idx = component.getInternalIdx();
             if (idx < 0) {
-                component.init(i);
+                component.setInternalIdx(i);
             } else {
                 if (idx != i) throw new IllegalStateException();
             }
@@ -177,7 +177,7 @@ public class TargetType<T extends ComponentTarget> {
     }
 
     protected synchronized void registerComponentType(ComponentType<?, T> componentType) {
-        requireNotInitialised();
+        requireNotLocked();
         if (componentType.targetType != this) throw new IllegalArgumentException();
         if (ownComponentTypes.contains(componentType)) throw new IllegalStateException();
         ownComponentTypes.add(componentType);

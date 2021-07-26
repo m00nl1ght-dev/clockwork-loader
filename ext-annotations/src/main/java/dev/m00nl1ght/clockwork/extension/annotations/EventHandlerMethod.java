@@ -1,5 +1,9 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
+import dev.m00nl1ght.clockwork.core.Component;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.ComponentType;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;

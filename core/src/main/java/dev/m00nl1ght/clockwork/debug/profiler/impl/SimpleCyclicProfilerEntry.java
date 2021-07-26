@@ -1,4 +1,6 @@
-package dev.m00nl1ght.clockwork.debug.profiler;
+package dev.m00nl1ght.clockwork.debug.profiler.impl;
+
+import dev.m00nl1ght.clockwork.debug.profiler.ProfilerEntry;
 
 public class SimpleCyclicProfilerEntry extends ProfilerEntry {
 

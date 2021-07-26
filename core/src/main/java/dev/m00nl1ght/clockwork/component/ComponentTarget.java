@@ -1,4 +1,4 @@
-package dev.m00nl1ght.clockwork.core;
+package dev.m00nl1ght.clockwork.component;
 
 import org.jetbrains.annotations.NotNull;
 

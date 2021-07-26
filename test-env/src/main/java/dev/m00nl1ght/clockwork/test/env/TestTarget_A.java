@@ -1,18 +1,18 @@
 package dev.m00nl1ght.clockwork.test.env;
 
-import dev.m00nl1ght.clockwork.core.ImmutableComponentContainer;
-import dev.m00nl1ght.clockwork.core.ComponentContainer;
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.core.TargetType;
+import dev.m00nl1ght.clockwork.component.impl.SimpleComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.TargetType;
 
 public class TestTarget_A implements ComponentTarget {
 
     private final TestTarget_C testTargetC;
-    private final ImmutableComponentContainer componentContainer;
+    private final SimpleComponentContainer componentContainer;
 
     public TestTarget_A(TargetType<?> targetType, TestTarget_C testTargetC) {
         this.testTargetC = testTargetC;
-        componentContainer = new ImmutableComponentContainer(targetType, this);
+        componentContainer = new SimpleComponentContainer(targetType, this);
         componentContainer.initComponents();
     }
 

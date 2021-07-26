@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.event.impl;
 
-import dev.m00nl1ght.clockwork.core.ComponentTarget;
-import dev.m00nl1ght.clockwork.debug.profiler.EventDispatcherProfilerGroup;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.debug.profiler.impl.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.event.EventListenerCollection;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
