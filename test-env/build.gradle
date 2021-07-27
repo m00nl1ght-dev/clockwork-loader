@@ -19,6 +19,7 @@ dependencies {
 
     api project(':core')
     implementation project(':ext-annotations')
+    implementation project(':ext-mixin')
     implementation project(':ext-nightconfig')
     implementation project(':ext-pluginrepo')
     implementation project(':ext-security')

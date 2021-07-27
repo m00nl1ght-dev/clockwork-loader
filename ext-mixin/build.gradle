@@ -1,0 +1,15 @@
+
+dependencies {
+    api project(':core')
+}
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            groupId = 'dev.m00nl1ght.clockwork.extension'
+            version = rootProject.version
+            artifactId = 'mixin'
+            from components.java
+        }
+    }
+}
