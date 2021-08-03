@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.loader.reader.impl;
 
-import dev.m00nl1ght.clockwork.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
+import dev.m00nl1ght.clockwork.loader.ExtensionContext;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReaderConfig;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.util.Registry;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
@@ -46,8 +46,8 @@ public class ManifestPluginReader implements PluginReader {
         this.manifestFilePath = config.getParams().get("manifestPath");
     }
 
-    public static void registerTo(Registry<PluginReaderType> registry) {
-        Objects.requireNonNull(registry).register(NAME, FACTORY);
+    public static void registerTo(ExtensionContext context) {
+        Objects.requireNonNull(context).registryFor(PluginReaderType.class).register(NAME, FACTORY);
     }
 
     public static PluginReaderConfig newConfig(String name) {

@@ -1,8 +1,11 @@
 package dev.m00nl1ght.clockwork.loader;
 
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.loader.verifier.PluginVerifier;
+import dev.m00nl1ght.clockwork.loader.verifier.PluginVerifierType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -23,19 +26,19 @@ public class LoadingContext {
 
         final var readers = new HashMap<String, PluginReader>();
         for (final var config : clockworkConfig.getReaders()) {
-            final var reader = extensionContext.getReaderTypeRegistry().get(config.getType()).build(config);
+            final var reader = extensionContext.get(config.getType(), PluginReaderType.class).build(config);
             readers.put(config.getName(), reader);
         }
 
         final var finders = new HashMap<String, PluginFinder>();
         for (final var config : clockworkConfig.getFinders()) {
-            final var finder = extensionContext.getFinderTypeRegistry().get(config.getType()).build(config);
+            final var finder = extensionContext.get(config.getType(), PluginFinderType.class).build(config);
             finders.put(config.getName(), finder);
         }
 
         final var verifiers = new HashMap<String, PluginVerifier>();
         for (final var config : clockworkConfig.getVerifiers()) {
-            final var verifier = extensionContext.getVerifierTypeRegistry().get(config.getType()).build(config);
+            final var verifier = extensionContext.get(config.getType(), PluginVerifierType.class).build(config);
             verifiers.put(config.getName(), verifier);
         }
 

@@ -1,14 +1,14 @@
 package dev.m00nl1ght.clockwork.loader.jigsaw.impl;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.ExtensionContext;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.loader.classloading.ClockworkClassLoader;
-import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
-import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyConfig;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
-import dev.m00nl1ght.clockwork.util.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -19,15 +19,15 @@ import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public final class JigsawStrategyFlat implements JigsawStrategy {
+public class JigsawStrategyFlat implements JigsawStrategy {
 
     public static final String NAME = "internal.jigsaw.flat";
     public static final JigsawStrategyType FACTORY = JigsawStrategyFlat::new;
 
     protected final JigsawStrategyConfig config;
 
-    public static void registerTo(Registry<JigsawStrategyType> registry) {
-        Objects.requireNonNull(registry).register(NAME, FACTORY);
+    public static void registerTo(ExtensionContext context) {
+        Objects.requireNonNull(context).registryFor(JigsawStrategyType.class).register(NAME, FACTORY);
     }
 
     protected JigsawStrategyFlat(JigsawStrategyConfig config) {

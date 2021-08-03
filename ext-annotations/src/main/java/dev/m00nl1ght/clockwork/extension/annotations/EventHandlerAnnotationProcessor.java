@@ -1,12 +1,12 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.event.EventListener;
+import dev.m00nl1ght.clockwork.loader.ExtensionContext;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext.AccessLevel;
-import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.util.Registry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -22,8 +22,8 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
 
     private EventHandlerAnnotationProcessor() {}
 
-    public static void registerTo(@NotNull Registry<PluginProcessor> registry) {
-        Objects.requireNonNull(registry).register(NAME, new EventHandlerAnnotationProcessor());
+    public static void registerTo(ExtensionContext context) {
+        Objects.requireNonNull(context).registryFor(PluginProcessor.class).register(NAME, new EventHandlerAnnotationProcessor());
     }
 
     @Override

@@ -14,7 +14,7 @@ public final class CWLNightconfigExtension extends MainComponent implements Cloc
 
     @Override
     public void registerFeatures(@NotNull ExtensionContext extensionContext) {
-        NightconfigPluginReader.registerTo(extensionContext.getReaderTypeRegistry());
+        NightconfigPluginReader.registerTo(extensionContext);
     }
 
 }

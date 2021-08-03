@@ -14,8 +14,8 @@ public final class CWLPluginRepoExtension extends MainComponent implements Clock
 
     @Override
     public void registerFeatures(@NotNull ExtensionContext extensionContext) {
-        LocalRepoPluginFinder.registerTo(extensionContext.getFinderTypeRegistry());
-        RemoteRepoPluginFinder.registerTo(extensionContext.getFinderTypeRegistry());
+        LocalRepoPluginFinder.registerTo(extensionContext);
+        RemoteRepoPluginFinder.registerTo(extensionContext);
     }
 
 }

@@ -17,7 +17,7 @@ public final class CWLMixinExtension extends MainComponent implements ClockworkE
 
     @Override
     public void registerFeatures(@NotNull ExtensionContext extensionContext) {
-        MixinClassTransformer.registerTo(extensionContext.getTransformerRegistry());
+        MixinClassTransformer.registerTo(extensionContext);
     }
 
 }

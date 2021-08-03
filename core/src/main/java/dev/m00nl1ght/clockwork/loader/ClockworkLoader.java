@@ -13,6 +13,8 @@ import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
+import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
+import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
 import dev.m00nl1ght.clockwork.logger.Logger;
 import dev.m00nl1ght.clockwork.logger.impl.SysOutLogging;
@@ -122,7 +124,7 @@ public final class ClockworkLoader {
         final var componentSorter = new ComponentSorter();
         final var targetSorter = new TargetSorter();
 
-        // If there is a parent core, add it's components and targets to the sorters first.
+        // If there is a parent core, add its components and targets to the sorters first.
         if (parent != null) {
             for (final var c : parent.getLoadedComponentTypes()) componentSorter.add(c.getDescriptor());
             for (final var t : parent.getLoadedTargetTypes()) targetSorter.add(t.getDescriptor());
@@ -203,8 +205,7 @@ public final class ClockworkLoader {
         }
 
         // Collect and sort class transformers.
-        final var transformers = extensionContext.getTransformerRegistry()
-                .getRegistered().values().stream()
+        final var transformers = extensionContext.getAll(ClassTransformer.class).stream()
                 .sorted(Comparator.comparing(ClassTransformer::priority))
                 .collect(Collectors.toList());
 
@@ -293,7 +294,7 @@ public final class ClockworkLoader {
         controller.setState(State.POPULATED);
 
         // Notify all registered plugin processors.
-        for (final var entry : extensionContext.getProcessorRegistry().getRegistered().entrySet()) {
+        for (final var entry : extensionContext.registryFor(PluginProcessor.class).getRegistered().entrySet()) {
             try {
                 entry.getValue().onLoadingStart(core, parent);
             } catch (Throwable t) {
@@ -337,7 +338,7 @@ public final class ClockworkLoader {
                 final var optional = name.startsWith("?");
                 if (optional) name = name.substring(1);
 
-                final var processor = extensionContext.getProcessorRegistry().get(name);
+                final var processor = extensionContext.get(name, PluginProcessor.class);
                 if (processor == null) {
                     if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
                 } else {
@@ -367,7 +368,7 @@ public final class ClockworkLoader {
 
         try {
             final var jigsawConfig = config.getJigsawStrategy();
-            final var strategyType = extensionContext.getJigsawTypeRegistry().get(jigsawConfig.getType());
+            final var strategyType = extensionContext.get(jigsawConfig.getType(), JigsawStrategyType.class);
             final var strategy = strategyType.build(jigsawConfig);
             return strategy.buildModuleLayers(plugins, config.getLibModulePath(), transformers, parent);
         } catch (Exception e) {
@@ -472,7 +473,7 @@ public final class ClockworkLoader {
         applyPluginProcessors();
 
         // Notify all registered plugin processors.
-        for (final var entry : extensionContext.getProcessorRegistry().getRegistered().entrySet()) {
+        for (final var entry : extensionContext.registryFor(PluginProcessor.class).getRegistered().entrySet()) {
             try {
                 entry.getValue().onLoadingComplete(core);
             } catch (Throwable t) {

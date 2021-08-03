@@ -1,15 +1,15 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
-import dev.m00nl1ght.clockwork.loader.LoadingContext;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
+import dev.m00nl1ght.clockwork.loader.ExtensionContext;
+import dev.m00nl1ght.clockwork.loader.LoadingContext;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.util.Registry;
-import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.io.File;
@@ -30,8 +30,8 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     protected final String rootURL;
     protected final LocalRepoPluginFinder localCache;
 
-    public static void registerTo(Registry<PluginFinderType> registry) {
-        Objects.requireNonNull(registry).register(NAME, FACTORY);
+    public static void registerTo(ExtensionContext context) {
+        Objects.requireNonNull(context).registryFor(PluginFinderType.class).register(NAME, FACTORY);
     }
 
     public static Builder configBuilder(String name, URL rootURL, File cachePath) {

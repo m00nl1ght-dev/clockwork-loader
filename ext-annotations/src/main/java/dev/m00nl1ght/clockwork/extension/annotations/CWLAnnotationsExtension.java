@@ -32,7 +32,7 @@ public final class CWLAnnotationsExtension extends MainComponent implements Cloc
 
     @Override
     public void registerFeatures(@NotNull ExtensionContext extensionContext) {
-        EventHandlerAnnotationProcessor.registerTo(extensionContext.getProcessorRegistry());
+        EventHandlerAnnotationProcessor.registerTo(extensionContext);
     }
 
     public static @NotNull CWLAnnotationsExtension getInstance(@NotNull ClockworkCore core) {
