@@ -47,7 +47,7 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
         this.rootURL = config.getParams().get("rootURL");
         final var cachePath = new File(config.getParams().get("cachePath"));
         final var cacheConfig = LocalRepoPluginFinder.configBuilder("localCache", cachePath)
-                .withReaders(config.getReaders()).withVerifiers(config.getVerifiers()).build();
+                .withReaders(config.getReaders()).build();
         this.localCache = new LocalRepoPluginFinder(cacheConfig);
     }
 

@@ -25,12 +25,11 @@ public abstract class ClockworkTest {
         final var bootLayerCore = bootLayerLoader.loadAndInit();
         final var pluginLayerConfig = buildPluginLayerConfig().build();
         final var pluginLayerLoader = ClockworkLoader.build(bootLayerCore, pluginLayerConfig);
-        pluginLayerLoader.collectExtensionsFromParent();
         this.clockworkCore = pluginLayerLoader.load();
         this.envComponentType = clockworkCore.getComponentTypeOrThrow(TestEnvironment.class, ClockworkCore.class);
         this.envComponentType.setFactory(this::buildEnvironment);
         pluginLayerLoader.init();
-        this.setupComplete();
+        this.setupComplete(pluginLayerLoader);
     }
 
     protected ClockworkConfig.Builder buildBootLayerConfig() {
@@ -64,6 +63,6 @@ public abstract class ClockworkTest {
         return new TestEnvironment(core);
     }
 
-    protected void setupComplete() {}
+    protected void setupComplete(ClockworkLoader loader) {}
 
 }

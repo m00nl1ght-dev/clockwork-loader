@@ -26,7 +26,7 @@ public class MixinLoadTest extends ClockworkTest {
 
     @Test
     public void checkLoaded() {
-        assertEquals(core().getState(), ClockworkCore.State.INITIALISED);
+        assertEquals(core().getState(), ClockworkCore.Phase.INITIALISED);
     }
 
 }

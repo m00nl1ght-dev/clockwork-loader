@@ -1,23 +1,17 @@
 package dev.m00nl1ght.clockwork.extension.mixin;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.core.MainComponent;
-import dev.m00nl1ght.clockwork.loader.ClockworkExtension;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.LoaderExtension;
 import dev.m00nl1ght.clockwork.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
-public final class CWLMixinExtension extends MainComponent implements ClockworkExtension {
+public final class CWLMixinExtension extends LoaderExtension {
 
     static final Logger LOGGER = Logger.create("Clockwork-Ext-Mixin");
 
-    public CWLMixinExtension(@NotNull ClockworkCore core) {
-        super(core);
-    }
-
-    @Override
-    public void registerFeatures(@NotNull ExtensionContext extensionContext) {
-        MixinClassTransformer.registerTo(extensionContext);
+    public CWLMixinExtension(@NotNull ClockworkLoader loader) {
+        super(loader);
+        // MixinClassTransformer.registerTo(extensionContext); // TODO
     }
 
 }

@@ -69,12 +69,12 @@ public final class LoadedPlugin {
     // ### Internal ###
 
     void addLoadedTargetType(TargetType<?> targetType) {
-        clockworkCore.getState().require(ClockworkCore.State.POPULATING);
+        clockworkCore.getState().require(ClockworkCore.Phase.CONSTRUCTED);
         targetTypes.add(targetType);
     }
 
     void addLoadedComponentType(ComponentType<?, ?> componentType) {
-        clockworkCore.getState().require(ClockworkCore.State.POPULATING);
+        clockworkCore.getState().require(ClockworkCore.Phase.CONSTRUCTED);
         componentTypes.add(componentType);
     }
 

@@ -29,7 +29,7 @@ public final class ClockworkCore implements ComponentTarget {
 
     private final List<ModuleLayer> moduleLayers;
 
-    private volatile State state = State.POPULATING;
+    private volatile Phase phase = Phase.CONSTRUCTED;
     private ComponentContainer coreContainer;
 
     public static Controller create(@NotNull List<@NotNull ModuleLayer> moduleLayers) {
@@ -203,7 +203,7 @@ public final class ClockworkCore implements ComponentTarget {
 
     @Override
     public ComponentContainer getComponentContainer() {
-        if (coreContainer == null) state.requireOrAfter(State.INITIALISED);
+        if (coreContainer == null) phase.requireOrAfter(Phase.INITIALISED);
         return coreContainer;
     }
 
@@ -214,16 +214,16 @@ public final class ClockworkCore implements ComponentTarget {
     /**
      * Returns the internal state of this ClockworkCore.
      */
-    public @NotNull State getState() {
-        return state;
+    public @NotNull ClockworkCore.Phase getState() {
+        return phase;
     }
 
-    public enum State {
+    public enum Phase {
 
         /**
          *
          */
-        POPULATING,
+        CONSTRUCTED,
 
         /**
          * All plugins have been located and dependencies have been resolved.
@@ -241,29 +241,29 @@ public final class ClockworkCore implements ComponentTarget {
          */
         INITIALISED;
 
-        public void require(@NotNull State state) {
-            if (this != state)
-                throw new IllegalStateException("Required state [" + state + "], but was [" + this + "]");
+        public void require(@NotNull ClockworkCore.Phase phase) {
+            if (this != phase)
+                throw new IllegalStateException("Required phase [" + phase + "], but was [" + this + "]");
         }
 
-        public void requireAfter(@NotNull State state) {
-            if (this.ordinal() <= state.ordinal())
-                throw new IllegalStateException("Required state after [" + state + "], but was [" + this + "]");
+        public void requireAfter(@NotNull ClockworkCore.Phase phase) {
+            if (this.ordinal() <= phase.ordinal())
+                throw new IllegalStateException("Required phase after [" + phase + "], but was [" + this + "]");
         }
 
-        public void requireBefore(@NotNull State state) {
-            if (this.ordinal() >= state.ordinal())
-                throw new IllegalStateException("Required state before [" + state + "], but was [" + this + "]");
+        public void requireBefore(@NotNull ClockworkCore.Phase phase) {
+            if (this.ordinal() >= phase.ordinal())
+                throw new IllegalStateException("Required phase before [" + phase + "], but was [" + this + "]");
         }
 
-        public void requireOrAfter(@NotNull State state) {
-            if (this.ordinal() < state.ordinal())
-                throw new IllegalStateException("Required state [" + state + "] or after, but was [" + this + "]");
+        public void requireOrAfter(@NotNull ClockworkCore.Phase phase) {
+            if (this.ordinal() < phase.ordinal())
+                throw new IllegalStateException("Required phase [" + phase + "] or after, but was [" + this + "]");
         }
 
-        public void requireOrBefore(@NotNull State state) {
-            if (this.ordinal() > state.ordinal())
-                throw new IllegalStateException("Required state [" + state + "] or before, but was [" + this + "]");
+        public void requireOrBefore(@NotNull ClockworkCore.Phase phase) {
+            if (this.ordinal() > phase.ordinal())
+                throw new IllegalStateException("Required phase [" + phase + "] or before, but was [" + this + "]");
         }
 
     }
@@ -276,28 +276,28 @@ public final class ClockworkCore implements ComponentTarget {
             this.core = core;
         }
 
-        public void setState(@NotNull State state) {
-            Objects.requireNonNull(state);
-            state.requireOrAfter(core.state);
-            core.state = state;
+        public void setState(@NotNull ClockworkCore.Phase phase) {
+            Objects.requireNonNull(phase);
+            phase.requireOrAfter(core.phase);
+            core.phase = phase;
         }
 
         public void setCoreContainer(@NotNull ComponentContainer container) {
             Objects.requireNonNull(container);
-            core.state.require(State.PROCESSED);
+            core.phase.require(Phase.PROCESSED);
             if (core.coreContainer != null) throw new IllegalStateException();
             core.coreContainer = container;
         }
 
         public void addLoadedPlugin(@NotNull LoadedPlugin plugin) {
-            core.state.require(State.POPULATING);
+            core.phase.require(Phase.CONSTRUCTED);
             if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
             final var existing = core.loadedPlugins.putIfAbsent(plugin.getId(), plugin);
             if (existing != null) throw PluginLoadingException.pluginDuplicate(plugin.getDescriptor(), existing.getDescriptor());
         }
 
         public void addLoadedTargetType(@NotNull RegisteredTargetType<?> targetType) {
-            core.state.require(State.POPULATING);
+            core.phase.require(Phase.CONSTRUCTED);
             if (targetType.getClockworkCore() != core) throw new IllegalArgumentException();
             final var existingByName = core.loadedTargets.putIfAbsent(targetType.getId(), targetType);
             if (existingByName != null) throw PluginLoadingException.targetIdDuplicate(targetType.getDescriptor(), existingByName.getId());
@@ -307,7 +307,7 @@ public final class ClockworkCore implements ComponentTarget {
         }
 
         public void addLoadedComponentType(@NotNull RegisteredComponentType<?, ?> componentType) {
-            core.state.require(State.POPULATING);
+            core.phase.require(Phase.CONSTRUCTED);
             if (componentType.getClockworkCore() != core) throw new IllegalArgumentException();
             final var existingByName = core.loadedComponents.putIfAbsent(componentType.getId(), componentType);
             if (existingByName != null) throw PluginLoadingException.componentIdDuplicate(componentType.getDescriptor(), existingByName.getId());
@@ -365,7 +365,7 @@ public final class ClockworkCore implements ComponentTarget {
 
     @Override
     public String toString() {
-        return "ClockworkCore{state=" + state + '}';
+        return "ClockworkCore{state=" + phase + '}';
     }
 
 }

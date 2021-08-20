@@ -41,6 +41,12 @@ public class TargetType<T extends ComponentTarget> {
         }
     }
 
+    public static <T extends ComponentTarget> TargetType<T> empty(Class<T> targetClass) {
+        final var target = new TargetType<>(null, targetClass);
+        target.lock();
+        return target;
+    }
+
     public final Class<T> getTargetClass() {
         return targetClass;
     }

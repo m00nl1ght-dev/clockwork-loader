@@ -59,7 +59,7 @@ public final class CWLSecurityExtension extends MainComponent {
         Objects.requireNonNull(core);
         Objects.requireNonNull(securityConfig);
 
-        core.getState().requireOrAfter(ClockworkCore.State.POPULATED);
+        core.getState().requireOrAfter(ClockworkCore.Phase.POPULATED);
 
         final var classLoaders = core.getModuleLayers().stream()
                 .flatMap(m -> m.modules().stream())

@@ -4,8 +4,6 @@ import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
-import dev.m00nl1ght.clockwork.loader.verifier.PluginVerifier;
-import dev.m00nl1ght.clockwork.loader.verifier.PluginVerifierType;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Collection;
@@ -18,7 +16,6 @@ public class LoadingContext {
     private final ExtensionContext extensionContext;
     private final Map<String, PluginReader> readers;
     private final Map<String, PluginFinder> finders;
-    private final Map<String, PluginVerifier> verifiers;
 
     public static @NotNull LoadingContext of(
             @NotNull ClockworkConfig clockworkConfig,
@@ -36,13 +33,7 @@ public class LoadingContext {
             finders.put(config.getName(), finder);
         }
 
-        final var verifiers = new HashMap<String, PluginVerifier>();
-        for (final var config : clockworkConfig.getVerifiers()) {
-            final var verifier = extensionContext.get(config.getType(), PluginVerifierType.class).build(config);
-            verifiers.put(config.getName(), verifier);
-        }
-
-        return new LoadingContext(clockworkConfig, extensionContext, readers, finders, verifiers);
+        return new LoadingContext(clockworkConfig, extensionContext, readers, finders);
 
     }
 
@@ -50,14 +41,12 @@ public class LoadingContext {
             @NotNull ClockworkConfig config,
             @NotNull ExtensionContext extensionContext,
             @NotNull Map<String, PluginReader> readers,
-            @NotNull Map<String, PluginFinder> finders,
-            @NotNull Map<String, PluginVerifier> verifiers) {
+            @NotNull Map<String, PluginFinder> finders) {
 
         this.config = config;
         this.extensionContext = extensionContext;
         this.readers = Map.copyOf(readers);
         this.finders = Map.copyOf(finders);
-        this.verifiers = Map.copyOf(verifiers);
     }
 
     public @NotNull ClockworkConfig getConfig() {
@@ -82,16 +71,6 @@ public class LoadingContext {
         final var reader = readers.get(name);
         if (reader == null) throw PluginLoadingException.missingReader(name);
         return reader;
-    }
-
-    public @NotNull Collection<@NotNull PluginVerifier> getVerifiers() {
-        return verifiers.values();
-    }
-
-    public @NotNull PluginVerifier getVerifier(@NotNull String name) {
-        final var verifier = verifiers.get(name);
-        if (verifier == null) throw PluginLoadingException.missingVerifier(name);
-        return verifier;
     }
 
     public @NotNull ExtensionContext getExtensionContext() {

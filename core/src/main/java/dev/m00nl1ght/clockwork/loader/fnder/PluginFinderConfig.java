@@ -11,7 +11,6 @@ public final class PluginFinderConfig {
     private final String name;
     private final String type;
     private final Set<String> readers;
-    private final Set<String> verifiers;
     private final boolean wildcard;
     private final Config params;
 
@@ -19,7 +18,6 @@ public final class PluginFinderConfig {
         this.name = builder.name;
         this.type = builder.type;
         this.readers = builder.readers == null ? null : Set.copyOf(builder.readers);
-        this.verifiers = builder.verifiers == null ? null : Set.copyOf(builder.verifiers);
         this.wildcard = builder.wildcard;
         this.params = builder.params;
     }
@@ -28,7 +26,6 @@ public final class PluginFinderConfig {
         this.name = data.get("name");
         this.type = data.get("type");
         this.readers = data.getOptionalList("readers").map(Set::copyOf).orElse(null);
-        this.verifiers = data.getOptionalList("verifiers").map(Set::copyOf).orElse(null);
         this.wildcard = data.getBooleanOrDefault("wildcard", false);
         this.params = data.getSubconfigOrDefault("params", Config.EMPTY);
     }
@@ -38,7 +35,6 @@ public final class PluginFinderConfig {
                 .putString("name", name)
                 .putString("type", type)
                 .putStrings("readers", readers)
-                .putStrings("verifiers", verifiers)
                 .putString("wildcard", wildcard)
                 .putSubconfig("params", params)
                 .build();
@@ -54,10 +50,6 @@ public final class PluginFinderConfig {
 
     public Set<String> getReaders() {
         return readers;
-    }
-
-    public Set<String> getVerifiers() {
-        return verifiers;
     }
 
     public boolean isWildcard() {
@@ -81,7 +73,6 @@ public final class PluginFinderConfig {
         private final String name;
         private final String type;
         private Set<String> readers;
-        private Set<String> verifiers;
         private boolean wildcard;
         private Config params = Config.EMPTY;
 
@@ -96,11 +87,6 @@ public final class PluginFinderConfig {
 
         public Builder withReaders(Set<String> readers) {
             this.readers = readers;
-            return this;
-        }
-
-        public Builder withVerifiers(Set<String> verifiers) {
-            this.verifiers = verifiers;
             return this;
         }
 

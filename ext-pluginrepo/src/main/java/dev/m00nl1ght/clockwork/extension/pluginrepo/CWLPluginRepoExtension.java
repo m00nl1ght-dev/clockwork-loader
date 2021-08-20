@@ -1,21 +1,15 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.loader.ClockworkExtension;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
-import dev.m00nl1ght.clockwork.core.MainComponent;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.LoaderExtension;
 import org.jetbrains.annotations.NotNull;
 
-public final class CWLPluginRepoExtension extends MainComponent implements ClockworkExtension {
+public final class CWLPluginRepoExtension extends LoaderExtension {
 
-    public CWLPluginRepoExtension(@NotNull ClockworkCore core) {
-        super(core);
-    }
-
-    @Override
-    public void registerFeatures(@NotNull ExtensionContext extensionContext) {
-        LocalRepoPluginFinder.registerTo(extensionContext);
-        RemoteRepoPluginFinder.registerTo(extensionContext);
+    public CWLPluginRepoExtension(@NotNull ClockworkLoader loader) {
+        super(loader);
+        // LocalRepoPluginFinder.registerTo(extensionContext); // TODO
+        // RemoteRepoPluginFinder.registerTo(extensionContext);
     }
 
 }

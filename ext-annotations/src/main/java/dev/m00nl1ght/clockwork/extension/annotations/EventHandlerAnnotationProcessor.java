@@ -1,17 +1,17 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.loader.ExtensionContext;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext.AccessLevel;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
 import org.jetbrains.annotations.NotNull;
-import org.jetbrains.annotations.Nullable;
 
 import java.lang.invoke.MethodHandles;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
 
 public final class EventHandlerAnnotationProcessor implements PluginProcessor {
 
@@ -26,6 +26,8 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
         Objects.requireNonNull(context).registryFor(PluginProcessor.class).register(NAME, new EventHandlerAnnotationProcessor());
     }
 
+    /* TODO
+
     @Override
     public void onLoadingStart(@NotNull ClockworkCore core, @Nullable ClockworkCore parentCore) {
         if (handlers != null) throw new IllegalStateException();
@@ -37,6 +39,8 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
             }
         }
     }
+
+    */
 
     @Override
     public void processLate(@NotNull PluginProcessorContext context) {
@@ -84,6 +88,8 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
 
     }
 
+    /* TODO
+
     @Override
     public void onLoadingComplete(@NotNull ClockworkCore core) {
         if (handlers == null) throw new IllegalStateException();
@@ -93,10 +99,6 @@ public final class EventHandlerAnnotationProcessor implements PluginProcessor {
         this.inherited = null;
     }
 
-    private CWLAnnotationsExtension getExtension(ClockworkCore core) {
-        final var componentType = core.getComponentType(CWLAnnotationsExtension.class, ClockworkCore.class)
-                .orElseThrow(() -> FormatUtil.rtExc("Extension was not loaded correctly, internal component is missing"));
-        return componentType.get(core);
-    }
+    */
 
 }

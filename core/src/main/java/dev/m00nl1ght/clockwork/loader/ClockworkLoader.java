@@ -1,24 +1,30 @@
 package dev.m00nl1ght.clockwork.loader;
 
-import dev.m00nl1ght.clockwork.component.*;
+import dev.m00nl1ght.clockwork.component.ComponentContainer;
+import dev.m00nl1ght.clockwork.component.ComponentFactory;
+import dev.m00nl1ght.clockwork.component.ComponentTarget;
+import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.component.impl.SimpleComponentContainer;
-import dev.m00nl1ght.clockwork.core.*;
-import dev.m00nl1ght.clockwork.core.ClockworkCore.State;
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.ClockworkCore.Phase;
+import dev.m00nl1ght.clockwork.core.Component;
+import dev.m00nl1ght.clockwork.core.LoadedPlugin;
+import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
+import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
-import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
-import dev.m00nl1ght.clockwork.interfaces.impl.ComponentInterfaceImplExact;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
 import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
+import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.logger.Logger;
 import dev.m00nl1ght.clockwork.logger.impl.SysOutLogging;
-import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
 import dev.m00nl1ght.clockwork.util.ReflectionUtil;
 import dev.m00nl1ght.clockwork.util.TopologicalSorter;
@@ -38,7 +44,7 @@ import java.util.stream.Collectors;
  * From application code, call {@link ClockworkLoader#build}
  * to get a ClockworkLoader instance.
  */
-public final class ClockworkLoader {
+public final class ClockworkLoader implements ComponentTarget {
 
     private static final Logger LOGGER = Logger.create("Clockwork-Loader");
     private static final Lookup INTERNAL_LOOKUP = MethodHandles.lookup();
@@ -59,13 +65,14 @@ public final class ClockworkLoader {
 
     public static @NotNull ClockworkLoader build(@NotNull ClockworkConfig config) {
         Objects.requireNonNull(config);
-        return new ClockworkLoader(null, config);
+        return new ClockworkLoader(null, config, TargetType.empty(ClockworkLoader.class));
     }
 
     public static @NotNull ClockworkLoader build(@NotNull ClockworkCore parent, @NotNull ClockworkConfig config) {
         Objects.requireNonNull(config);
-        Objects.requireNonNull(parent).getState().requireOrAfter(State.INITIALISED);
-        return new ClockworkLoader(parent, config);
+        Objects.requireNonNull(parent).getState().requireOrAfter(Phase.INITIALISED);
+        final var targetType = parent.getTargetTypeOrThrow(ClockworkLoader.class);
+        return new ClockworkLoader(parent, config, targetType);
     }
 
     public static @NotNull ClockworkLoader buildBootLayerDefault() {
@@ -82,20 +89,21 @@ public final class ClockworkLoader {
     private ClockworkCore.Controller controller;
     private ClockworkCore core;
 
+    private final SimpleComponentContainer extensionContainer;
+    private final ComponentInterface<LoaderExtension, ClockworkLoader> extensions;
+
     private final ExtensionContext extensionContext = new ExtensionContext(true);
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
-    private ClockworkLoader(@Nullable ClockworkCore parent, @NotNull ClockworkConfig config) {
+    private ClockworkLoader(@Nullable ClockworkCore parent,
+                            @NotNull ClockworkConfig config,
+                            @NotNull TargetType<ClockworkLoader> targetType) {
         this.parent = parent;
         this.config = config;
-    }
-
-    public synchronized void collectExtensionsFromParent() {
-        if (parent != null) {
-            final var extInterface = new ComponentInterfaceImplExact<>(ClockworkExtension.class, parent.getCoreTargetType());
-            extInterface.apply(parent, e -> e.registerFeatures(extensionContext));
-        }
+        this.extensions = ComponentInterface.of(LoaderExtension.class, targetType);
+        this.extensionContainer = new SimpleComponentContainer(targetType, this);
+        this.extensionContainer.initComponents();
     }
 
     public @NotNull ExtensionContext getExtensionContext() {
@@ -175,7 +183,6 @@ public final class ClockworkLoader {
                 final var ref = finder.find(loadingContext, wanted.getPlugin(), bestMatch.get())
                         .orElseThrow(() -> FormatUtil.rtExc("PluginFinder [] failed to find []", finder, wanted));
                 LOGGER.info("Plugin [] was located by []", ref, finder);
-                loadingContext.getVerifiers().forEach(v -> v.verifyPlugin(ref));
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
                 ref.getDescriptor().getTargetDescriptors().forEach(targetSorter::add);
@@ -214,6 +221,9 @@ public final class ClockworkLoader {
         final var moduleLayers = layerMap.values().stream().distinct().collect(Collectors.toList());
         controller = ClockworkCore.create(moduleLayers);
         core = controller.getCore();
+
+        // Notify extensions about start of first phase.
+        extensions.apply(this, LoaderExtension::onCoreConstructed);
 
         // First add the plugins inherited from the parent.
         if (parent != null) {
@@ -291,16 +301,8 @@ public final class ClockworkLoader {
         }
 
         // The core now contains all the loaded plugins, targets and components.
-        controller.setState(State.POPULATED);
-
-        // Notify all registered plugin processors.
-        for (final var entry : extensionContext.registryFor(PluginProcessor.class).getRegistered().entrySet()) {
-            try {
-                entry.getValue().onLoadingStart(core, parent);
-            } catch (Throwable t) {
-                throw PluginLoadingException.inProcessor(entry.getKey(), t);
-            }
-        }
+        controller.setState(Phase.POPULATED);
+        extensions.apply(this, LoaderExtension::onCorePopulated);
 
         // Apply the plugin processors defined to each plugin respectively.
         applyPluginProcessors();
@@ -320,7 +322,9 @@ public final class ClockworkLoader {
         }
 
         // The core is now ready for use.
-        controller.setState(State.PROCESSED);
+        controller.setState(Phase.PROCESSED);
+        extensions.apply(this, LoaderExtension::onCoreProcessed);
+
         return core;
     }
 
@@ -343,7 +347,7 @@ public final class ClockworkLoader {
                     if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
                 } else {
                     try {
-                        if (core.getState() == State.INITIALISED) {
+                        if (core.getState() == Phase.INITIALISED) {
                             processor.processLate(context);
                         } else {
                             processor.processEarly(context);
@@ -456,7 +460,7 @@ public final class ClockworkLoader {
     public synchronized void init() {
 
         if (core == null) throw new IllegalStateException("Not loaded yet");
-        core.getState().require(State.PROCESSED);
+        core.getState().require(Phase.PROCESSED);
 
         // Get the core target.
         final var coreTarget = core.getTargetTypeOrThrow(ClockworkCore.class);
@@ -467,24 +471,29 @@ public final class ClockworkLoader {
 
         // Init the components and update the state of the core.
         container.initComponents();
-        controller.setState(State.INITIALISED);
 
         // Apply the plugin processors defined to each plugin respectively.
         applyPluginProcessors();
 
-        // Notify all registered plugin processors.
-        for (final var entry : extensionContext.registryFor(PluginProcessor.class).getRegistered().entrySet()) {
-            try {
-                entry.getValue().onLoadingComplete(core);
-            } catch (Throwable t) {
-                throw PluginLoadingException.inProcessor(entry.getKey(), t);
-            }
-        }
+        // Notify extensions about phase change.
+        controller.setState(Phase.INITIALISED);
+        extensions.apply(this, LoaderExtension::onCoreInitialised);
 
     }
 
     private void addProblem(@NotNull PluginLoadingProblem problem) {
         (problem.isFatal() ? fatalProblems : skippedProblems).add(problem);
+    }
+
+    @Override
+    public ComponentContainer getComponentContainer() {
+        return extensionContainer;
+    }
+
+    public <T extends LoaderExtension> T getExtension(Class<T> extensionClass) {
+        final var ext = extensions.getTargetType().getComponentTypeOrThrow(extensionClass).get(this);
+        if (ext == null) throw FormatUtil.rtExc("Extension from class [] missing", extensionClass.getSimpleName());
+        return ext;
     }
 
     private class ComponentSorter extends TopologicalSorter<ComponentDescriptor, DependencyDescriptor> {

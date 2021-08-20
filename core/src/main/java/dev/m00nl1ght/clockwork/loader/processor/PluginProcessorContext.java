@@ -49,7 +49,7 @@ public final class PluginProcessorContext {
     private @NotNull Lookup fetchLookup(@NotNull Class<?> targetClass) throws IllegalAccessException {
 
         // First, attempt to get the lookup directly from the plugin's main component.
-        if (plugin.getClockworkCore().getState() == ClockworkCore.State.INITIALISED) {
+        if (plugin.getClockworkCore().getState() == ClockworkCore.Phase.INITIALISED) {
             final var providedLookup = controller.getReflectiveAccess(plugin);
             if (providedLookup != null) {
                 if (providedLookup.hasFullPrivilegeAccess()) {
