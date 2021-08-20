@@ -29,6 +29,11 @@ public class MapToSet<K, V> extends AbstractMap<K, Set<V>> {
         return true;
     }
 
+    @Override
+    public Set<V> put(K key, Set<V> value) {
+        return map.put(key, Objects.requireNonNull(value));
+    }
+
     public Set<V> getValues(K key) {
         return map.getOrDefault(key, Set.of());
     }

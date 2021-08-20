@@ -75,22 +75,6 @@ public class PluginLoadingException extends RuntimeException {
         return generic("Multiple target definitions with the same id [] are present", existing);
     }
 
-    public static PluginLoadingException missingReader(String name) {
-        return generic("No PluginReader with name [] is defined", name);
-    }
-
-    public static PluginLoadingException missingFinder(String name) {
-        return generic("No PluginFinder with name [] is defined", name);
-    }
-
-    public static PluginLoadingException missingVerifier(String name) {
-        return generic("No PluginVerifier with name [] is defined", name);
-    }
-
-    public static PluginLoadingException missingProcessor(String plugin, String name) {
-        return generic("PluginProcessor [] needed by plugin [] is missing", name, plugin);
-    }
-
     public static PluginLoadingException inProcessor(String processor, Throwable cause) {
         return generic("PluginProcessor [] threw an exception", cause, processor);
     }

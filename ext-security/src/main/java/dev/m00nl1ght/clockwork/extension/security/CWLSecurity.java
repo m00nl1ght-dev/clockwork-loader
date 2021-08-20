@@ -11,11 +11,11 @@ import java.util.HashMap;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public final class CWLSecurityExtension extends MainComponent {
+public final class CWLSecurity extends MainComponent {
 
     static final Logger LOGGER = Logger.create("Clockwork-Ext-Security");
 
-    private CWLSecurityExtension(ClockworkCore core) {
+    private CWLSecurity(ClockworkCore core) {
         super(core);
     }
 
@@ -59,7 +59,7 @@ public final class CWLSecurityExtension extends MainComponent {
         Objects.requireNonNull(core);
         Objects.requireNonNull(securityConfig);
 
-        core.getState().requireOrAfter(ClockworkCore.Phase.POPULATED);
+        core.getPhase().requireOrAfter(ClockworkCore.Phase.POPULATED);
 
         final var classLoaders = core.getModuleLayers().stream()
                 .flatMap(m -> m.modules().stream())

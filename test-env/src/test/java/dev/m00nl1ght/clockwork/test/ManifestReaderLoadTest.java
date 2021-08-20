@@ -11,7 +11,7 @@ public class ManifestReaderLoadTest extends ClockworkTest {
 
     @Test
     public void checkLoaded() {
-        assertEquals(core().getState(), ClockworkCore.Phase.INITIALISED);
+        assertEquals(core().getPhase(), ClockworkCore.Phase.INITIALISED);
     }
 
 }

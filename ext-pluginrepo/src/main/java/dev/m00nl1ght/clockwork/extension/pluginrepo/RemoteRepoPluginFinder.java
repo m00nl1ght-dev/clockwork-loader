@@ -1,12 +1,10 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
-import dev.m00nl1ght.clockwork.loader.LoadingContext;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.util.FormatUtil;
@@ -22,37 +20,42 @@ import java.util.stream.Collectors;
 
 public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
 
-    public static final String NAME = "extension.pluginfinder.remoterepo";
-    public static final PluginFinderType FACTORY = RemoteRepoPluginFinder::new;
+    public static final String TYPE = "extension.pluginfinder.remoterepo";
+
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(PluginFinder.class, TYPE, RemoteRepoPluginFinder::new);
+    }
+
+    public static Config newConfig(String name, URL rootURL, File cachePath, boolean wildcard) {
+        return newConfig(name, rootURL, cachePath, null, wildcard);
+    }
+
+    public static Config newConfig(String name, URL rootURL, File cachePath, List<String> readers, boolean wildcard) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .putStrings("readers", readers)
+                .putString("wildcard", wildcard)
+                .putString("rootURL", rootURL.toString())
+                .putString("cachePath", cachePath.getPath())
+                .build();
+    }
 
     private static final int MAX_META_SIZE = 1024 * 1024;
 
     protected final String rootURL;
     protected final LocalRepoPluginFinder localCache;
 
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(PluginFinderType.class).register(NAME, FACTORY);
-    }
-
-    public static Builder configBuilder(String name, URL rootURL, File cachePath) {
-        return PluginFinderConfig.builder(name, NAME)
-                .withParams(ImmutableConfig.builder()
-                        .putString("rootURL", rootURL.toString())
-                        .putString("cachePath", cachePath.getPath())
-                        .build());
-    }
-
-    protected RemoteRepoPluginFinder(PluginFinderConfig config) {
-        super(config);
-        this.rootURL = config.getParams().get("rootURL");
-        final var cachePath = new File(config.getParams().get("cachePath"));
-        final var cacheConfig = LocalRepoPluginFinder.configBuilder("localCache", cachePath)
-                .withReaders(config.getReaders()).build();
-        this.localCache = new LocalRepoPluginFinder(cacheConfig);
+    protected RemoteRepoPluginFinder(ClockworkLoader loader, Config config) {
+        super(loader, config);
+        this.rootURL = config.get("rootURL");
+        final var cachePath = new File(config.get("cachePath"));
+        final var cacheConfig = LocalRepoPluginFinder.newConfig("localCache", cachePath, readerNames, wildcard);
+        this.localCache = new LocalRepoPluginFinder(loader, cacheConfig);
     }
 
     @Override
-    protected Set<String> indexPlugins(LoadingContext context) {
+    protected Set<String> indexPlugins(ClockworkLoader loader) {
         final var meta = downloadMeta("pluginrepo.index");
         return Arrays.stream(meta.split("\n"))
                 .map(String::strip)
@@ -60,7 +63,7 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     }
 
     @Override
-    protected Set<Version> indexVersions(LoadingContext context, String pluginId) {
+    protected Set<Version> indexVersions(ClockworkLoader loader, String pluginId) {
         final var meta = downloadMeta(pluginId + "/versions.index");
         return Arrays.stream(meta.split("\n"))
                 .map(String::strip).map(Version::new)
@@ -68,11 +71,11 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     }
 
     @Override
-    protected Optional<PluginReference> find(LoadingContext context, Collection<PluginReader> readers, String pluginId, Version version) {
-        final var fromCache = localCache.find(context, pluginId, version);
+    protected Optional<PluginReference> find(ClockworkLoader loader, Collection<PluginReader> readers, String pluginId, Version version) {
+        final var fromCache = localCache.find(loader, pluginId, version);
         if (fromCache.isPresent()) return fromCache;
         downloadToCache(pluginId, version);
-        return localCache.find(context, readers, pluginId, version);
+        return localCache.find(loader, readers, pluginId, version);
     }
 
     protected void downloadToCache(String pluginId, Version version) {
@@ -105,6 +108,11 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     public String getRootURL() {
         return rootURL;
+    }
+
+    @Override
+    public String toString() {
+        return TYPE + "[" + name +  "]";
     }
 
 }

@@ -5,11 +5,10 @@ import dev.m00nl1ght.clockwork.component.ComponentFactory;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.component.impl.SimpleComponentContainer;
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.config.ConfiguredFeatureProviders;
+import dev.m00nl1ght.clockwork.config.ConfiguredFeatures;
+import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.Phase;
-import dev.m00nl1ght.clockwork.core.Component;
-import dev.m00nl1ght.clockwork.core.LoadedPlugin;
-import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
@@ -18,10 +17,11 @@ import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.ModulePathPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.NestedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
-import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
-import dev.m00nl1ght.clockwork.loader.processor.PluginProcessor;
-import dev.m00nl1ght.clockwork.loader.processor.PluginProcessorContext;
+import dev.m00nl1ght.clockwork.loader.jigsaw.impl.JigsawStrategyFlat;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.logger.Logger;
 import dev.m00nl1ght.clockwork.logger.impl.SysOutLogging;
@@ -70,7 +70,7 @@ public final class ClockworkLoader implements ComponentTarget {
 
     public static @NotNull ClockworkLoader build(@NotNull ClockworkCore parent, @NotNull ClockworkConfig config) {
         Objects.requireNonNull(config);
-        Objects.requireNonNull(parent).getState().requireOrAfter(Phase.INITIALISED);
+        Objects.requireNonNull(parent).getPhase().requireOrAfter(Phase.INITIALISED);
         final var targetType = parent.getTargetTypeOrThrow(ClockworkLoader.class);
         return new ClockworkLoader(parent, config, targetType);
     }
@@ -78,7 +78,7 @@ public final class ClockworkLoader implements ComponentTarget {
     public static @NotNull ClockworkLoader buildBootLayerDefault() {
         final var configBuilder = ClockworkConfig.builder();
         configBuilder.addPluginReader(ManifestPluginReader.newConfig("manifest"));
-        configBuilder.addPluginFinder(ModuleLayerPluginFinder.configBuilder("boot").wildcard().build());
+        configBuilder.addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", true));
         configBuilder.addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"));
         return build(configBuilder.build());
     }
@@ -91,8 +91,9 @@ public final class ClockworkLoader implements ComponentTarget {
 
     private final SimpleComponentContainer extensionContainer;
     private final ComponentInterface<LoaderExtension, ClockworkLoader> extensions;
+    private final ConfiguredFeatureProviders<ClockworkLoader> featureProviders = new ConfiguredFeatureProviders<>();
+    private final ConfiguredFeatures features = new ConfiguredFeatures();
 
-    private final ExtensionContext extensionContext = new ExtensionContext(true);
     private final List<PluginLoadingProblem> fatalProblems = new ArrayList<>();
     private final List<PluginLoadingProblem> skippedProblems = new ArrayList<>();
 
@@ -106,8 +107,20 @@ public final class ClockworkLoader implements ComponentTarget {
         this.extensionContainer.initComponents();
     }
 
-    public @NotNull ExtensionContext getExtensionContext() {
-        return extensionContext;
+    private void registerDefaultExtensionFeatures() {
+        ManifestPluginReader.registerTo(this);
+        ModuleLayerPluginFinder.registerTo(this);
+        ModulePathPluginFinder.registerTo(this);
+        NestedPluginFinder.registerTo(this);
+        JigsawStrategyFlat.registerTo(this);
+    }
+
+    public @NotNull ConfiguredFeatureProviders<ClockworkLoader> getFeatureProviders() {
+        return featureProviders;
+    }
+
+    public @NotNull ConfiguredFeatures getFeatures() {
+        return features;
     }
 
     public @NotNull List<@NotNull PluginLoadingProblem> getFatalProblems() {
@@ -128,6 +141,18 @@ public final class ClockworkLoader implements ComponentTarget {
 
         if (core != null) throw new IllegalStateException("Already loaded");
 
+        // Register feature providers from core and from extensions.
+        registerDefaultExtensionFeatures();
+        extensions.apply(this, LoaderExtension::registerFeatures);
+        featureProviders.lock();
+
+        // Build all features defined in the config.
+        features.addAll(PluginFinder.class, featureProviders, config.getFinders(), this);
+        features.addAll(PluginReader.class, featureProviders, config.getReaders(), this);
+        features.addAll(ClassTransformer.class, featureProviders, config.getTransformers(), this);
+        extensions.apply(this, LoaderExtension::initFeatures);
+        features.lock();
+
         final var pluginReferences = new LinkedList<PluginReference>();
         final var componentSorter = new ComponentSorter();
         final var targetSorter = new TargetSorter();
@@ -142,12 +167,10 @@ public final class ClockworkLoader implements ComponentTarget {
         final var wantedPlugins = config.getWantedPlugins().stream()
                 .collect(Collectors.toMap(DependencyDescriptor::getPlugin, Function.identity(), (a, b) -> b, HashMap::new));
 
-        // Build the LoadingContext and add plugins found by wildcard finders.
-        final var loadingContext = LoadingContext.of(config, extensionContext);
-        for (final var config : config.getFinders()) {
-            if (config.isWildcard()) {
-                final var finder = loadingContext.getFinder(config.getName());
-                for (final var plugin : finder.getAvailablePlugins(loadingContext)) {
+        // Add plugins found by wildcard finders.
+        for (final var finder : features.getAll(PluginFinder.class)) {
+            if (finder.isWildcard()) {
+                for (final var plugin : finder.getAvailablePlugins(this)) {
                     wantedPlugins.computeIfAbsent(plugin, DependencyDescriptor::buildAnyVersion);
                 }
             }
@@ -168,8 +191,8 @@ public final class ClockworkLoader implements ComponentTarget {
 
             // Otherwise, try to find it using the PluginFinders from the config.
             final var found = new HashMap<Version, PluginFinder>();
-            for (var finder : loadingContext.getFinders()) {
-                for (final var version : finder.getAvailableVersions(loadingContext, wanted.getPlugin())) {
+            for (var finder : features.getAll(PluginFinder.class)) {
+                for (final var version : finder.getAvailableVersions(this, wanted.getPlugin())) {
                     if (wanted.acceptsVersion(version)) found.putIfAbsent(version, finder);
                 }
             }
@@ -180,7 +203,7 @@ public final class ClockworkLoader implements ComponentTarget {
                 addProblem(PluginLoadingProblem.pluginNotFound(wanted));
             } else {
                 final var finder = found.get(bestMatch.get());
-                final var ref = finder.find(loadingContext, wanted.getPlugin(), bestMatch.get())
+                final var ref = finder.find(this, wanted.getPlugin(), bestMatch.get())
                         .orElseThrow(() -> FormatUtil.rtExc("PluginFinder [] failed to find []", finder, wanted));
                 LOGGER.info("Plugin [] was located by []", ref, finder);
                 pluginReferences.addLast(ref);
@@ -212,7 +235,7 @@ public final class ClockworkLoader implements ComponentTarget {
         }
 
         // Collect and sort class transformers.
-        final var transformers = extensionContext.getAll(ClassTransformer.class).stream()
+        final var transformers = features.getAll(ClassTransformer.class).stream()
                 .sorted(Comparator.comparing(ClassTransformer::priority))
                 .collect(Collectors.toList());
 
@@ -295,17 +318,14 @@ public final class ClockworkLoader implements ComponentTarget {
 
         }
 
-        // Make sure all plugins have a valid main component.
-        for (final var plugin : core.getLoadedPlugins()) {
-            plugin.getMainComponent();
-        }
-
         // The core now contains all the loaded plugins, targets and components.
         controller.setState(Phase.POPULATED);
         extensions.apply(this, LoaderExtension::onCorePopulated);
 
-        // Apply the plugin processors defined to each plugin respectively.
-        applyPluginProcessors();
+        // Make sure all plugins have a valid main component.
+        for (final var plugin : core.getLoadedPlugins()) {
+            plugin.getMainComponent();
+        }
 
         // Lock all target types.
         for (final var targetType : core.getLoadedTargetTypes()) {
@@ -328,38 +348,6 @@ public final class ClockworkLoader implements ComponentTarget {
         return core;
     }
 
-    private void applyPluginProcessors() {
-        for (final var plugin : core.getLoadedPlugins()) {
-
-            // Get the processors, and skip the plugin if there are none.
-            final var processors = plugin.getDescriptor().getProcessors();
-            if (processors.isEmpty()) continue;
-
-            // Now apply the processors.
-            final var context = new PluginProcessorContext(plugin, controller);
-            for (var name : processors) {
-
-                final var optional = name.startsWith("?");
-                if (optional) name = name.substring(1);
-
-                final var processor = extensionContext.get(name, PluginProcessor.class);
-                if (processor == null) {
-                    if (!optional) throw PluginLoadingException.missingProcessor(plugin.getId(), name);
-                } else {
-                    try {
-                        if (core.getState() == Phase.INITIALISED) {
-                            processor.processLate(context);
-                        } else {
-                            processor.processEarly(context);
-                        }
-                    } catch (Throwable t) {
-                        throw PluginLoadingException.inProcessor(plugin, name, t);
-                    }
-                }
-            }
-        }
-    }
-
     /**
      * Constructs new ModuleLayers for the specific set of plugin definitions,
      * using the configured {@link JigsawStrategy}.
@@ -372,8 +360,7 @@ public final class ClockworkLoader implements ComponentTarget {
 
         try {
             final var jigsawConfig = config.getJigsawStrategy();
-            final var strategyType = extensionContext.get(jigsawConfig.getType(), JigsawStrategyType.class);
-            final var strategy = strategyType.build(jigsawConfig);
+            final var strategy = featureProviders.newFeature(JigsawStrategy.class, this, jigsawConfig);
             return strategy.buildModuleLayers(plugins, config.getLibModulePath(), transformers, parent);
         } catch (Exception e) {
             throw PluginLoadingException.resolvingModules(e, null);
@@ -460,7 +447,7 @@ public final class ClockworkLoader implements ComponentTarget {
     public synchronized void init() {
 
         if (core == null) throw new IllegalStateException("Not loaded yet");
-        core.getState().require(Phase.PROCESSED);
+        core.getPhase().require(Phase.PROCESSED);
 
         // Get the core target.
         final var coreTarget = core.getTargetTypeOrThrow(ClockworkCore.class);
@@ -471,9 +458,6 @@ public final class ClockworkLoader implements ComponentTarget {
 
         // Init the components and update the state of the core.
         container.initComponents();
-
-        // Apply the plugin processors defined to each plugin respectively.
-        applyPluginProcessors();
 
         // Notify extensions about phase change.
         controller.setState(Phase.INITIALISED);
@@ -490,10 +474,87 @@ public final class ClockworkLoader implements ComponentTarget {
         return extensionContainer;
     }
 
-    public <T extends LoaderExtension> T getExtension(Class<T> extensionClass) {
+    public <T extends LoaderExtension> @NotNull T getExtension(@NotNull Class<T> extensionClass) {
         final var ext = extensions.getTargetType().getComponentTypeOrThrow(extensionClass).get(this);
         if (ext == null) throw FormatUtil.rtExc("Extension from class [] missing", extensionClass.getSimpleName());
         return ext;
+    }
+
+    public ClockworkCore getCore() {
+        return core;
+    }
+
+    public ClockworkConfig getConfig() {
+        return config;
+    }
+
+    public @NotNull Lookup getReflectiveAccess(@NotNull LoadedPlugin plugin,
+                                               @NotNull Class<?> targetClass,
+                                               @NotNull AccessLevel requiredLevel) {
+
+        Objects.requireNonNull(targetClass);
+        Objects.requireNonNull(requiredLevel);
+
+        final var targetModule = targetClass.getModule();
+        if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
+        if (targetModule != plugin.getMainModule())
+            throw FormatUtil.rtExc("Module [] is not accessible from plugin []", targetModule, plugin);
+
+        final var lookup = fetchLookup(plugin, targetClass);
+
+        if (requiredLevel == AccessLevel.FULL && !lookup.hasFullPrivilegeAccess())
+            throw FormatUtil.rtExc("This operation requires full reflective access on plugin [], " +
+                    "but its module does not provide such access.", plugin);
+
+        if (requiredLevel == AccessLevel.PRIVATE && (lookup.lookupModes() & Lookup.PRIVATE) == 0)
+            throw FormatUtil.rtExc("This operation requires private reflective access on plugin [], " +
+                    "but its module does not provide such access.", plugin);
+
+        return lookup;
+    }
+
+    private Lookup fetchLookup(LoadedPlugin plugin, Class<?> targetClass) {
+
+        // First, attempt to get the lookup directly from the plugin's main component.
+        if (core.getPhase() == ClockworkCore.Phase.INITIALISED) {
+            final var providedLookup = controller.getReflectiveAccess(plugin);
+            if (providedLookup != null) {
+                if (providedLookup.hasFullPrivilegeAccess()) {
+                    try {
+                        return MethodHandles.privateLookupIn(targetClass, providedLookup);
+                    } catch (Throwable t) {
+                        // If something went wrong, ignore and try the next best option.
+                    }
+                }
+                return providedLookup.in(targetClass);
+            }
+        }
+
+        // If the main component did not provide one, try to use the root lookup to obtain it.
+        if (plugin.getMainModule().isOpen(targetClass.getPackageName(), INTERNAL_LOOKUP.lookupClass().getModule())) {
+            INTERNAL_LOOKUP.lookupClass().getModule().addReads(plugin.getMainModule());
+            try {
+                return MethodHandles.privateLookupIn(targetClass, INTERNAL_LOOKUP);
+            } catch (Throwable t) {
+                // If something went wrong, ignore and try the next best option.
+            }
+        }
+
+        // If none of these options worked, fallback to public lookup.
+        return INTERNAL_LOOKUP.in(targetClass);
+
+    }
+
+    public <C extends Component<T>, T extends ComponentTarget>
+    void setComponentFactory(@NotNull RegisteredComponentType<C, T> componentType, @NotNull ComponentFactory<T, C> factory) {
+        core.getPhase().require(Phase.POPULATED);
+        Objects.requireNonNull(componentType);
+        Objects.requireNonNull(factory);
+        controller.setComponentFactory(componentType, factory);
+    }
+
+    public enum AccessLevel {
+        PUBLIC, PRIVATE, FULL
     }
 
     private class ComponentSorter extends TopologicalSorter<ComponentDescriptor, DependencyDescriptor> {

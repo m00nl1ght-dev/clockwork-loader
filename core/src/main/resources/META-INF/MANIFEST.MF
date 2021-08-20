@@ -10,3 +10,7 @@ CWL-Component-Id: clockwork
 
 Name: dev/m00nl1ght/clockwork/core/ClockworkCore.class
 CWL-Target-Id: clockwork:core
+
+Name: dev/m00nl1ght/clockwork/loader/ClockworkLoader.class
+CWL-Target-Id: clockwork:loader
+

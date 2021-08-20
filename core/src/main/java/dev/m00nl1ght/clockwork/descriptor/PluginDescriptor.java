@@ -14,7 +14,6 @@ public final class PluginDescriptor {
     private final String displayName;
     private final String description;
     private final List<String> authors;
-    private final List<String> processors;
     private final ComponentDescriptor mainComponent;
     private final List<ComponentDescriptor> components;
     private final List<TargetDescriptor> targets;
@@ -25,7 +24,6 @@ public final class PluginDescriptor {
         this.displayName = Objects.requireNonNull(builder.displayName);
         this.description = Objects.requireNonNull(builder.description);
         this.authors = List.copyOf(builder.authors);
-        this.processors = List.copyOf(builder.processors);
         this.mainComponent = Objects.requireNonNull(builder.mainComponent);
         this.components = List.copyOf(builder.components);
         this.targets = List.copyOf(builder.targets);
@@ -50,10 +48,6 @@ public final class PluginDescriptor {
 
     public List<String> getAuthors() {
         return authors;
-    }
-
-    public List<String> getProcessors() {
-        return processors;
     }
 
     public ComponentDescriptor getMainComponent() {
@@ -87,7 +81,6 @@ public final class PluginDescriptor {
         private String displayName;
         private String description = "";
         private final LinkedList<String> authors = new LinkedList<>();
-        private final LinkedList<String> processors = new LinkedList<>();
         private ComponentDescriptor mainComponent;
         private final LinkedList<ComponentDescriptor> components = new LinkedList<>();
         private final LinkedList<TargetDescriptor> targets = new LinkedList<>();
@@ -115,12 +108,6 @@ public final class PluginDescriptor {
         public Builder author(String author) {
             if (author == null || author.isBlank()) return this;
             if (!authors.contains(author)) this.authors.add(author);
-            return this;
-        }
-
-        public Builder markForProcessor(String processor) {
-            if (processor == null || processor.isBlank()) return this;
-            if (!processors.contains(processor)) this.processors.add(processor);
             return this;
         }
 

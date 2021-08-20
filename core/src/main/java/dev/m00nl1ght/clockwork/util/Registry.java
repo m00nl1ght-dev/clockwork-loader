@@ -1,31 +1,41 @@
 package dev.m00nl1ght.clockwork.util;
 
-import java.util.HashMap;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 public class Registry<T> {
 
     protected final Map<String, T> registered = new HashMap<>();
-    protected final Class<T> regType;
+    protected final String elementName;
+
+    public Registry(String elementName) {
+        this.elementName = Objects.requireNonNull(elementName);
+    }
 
     public Registry(Class<T> regType) {
-        this.regType = Objects.requireNonNull(regType);
+        this.elementName = Objects.requireNonNull(regType).getSimpleName();
     }
 
     public synchronized void register(String id, T object) {
-        final var existing = registered.putIfAbsent(id, object);
-        if (existing != null) throw FormatUtil.rtExc("[] with id [] is already registered", regType.getSimpleName(), id);
+        final var existing = registered.putIfAbsent(Objects.requireNonNull(id), Objects.requireNonNull(object));
+        if (existing != null) throw FormatUtil.rtExc("[] with id [] is already registered", elementName, id);
     }
 
     public T get(String id) {
-        final var object = registered.get(id);
-        if (object == null) throw FormatUtil.rtExc("No [] with id [] is registered", regType.getSimpleName(), id);
+        final var object = registered.get(Objects.requireNonNull(id));
+        if (object == null) throw FormatUtil.rtExc("No [] with id [] is registered", elementName, id);
         return object;
     }
 
-    public Map<String, T> getRegistered() {
+    public Optional<T> getOptional(String id) {
+        return Optional.ofNullable(registered.get(Objects.requireNonNull(id)));
+    }
+
+    public Map<String, T> getRegisteredAsMap() {
         return Map.copyOf(registered);
+    }
+
+    public Set<T> getRegistered() {
+        return Set.copyOf(registered.values());
     }
 
 }

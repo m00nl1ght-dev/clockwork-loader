@@ -1,17 +1,16 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
-import dev.m00nl1ght.clockwork.loader.LoadingContext;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
 
 import java.lang.module.ResolvedModule;
 import java.util.Collection;
-import java.util.Objects;
+import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 import java.util.function.Predicate;
@@ -19,32 +18,43 @@ import java.util.stream.Collectors;
 
 public class ModuleLayerPluginFinder extends AbstractPluginFinder {
 
-    public static final String NAME = "internal.pluginfinder.modulelayer";
-    public static final PluginFinderType FACTORY = ModuleLayerPluginFinder::new;
+    public static final String TYPE = "internal.pluginfinder.modulelayer";
+
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(PluginFinder.class, TYPE, ModuleLayerPluginFinder::new);
+    }
+
+    public static Config newConfig(String name, boolean wildcard) {
+        return newConfig(name, null, wildcard);
+    }
+
+    public static Config newConfig(String name, List<String> readers, boolean wildcard) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .putStrings("readers", readers)
+                .putString("wildcard", wildcard)
+                .build();
+    }
 
     protected final ModuleLayer moduleLayer;
     protected final Predicate<ResolvedModule> filter;
 
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(PluginFinderType.class).register(NAME, FACTORY);
-    }
-
-    public static Builder configBuilder(String name) {
-        return PluginFinderConfig.builder(name, NAME);
-    }
-
-    protected ModuleLayerPluginFinder(ModuleLayer moduleLayer, Predicate<ResolvedModule> filter, PluginFinderConfig config) {
-        super(config);
+    public ModuleLayerPluginFinder(ClockworkLoader loader,
+                                   ModuleLayer moduleLayer,
+                                   Predicate<ResolvedModule> filter,
+                                   Config config) {
+        super(loader, config);
         this.moduleLayer = moduleLayer;
         this.filter = filter;
     }
 
-    protected ModuleLayerPluginFinder(PluginFinderConfig config) {
-        this(ModuleLayer.boot(), ModuleLayerPluginFinder::systemModuleFilter, config);
+    protected ModuleLayerPluginFinder(ClockworkLoader loader, Config config) {
+        this(loader, ModuleLayer.boot(), ModuleLayerPluginFinder::systemModuleFilter, config);
     }
 
     @Override
-    protected Set<PluginReference> scan(LoadingContext context, Collection<PluginReader> readers) {
+    protected Set<PluginReference> scan(ClockworkLoader loader, Collection<PluginReader> readers) {
         return moduleLayer.configuration().modules().stream().filter(filter)
                 .map(m -> PluginReaderUtil.tryReadFromModule(readers, m.reference()))
                 .filter(Optional::isPresent).map(Optional::get)
@@ -54,6 +64,11 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
     private static boolean systemModuleFilter(ResolvedModule module) {
         final var location = module.reference().location();
         return location.isPresent() && !location.get().getScheme().equals("jrt");
+    }
+
+    @Override
+    public String toString() {
+        return TYPE + "[" + name +  "]";
     }
 
 }

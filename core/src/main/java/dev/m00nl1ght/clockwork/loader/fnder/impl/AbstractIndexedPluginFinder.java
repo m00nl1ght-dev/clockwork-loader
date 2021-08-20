@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
-import dev.m00nl1ght.clockwork.loader.LoadingContext;
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.version.Version;
 
@@ -13,57 +13,61 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractIndexedPluginFinder implements PluginFinder {
 
-    protected final PluginFinderConfig config;
-
     private Map<String, Map<Version, PluginReference>> index;
 
-    protected AbstractIndexedPluginFinder(PluginFinderConfig config) {
-        this.config = Objects.requireNonNull(config);
+    protected final String name;
+    protected final List<String> readerNames;
+    protected final boolean wildcard;
+
+    protected AbstractIndexedPluginFinder(ClockworkLoader loader, Config config) {
+        this.name = config.get("name");
+        this.readerNames = config.getListOrNull("readers");
+        this.wildcard = config.getBooleanOrDefault("wildcard", false);
     }
 
     @Override
-    public Set<String> getAvailablePlugins(LoadingContext context) {
+    public Set<String> getAvailablePlugins(ClockworkLoader loader) {
         if (index != null) return Set.copyOf(index.keySet());
         index = new HashMap<>();
-        indexPlugins(context).forEach(p -> index.put(p, null));
+        indexPlugins(loader).forEach(p -> index.put(p, null));
         return Set.copyOf(index.keySet());
     }
 
     @Override
-    public Set<Version> getAvailableVersions(LoadingContext context, String pluginId) {
-        if (!getAvailablePlugins(context).contains(pluginId)) return Collections.emptySet();
+    public Set<Version> getAvailableVersions(ClockworkLoader loader, String pluginId) {
+        if (!getAvailablePlugins(loader).contains(pluginId)) return Collections.emptySet();
         final var fromIndex = index.get(pluginId);
         if (fromIndex != null) return Set.copyOf(fromIndex.keySet());
-        final Map<Version, PluginReference> versions = indexVersions(context, pluginId).stream()
+        final Map<Version, PluginReference> versions = indexVersions(loader, pluginId).stream()
                 .collect(Collectors.toMap(Function.identity(), p -> null, (a, b) -> b, HashMap::new));
         index.put(pluginId, versions);
         return Set.copyOf(versions.keySet());
     }
 
     @Override
-    public Optional<PluginReference> find(LoadingContext context, String pluginId, Version version) {
-        if (!getAvailableVersions(context, pluginId).contains(version)) return Optional.empty();
+    public Optional<PluginReference> find(ClockworkLoader loader, String pluginId, Version version) {
+        if (!getAvailableVersions(loader, pluginId).contains(version)) return Optional.empty();
         final var versionIndex = index.get(pluginId);
         final var fromIndex = versionIndex.get(version);
         if (fromIndex != null) return Optional.of(fromIndex);
-        final var readers = config.getReaders() == null ? context.getReaders() : config.getReaders().stream()
-                .map(context::getReader)
-                .collect(Collectors.toUnmodifiableList());
-        final var found = find(context, readers, pluginId, version);
+        final var readers = readerNames == null
+                ? loader.getFeatures().getAll(PluginReader.class)
+                : loader.getFeatures().getAll(PluginReader.class, readerNames);
+        final var found = find(loader, readers, pluginId, version);
         if (found.isEmpty()) return found;
         versionIndex.put(version, found.get());
         return found;
     }
 
-    protected abstract Set<String> indexPlugins(LoadingContext context);
-
-    protected abstract Set<Version> indexVersions(LoadingContext context, String pluginId);
-
-    protected abstract Optional<PluginReference> find(LoadingContext context, Collection<PluginReader> readers, String pluginId, Version version);
-
     @Override
-    public String toString() {
-        return config.getType() + "[" + config.getName() +  "]";
+    public boolean isWildcard() {
+        return wildcard;
     }
+
+    protected abstract Set<String> indexPlugins(ClockworkLoader loader);
+
+    protected abstract Set<Version> indexVersions(ClockworkLoader loader, String pluginId);
+
+    protected abstract Optional<PluginReference> find(ClockworkLoader loader, Collection<PluginReader> readers, String pluginId, Version version);
 
 }

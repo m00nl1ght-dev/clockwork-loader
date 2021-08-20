@@ -46,7 +46,7 @@ public final class SecurityConfig {
         }
 
         if (perms.isEmpty()) {
-            return CWLSecurityExtension.EMPTY_PERMISSIONS;
+            return CWLSecurity.EMPTY_PERMISSIONS;
         } else {
             final var ret = new Permissions();
             perms.values().forEach(s -> s.forEach(ret::add));

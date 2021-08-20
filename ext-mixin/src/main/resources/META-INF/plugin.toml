@@ -2,7 +2,7 @@ plugin_id = "cwl-mixin"
 display_name = "[CWL-Extension] Mixin Framework"
 version = "0.7"
 authors = ["m00nl1ght"]
-main_class = "dev.m00nl1ght.clockwork.extension.mixin.CWLMixinExtension"
+main_class = "dev.m00nl1ght.clockwork.extension.mixin.CWLMixin"
 description = '''
 An extension for the Clockwork Loader that integrates the Mixin framework.
 '''
@@ -10,3 +10,8 @@ An extension for the Clockwork Loader that integrates the Mixin framework.
 [[dependency]]
 id = "clockwork"
 version = "0.7"
+
+[[component]]
+id = "cwl-mixin:extension"
+target = "clockwork:loader"
+class = "dev.m00nl1ght.clockwork.extension.mixin.CWLMixinExtension"

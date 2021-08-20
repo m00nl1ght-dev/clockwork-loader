@@ -9,6 +9,10 @@ public abstract class LoaderExtension extends Component<ClockworkLoader> {
         super(target);
     }
 
+    public void registerFeatures() {}
+
+    public void initFeatures() {}
+
     public void onCoreConstructed() {}
 
     public void onCorePopulated() {}

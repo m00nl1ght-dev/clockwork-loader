@@ -8,7 +8,11 @@ public final class CWLNightconfigExtension extends LoaderExtension {
 
     public CWLNightconfigExtension(@NotNull ClockworkLoader loader) {
         super(loader);
-        // NightconfigPluginReader.registerTo(extensionContext); // TODO
+    }
+
+    @Override
+    public void registerFeatures() {
+        NightconfigPluginReader.registerTo(target);
     }
 
 }

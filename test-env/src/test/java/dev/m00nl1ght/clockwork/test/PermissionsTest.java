@@ -5,7 +5,7 @@ import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.event.EventDispatcher;
 import dev.m00nl1ght.clockwork.event.impl.bus.EventBusImpl;
 import dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension;
-import dev.m00nl1ght.clockwork.extension.security.CWLSecurityExtension;
+import dev.m00nl1ght.clockwork.extension.security.CWLSecurity;
 import dev.m00nl1ght.clockwork.extension.security.SecurityConfig;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
@@ -28,8 +28,8 @@ public class PermissionsTest extends ClockworkTest {
 
     @Override
     protected void setupComplete(ClockworkLoader loader) {
-        CWLSecurityExtension.install(true);
-        CWLSecurityExtension.registerContext(core(), buildSecurityConfig());
+        CWLSecurity.install(true);
+        CWLSecurity.registerContext(core(), buildSecurityConfig());
         eventBus = new EventBusImpl();
         CWLAnnotationsExtension.applyToEventBus(loader, eventBus);
         dispatcher = eventBus.getEventDispatcher(PermissionTestEvent.class, core().getCoreTargetType());

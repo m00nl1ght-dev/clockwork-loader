@@ -10,3 +10,7 @@ Universal plugin framework for Java
 [[target]]
 id = "core"
 class = "dev.m00nl1ght.clockwork.core.ClockworkCore"
+
+[[target]]
+id = "loader"
+class = "dev.m00nl1ght.clockwork.loader.ClockworkLoader"

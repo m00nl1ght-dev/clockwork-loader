@@ -6,39 +6,37 @@ import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.loader.reader.PluginReaderConfig;
-import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 public class NightconfigPluginReader implements PluginReader {
 
-    public static final String NAME = "extension.pluginreader.nightconfig";
-    public static final PluginReaderType FACTORY = NightconfigPluginReader::new;
+    public static final String TYPE = "extension.pluginreader.nightconfig";
 
-    protected final PluginReaderConfig config;
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(PluginReader.class, TYPE, NightconfigPluginReader::new);
+    }
+
+    public static Config newConfig(String name, String descriptorPath) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .putString("descriptorPath", descriptorPath)
+                .build();
+    }
+
+    protected final String name;
     protected final String descriptorFilePath;
 
-    protected NightconfigPluginReader(PluginReaderConfig config) {
-        this.config = Objects.requireNonNull(config);
-        this.descriptorFilePath = config.getParams().get("descriptorPath");
-    }
-
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(PluginReaderType.class).register(NAME, FACTORY);
-    }
-
-    public static PluginReaderConfig newConfig(String name, String descriptorPath) {
-        return PluginReaderConfig.of(name, NAME, ImmutableConfig.builder()
-                .putString("descriptorPath", descriptorPath)
-                .build());
+    protected NightconfigPluginReader(ClockworkLoader loader, Config config) {
+        this.name = config.get("name");
+        this.descriptorFilePath = config.get("descriptorPath");
     }
 
     @Override
@@ -55,8 +53,6 @@ public class NightconfigPluginReader implements PluginReader {
         descriptorBuilder.description(config.getOrElse("description", ""));
         final Optional<List<String>> authors = config.getOptional("authors");
         authors.ifPresent(l -> l.forEach(descriptorBuilder::author));
-        final Optional<List<String>> processors = config.getOptional("processors");
-        processors.ifPresent(l -> l.forEach(descriptorBuilder::markForProcessor));
         final UnmodifiableConfig extData = config.get("ext");
         descriptorBuilder.extData(extData == null ? Config.EMPTY : new NightconfigWrapper(extData));
 
@@ -116,7 +112,7 @@ public class NightconfigPluginReader implements PluginReader {
 
     @Override
     public String toString() {
-        return config.getType() + "[" + config.getName() +  "]";
+        return TYPE + "[" + name +  "]";
     }
 
 }

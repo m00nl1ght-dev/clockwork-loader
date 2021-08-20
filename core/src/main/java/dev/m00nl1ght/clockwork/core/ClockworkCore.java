@@ -212,9 +212,9 @@ public final class ClockworkCore implements ComponentTarget {
     }
 
     /**
-     * Returns the internal state of this ClockworkCore.
+     * Returns the current phase of this ClockworkCore.
      */
-    public @NotNull ClockworkCore.Phase getState() {
+    public @NotNull Phase getPhase() {
         return phase;
     }
 

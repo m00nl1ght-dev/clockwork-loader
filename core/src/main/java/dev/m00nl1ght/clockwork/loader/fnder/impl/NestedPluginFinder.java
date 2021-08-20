@@ -1,13 +1,10 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
-import dev.m00nl1ght.clockwork.loader.LoadingContext;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
 import dev.m00nl1ght.clockwork.version.Version;
@@ -22,52 +19,54 @@ import java.util.stream.Collectors;
 
 public class NestedPluginFinder extends AbstractIndexedPluginFinder {
 
-    public static final String NAME = "internal.pluginfinder.nested";
-    public static final PluginFinderType FACTORY = NestedPluginFinder::new;
+    public static final String TYPE = "internal.pluginfinder.nested";
 
     private static final String DEFAULT_PATH_IN_MODULE = "libs/";
 
-    protected final PluginFinderConfig innerFinderConfig;
+    protected final Config innerFinderConfig;
     protected final String pathInModule;
 
     private PluginFinder innerFinder;
     private Path tempDir;
 
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(PluginFinderType.class).register(NAME, FACTORY);
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(PluginFinder.class, TYPE, NestedPluginFinder::new);
     }
 
-    public static Builder configBuilder(String name, PluginFinderConfig innerFinder) {
-        return configBuilder(name, innerFinder, DEFAULT_PATH_IN_MODULE);
+    public static Config newConfig(String name, Config innerFinder, boolean wildcard) {
+        return newConfig(name, innerFinder, DEFAULT_PATH_IN_MODULE, null, wildcard);
     }
 
-    public static Builder configBuilder(String name, PluginFinderConfig innerFinder, String pathInModule) {
-        return PluginFinderConfig.builder(name, NAME)
-                .withParams(ImmutableConfig.builder()
-                        .putSubconfig("innerFinder", innerFinder.asRaw())
-                        .putString("pathInModule", pathInModule)
-                        .build());
+    public static Config newConfig(String name, Config innerFinder, String pathInModule, List<String> readers, boolean wildcard) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .putStrings("readers", readers)
+                .putString("wildcard", wildcard)
+                .putSubconfig("innerFinder", innerFinder)
+                .putString("pathInModule", pathInModule)
+                .build();
     }
 
-    protected NestedPluginFinder(PluginFinderConfig config) {
-        super(config);
-        this.innerFinderConfig = PluginFinderConfig.from(config.getParams().getSubconfig("innerFinder"));
-        this.pathInModule = config.getParams().getOrDefault("pathInModule", DEFAULT_PATH_IN_MODULE);
-    }
-
-    @Override
-    protected Set<String> indexPlugins(LoadingContext context) {
-        return innerFinder(context).getAvailablePlugins(context);
-    }
-
-    @Override
-    protected Set<Version> indexVersions(LoadingContext context, String pluginId) {
-        return innerFinder(context).getAvailableVersions(context, pluginId);
+    protected NestedPluginFinder(ClockworkLoader loader, Config config) {
+        super(loader, config);
+        this.innerFinderConfig = config.getSubconfig("innerFinder");
+        this.pathInModule = config.getOrDefault("pathInModule", DEFAULT_PATH_IN_MODULE);
     }
 
     @Override
-    protected Optional<PluginReference> find(LoadingContext context, Collection<PluginReader> readers, String pluginId, Version version) {
-        final var ref = innerFinder(context).find(context, pluginId, version);
+    protected Set<String> indexPlugins(ClockworkLoader loader) {
+        return innerFinder(loader).getAvailablePlugins(loader);
+    }
+
+    @Override
+    protected Set<Version> indexVersions(ClockworkLoader loader, String pluginId) {
+        return innerFinder(loader).getAvailableVersions(loader, pluginId);
+    }
+
+    @Override
+    protected Optional<PluginReference> find(ClockworkLoader loader, Collection<PluginReader> readers, String pluginId, Version version) {
+        final var ref = innerFinder(loader).find(loader, pluginId, version);
         return ref.flatMap(r -> r.getModuleFinder().find(ref.get().getModuleName()))
                 .flatMap(ModuleReference::location)
                 .flatMap(uri -> PluginReaderUtil.tryAsModuleRoot(Path.of(uri), path -> {
@@ -80,11 +79,9 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
                 }));
     }
 
-    protected PluginFinder innerFinder(LoadingContext context) {
+    protected PluginFinder innerFinder(ClockworkLoader loader) {
         if (innerFinder != null) return innerFinder;
-        innerFinder = context.getExtensionContext()
-                .get(innerFinderConfig.getType(), PluginFinderType.class)
-                .build(innerFinderConfig);
+        innerFinder = loader.getFeatureProviders().newFeature(PluginFinder.class, loader, innerFinderConfig);
         return innerFinder;
     }
 
@@ -111,6 +108,11 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
         } catch (IOException e) {
             throw new RuntimeException("Failed to copy to temp dir from: " + path);
         }
+    }
+
+    @Override
+    public String toString() {
+        return TYPE + "[" + name +  "]";
     }
 
 }

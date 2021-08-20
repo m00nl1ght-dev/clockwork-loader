@@ -1,21 +1,22 @@
 package dev.m00nl1ght.clockwork.extension.mixin;
 
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
-
-import java.util.Objects;
 
 public class MixinClassTransformer implements ClassTransformer {
 
-    public static final String NAME = "extension.mixin.transformer";
+    public static final String TYPE = "extension.mixin.transformer";
 
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(ClassTransformer.class).register(NAME, new MixinClassTransformer());
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(ClassTransformer.class, TYPE, MixinClassTransformer::new);
     }
+
+    private MixinClassTransformer(ClockworkLoader loader, Config config) {}
 
     @Override
     public byte[] transform(String className, byte[] classBytes) {
-        CWLMixinExtension.LOGGER.debug("Transforming: " + className);
+        CWLMixin.LOGGER.debug("Transforming: " + className);
         return classBytes;
     }
 

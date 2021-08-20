@@ -1,12 +1,10 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
-import dev.m00nl1ght.clockwork.loader.LoadingContext;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderConfig.Builder;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinderType;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
+import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
@@ -22,31 +20,37 @@ import java.util.stream.Collectors;
 
 public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
 
-    public static final String NAME = "extension.pluginfinder.localrepo";
-    public static final PluginFinderType FACTORY = LocalRepoPluginFinder::new;
+    public static final String TYPE = "extension.pluginfinder.localrepo";
+
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(PluginFinder.class, TYPE, LocalRepoPluginFinder::new);
+    }
+
+    public static Config newConfig(String name, File rootPath, boolean wildcard) {
+        return newConfig(name, rootPath, null, wildcard);
+    }
+
+    public static Config newConfig(String name, File rootPath, List<String> readers, boolean wildcard) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .putStrings("readers", readers)
+                .putString("wildcard", wildcard)
+                .putString("rootPath", rootPath.getPath())
+                .build();
+    }
 
     static final String JAR_FILE = "plugin.jar";
 
     protected final Path rootPath;
 
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(PluginFinderType.class).register(NAME, FACTORY);
-    }
-
-    public static Builder configBuilder(String name, File rootPath) {
-        return PluginFinderConfig.builder(name, NAME)
-                .withParams(ImmutableConfig.builder()
-                        .putString("rootPath", rootPath.getPath())
-                        .build());
-    }
-
-    protected LocalRepoPluginFinder(PluginFinderConfig config) {
-        super(config);
-        this.rootPath = Path.of(config.getParams().get("rootPath"));
+    protected LocalRepoPluginFinder(ClockworkLoader loader, Config config) {
+        super(loader, config);
+        this.rootPath = Path.of(config.get("rootPath"));
     }
 
     @Override
-    protected Set<String> indexPlugins(LoadingContext context) {
+    protected Set<String> indexPlugins(ClockworkLoader loader) {
         try {
             return Files.list(rootPath).filter(Files::isDirectory)
                     .map(Path::getFileName).map(Path::toString)
@@ -57,7 +61,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     }
 
     @Override
-    protected Set<Version> indexVersions(LoadingContext context, String pluginId) {
+    protected Set<Version> indexVersions(ClockworkLoader loader, String pluginId) {
         try {
             final var pluginPath = rootPath.resolve(pluginId);
             if (!Files.isDirectory(pluginPath)) return Collections.emptySet();
@@ -70,7 +74,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     }
 
     @Override
-    protected Optional<PluginReference> find(LoadingContext context, Collection<PluginReader> readers, String pluginId, Version version) {
+    protected Optional<PluginReference> find(ClockworkLoader loader, Collection<PluginReader> readers, String pluginId, Version version) {
         try {
             final var pluginPath = rootPath.resolve(pluginId);
             if (!Files.isDirectory(pluginPath)) return Optional.empty();
@@ -91,6 +95,11 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     public Path getRootPath() {
         return rootPath;
+    }
+
+    @Override
+    public String toString() {
+        return TYPE + "[" + name +  "]";
     }
 
 }

@@ -2,7 +2,7 @@ plugin_id = "cwl-annotations"
 display_name = "[CWL-Extension] Annotations Processor"
 version = "0.7"
 authors = ["m00nl1ght"]
-main_class = "dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension"
+main_class = "dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotations"
 description = '''
 An extension for the Clockwork Loader that provides support for convinient annotations, like @EventHandler.
 '''
@@ -10,3 +10,8 @@ An extension for the Clockwork Loader that provides support for convinient annot
 [[dependency]]
 id = "clockwork"
 version = "0.7"
+
+[[component]]
+id = "cwl-annotations:extension"
+target = "clockwork:loader"
+class = "dev.m00nl1ght.clockwork.extension.annotations.CWLAnnotationsExtension"

@@ -1,10 +1,10 @@
 package dev.m00nl1ght.clockwork.test;
 
-import dev.m00nl1ght.clockwork.loader.ClockworkConfig;
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.component.ComponentType;
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
+import dev.m00nl1ght.clockwork.loader.ClockworkConfig;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
@@ -35,7 +35,7 @@ public abstract class ClockworkTest {
     protected ClockworkConfig.Builder buildBootLayerConfig() {
         return ClockworkConfig.builder()
                 .addPluginReader(ManifestPluginReader.newConfig("manifest"))
-                .addPluginFinder(ModuleLayerPluginFinder.configBuilder("boot").build())
+                .addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", false))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"))
@@ -45,7 +45,7 @@ public abstract class ClockworkTest {
     protected ClockworkConfig.Builder buildPluginLayerConfig() {
         return ClockworkConfig.builder()
                 .addPluginReader(ManifestPluginReader.newConfig("manifest"))
-                .addPluginFinder(ModulePathPluginFinder.configBuilder("jars", TestEnvironment.PLUGINS_DIR).build())
+                .addPluginFinder(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR, false))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
     }
 

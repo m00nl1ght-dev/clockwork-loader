@@ -17,7 +17,7 @@ public class MixinLoadTest extends ClockworkTest {
     protected ClockworkConfig.Builder buildBootLayerConfig() {
         return ClockworkConfig.builder()
                 .addPluginReader(ManifestPluginReader.newConfig("manifest"))
-                .addPluginFinder(ModuleLayerPluginFinder.configBuilder("boot").build())
+                .addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", false))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"))
                 .addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"))
@@ -26,7 +26,7 @@ public class MixinLoadTest extends ClockworkTest {
 
     @Test
     public void checkLoaded() {
-        assertEquals(core().getState(), ClockworkCore.Phase.INITIALISED);
+        assertEquals(core().getPhase(), ClockworkCore.Phase.INITIALISED);
     }
 
 }

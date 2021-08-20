@@ -1,37 +1,43 @@
 package dev.m00nl1ght.clockwork.loader.jigsaw.impl;
 
+import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.loader.classloading.ClockworkClassLoader;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
-import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyConfig;
-import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategyType;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.lang.module.Configuration;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
-import java.util.*;
+import java.util.Collection;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
 public class JigsawStrategyFlat implements JigsawStrategy {
 
-    public static final String NAME = "internal.jigsaw.flat";
-    public static final JigsawStrategyType FACTORY = JigsawStrategyFlat::new;
+    public static final String TYPE = "internal.jigsaw.flat";
 
-    protected final JigsawStrategyConfig config;
-
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(JigsawStrategyType.class).register(NAME, FACTORY);
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(JigsawStrategy.class, TYPE, JigsawStrategyFlat::new);
     }
 
-    protected JigsawStrategyFlat(JigsawStrategyConfig config) {
-        this.config = Objects.requireNonNull(config);
+    public static Config newConfig(String name) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .build();
+    }
+
+    protected JigsawStrategyFlat(ClockworkLoader loader, Config config) {
+
     }
 
     @Override

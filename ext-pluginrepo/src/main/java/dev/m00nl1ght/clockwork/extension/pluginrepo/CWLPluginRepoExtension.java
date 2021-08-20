@@ -8,8 +8,12 @@ public final class CWLPluginRepoExtension extends LoaderExtension {
 
     public CWLPluginRepoExtension(@NotNull ClockworkLoader loader) {
         super(loader);
-        // LocalRepoPluginFinder.registerTo(extensionContext); // TODO
-        // RemoteRepoPluginFinder.registerTo(extensionContext);
+    }
+
+    @Override
+    public void registerFeatures() {
+        LocalRepoPluginFinder.registerTo(target);
+        RemoteRepoPluginFinder.registerTo(target);
     }
 
 }

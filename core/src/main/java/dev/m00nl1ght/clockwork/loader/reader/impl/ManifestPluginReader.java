@@ -1,25 +1,38 @@
 package dev.m00nl1ght.clockwork.loader.reader.impl;
 
+import dev.m00nl1ght.clockwork.config.Config;
 import dev.m00nl1ght.clockwork.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
-import dev.m00nl1ght.clockwork.loader.ExtensionContext;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.loader.reader.PluginReaderConfig;
-import dev.m00nl1ght.clockwork.loader.reader.PluginReaderType;
 import dev.m00nl1ght.clockwork.version.Version;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.Manifest;
 
 public class ManifestPluginReader implements PluginReader {
 
-    public static final String NAME = "internal.pluginreader.manifest";
-    public static final PluginReaderType FACTORY = ManifestPluginReader::new;
+    public static final String TYPE = "internal.pluginreader.manifest";
+
+    public static void registerTo(ClockworkLoader loader) {
+        loader.getFeatureProviders().register(PluginReader.class, TYPE, ManifestPluginReader::new);
+    }
+
+    public static Config newConfig(String name) {
+        return newConfig(name, "META-INF/MANIFEST.MF");
+    }
+
+    public static Config newConfig(String name, String manifestPath) {
+        return ImmutableConfig.builder()
+                .putString("type", TYPE)
+                .putString("name", name)
+                .putString("manifestPath", manifestPath)
+                .build();
+    }
 
     private static final String HEADER_PREFIX = "CWL-";
     private static final String HEADER_EXT_PREFIX = "EXT-";
@@ -29,7 +42,6 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_PLUGIN_NAME = "Plugin-Display-Name";
     private static final String HEADER_PLUGIN_DESC = "Plugin-Description";
     private static final String HEADER_PLUGIN_AUTHORS = "Plugin-Authors";
-    private static final String HEADER_PLUGIN_PROCESSORS = "Plugin-Processors";
     private static final String HEADER_TARGET_ID = "Target-Id";
     private static final String HEADER_TARGET_EXTENDS = "Target-Extends";
     private static final String HEADER_COMPONENT_ID = "Component-Id";
@@ -38,26 +50,12 @@ public class ManifestPluginReader implements PluginReader {
     private static final String HEADER_COMPONENT_OPTIONAL = "Component-Optional";
     private static final String HEADER_COMPONENT_FACTORY_CHANGES = "Component-FactoryChangesAllowed";
 
-    protected final PluginReaderConfig config;
+    protected final String name;
     protected final String manifestFilePath;
 
-    protected ManifestPluginReader(PluginReaderConfig config) {
-        this.config = Objects.requireNonNull(config);
-        this.manifestFilePath = config.getParams().get("manifestPath");
-    }
-
-    public static void registerTo(ExtensionContext context) {
-        Objects.requireNonNull(context).registryFor(PluginReaderType.class).register(NAME, FACTORY);
-    }
-
-    public static PluginReaderConfig newConfig(String name) {
-        return newConfig(name, "META-INF/MANIFEST.MF");
-    }
-
-    public static PluginReaderConfig newConfig(String name, String manifestPath) {
-        return PluginReaderConfig.of(name, NAME, ImmutableConfig.builder()
-                .putString("manifestPath", manifestPath)
-                .build());
+    protected ManifestPluginReader(ClockworkLoader loader, Config config) {
+        this.name = config.get("name");
+        this.manifestFilePath = config.get("manifestPath");
     }
 
     @Override
@@ -80,7 +78,6 @@ public class ManifestPluginReader implements PluginReader {
         descriptorBuilder.displayName(mainConfig.get(HEADER_PLUGIN_NAME));
         descriptorBuilder.description(mainConfig.getOrDefault(HEADER_PLUGIN_DESC, ""));
         mainConfig.getListOrSingletonOrEmpty(HEADER_PLUGIN_AUTHORS).forEach(descriptorBuilder::author);
-        mainConfig.getListOrSingletonOrEmpty(HEADER_PLUGIN_PROCESSORS).forEach(descriptorBuilder::markForProcessor);
         mainConfig.throwOnRemaining(e -> !e.startsWith(HEADER_EXT_PREFIX));
 
         descriptorBuilder.extData(new AttributesWrapper(manifest.getMainAttributes(), HEADER_EXT_COMBINED));
@@ -138,7 +135,7 @@ public class ManifestPluginReader implements PluginReader {
 
     @Override
     public String toString() {
-        return config.getType() + "[" + config.getName() +  "]";
+        return TYPE + "[" + name +  "]";
     }
 
 }

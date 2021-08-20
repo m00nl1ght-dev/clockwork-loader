@@ -145,6 +145,10 @@ public interface Config {
         return value == null ? defaultValue : asBoolean(key, value);
     }
 
+    default boolean getBooleanOrFalse(String key) {
+        return getBooleanOrDefault(key, false);
+    }
+
     private boolean asBoolean(String key, String value) {
         try {
             return Boolean.parseBoolean(value);

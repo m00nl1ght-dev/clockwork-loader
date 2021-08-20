@@ -59,25 +59,25 @@ public class ImmutableConfig implements Config {
         }
 
         public Builder putString(String key, Object value) {
-            Objects.requireNonNull(value);
+            if (value == null) return this;
             map.put(key, value.toString());
             return this;
         }
 
         public Builder putSubconfig(String key, Config value) {
-            Objects.requireNonNull(value);
+            if (value == null) return this;
             map.put(key, value.immutable());
             return this;
         }
 
         public Builder putStrings(String key, Collection<String> value) {
-            Objects.requireNonNull(value);
+            if (value == null) return this;
             map.put(key, value.toArray(String[]::new));
             return this;
         }
 
         public Builder putSubconfigs(String key, Collection<? extends Config> value) {
-            Objects.requireNonNull(value);
+            if (value == null) return this;
             map.put(key, value.stream().map(Config::immutable).toArray(Config[]::new));
             return this;
         }

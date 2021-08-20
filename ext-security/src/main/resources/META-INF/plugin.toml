@@ -2,7 +2,7 @@ plugin_id = "cwl-security"
 display_name = "[CWL-Extension] Security Policy"
 version = "0.7"
 authors = ["m00nl1ght"]
-main_class = "dev.m00nl1ght.clockwork.extension.security.CWLSecurityExtension"
+main_class = "dev.m00nl1ght.clockwork.extension.security.CWLSecurity"
 description = '''
 An extension for the Clockwork Loader that provides a security policy implementation for plugin environments.
 '''

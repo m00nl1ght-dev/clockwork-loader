@@ -4,7 +4,6 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.descriptor;
     exports dev.m00nl1ght.clockwork.loader.fnder;
     exports dev.m00nl1ght.clockwork.loader.reader;
-    exports dev.m00nl1ght.clockwork.loader.verifier;
     exports dev.m00nl1ght.clockwork.event;
     exports dev.m00nl1ght.clockwork.event.impl;
     exports dev.m00nl1ght.clockwork.event.impl.listener;
@@ -21,7 +20,6 @@ module dev.m00nl1ght.clockwork {
     exports dev.m00nl1ght.clockwork.logger;
     exports dev.m00nl1ght.clockwork.loader.jigsaw;
     exports dev.m00nl1ght.clockwork.loader;
-    exports dev.m00nl1ght.clockwork.loader.processor;
     exports dev.m00nl1ght.clockwork.loader.fnder.impl;
     exports dev.m00nl1ght.clockwork.loader.jigsaw.impl;
     exports dev.m00nl1ght.clockwork.loader.reader.impl;
