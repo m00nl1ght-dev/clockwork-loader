@@ -5,7 +5,7 @@ import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListenerCollection;
 import dev.m00nl1ght.clockwork.event.EventListener;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 
 import java.util.*;
 

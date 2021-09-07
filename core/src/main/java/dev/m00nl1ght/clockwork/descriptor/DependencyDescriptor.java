@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.version.Version;
-import dev.m00nl1ght.clockwork.version.VersionRequirement;
+import dev.m00nl1ght.clockwork.utils.version.Version;
+import dev.m00nl1ght.clockwork.utils.version.VersionRequirement;
 
 import java.util.Objects;
 

@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.loader.fnder;
 
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
-import dev.m00nl1ght.clockwork.version.Version;
+import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.util.Optional;
 import java.util.Set;

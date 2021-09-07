@@ -5,7 +5,7 @@ import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
 import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;

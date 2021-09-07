@@ -1,9 +1,9 @@
 package dev.m00nl1ght.clockwork.extension.security;
 
-import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.extension.security.permissions.PermissionsFactory;
-import dev.m00nl1ght.clockwork.util.ReflectionUtil;
+import dev.m00nl1ght.clockwork.utils.reflect.ReflectionUtil;
 
 import java.security.Permission;
 import java.security.Permissions;

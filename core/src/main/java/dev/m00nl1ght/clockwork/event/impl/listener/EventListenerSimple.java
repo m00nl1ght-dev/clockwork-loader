@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;

@@ -4,8 +4,8 @@ import dev.m00nl1ght.clockwork.component.ComponentFactory;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.util.FormatUtil;
-import dev.m00nl1ght.clockwork.version.Version;
+import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.lang.invoke.MethodHandles;
 import java.util.Objects;

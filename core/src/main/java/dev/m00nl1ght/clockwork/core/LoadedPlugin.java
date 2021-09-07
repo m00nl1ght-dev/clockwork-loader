@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.core;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
-import dev.m00nl1ght.clockwork.version.Version;
+import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.util.*;
 

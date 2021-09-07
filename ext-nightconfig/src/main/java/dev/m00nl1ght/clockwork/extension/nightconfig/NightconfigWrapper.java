@@ -2,8 +2,8 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
-import dev.m00nl1ght.clockwork.config.Config;
-import dev.m00nl1ght.clockwork.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 
 import java.io.File;
 import java.util.List;

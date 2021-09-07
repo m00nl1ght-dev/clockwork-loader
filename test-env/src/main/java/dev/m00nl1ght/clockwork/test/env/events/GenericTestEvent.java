@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.test.env.events;
 
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 
 public class GenericTestEvent<T> extends TestEvent {
 

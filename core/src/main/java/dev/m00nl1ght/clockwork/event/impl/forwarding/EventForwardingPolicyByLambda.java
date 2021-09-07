@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.event.*;
 import dev.m00nl1ght.clockwork.event.impl.listener.EventListenerForwardingByLambda;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

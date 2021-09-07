@@ -7,7 +7,7 @@ import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader.AccessLevel;
 import dev.m00nl1ght.clockwork.loader.LoaderExtension;
-import dev.m00nl1ght.clockwork.util.MapToSet;
+import dev.m00nl1ght.clockwork.utils.collections.MapToSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

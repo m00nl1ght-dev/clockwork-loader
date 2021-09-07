@@ -2,13 +2,13 @@ package dev.m00nl1ght.clockwork.event.impl.bus;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.impl.EventDispatcherProfilerGroup;
+import dev.m00nl1ght.clockwork.event.debug.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventDispatcher;
 import dev.m00nl1ght.clockwork.event.EventListenerCollection;
 import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 
 import java.util.Collection;
 import java.util.List;

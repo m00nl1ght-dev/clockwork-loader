@@ -7,8 +7,9 @@ allprojects {
     ext {
         targetJDK = "14"
         nightconfigVersion = "3.6.2-j9m"
-        // mixinVersion = "0.8.3"
+        mixinVersion = "0.8.4"
         log4jVersion = "2.13.3"
+        slf4jVersion = "1.7.30"
     }
 
 }
@@ -50,7 +51,6 @@ subprojects {
     repositories {
         mavenCentral()
         maven { url "https://m00nl1ght.dev/maven/" }
-        // maven { url "https://repo.spongepowered.org/repository/maven-public/" }
     }
 
     publishing {

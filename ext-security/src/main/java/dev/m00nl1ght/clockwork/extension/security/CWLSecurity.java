@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.core.MainComponent;
 import dev.m00nl1ght.clockwork.extension.security.internal.PolicyImpl;
 import dev.m00nl1ght.clockwork.extension.security.internal.ProviderImpl;
-import dev.m00nl1ght.clockwork.logger.Logger;
+import dev.m00nl1ght.clockwork.utils.logger.Logger;
 
 import java.security.*;
 import java.util.HashMap;

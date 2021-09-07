@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.extension.mixin;
 
-import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 

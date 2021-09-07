@@ -2,14 +2,14 @@ package dev.m00nl1ght.clockwork.event.impl.bus;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.impl.EventBusProfilerGroup;
-import dev.m00nl1ght.clockwork.debug.profiler.Profilable;
+import dev.m00nl1ght.clockwork.event.debug.EventBusProfilerGroup;
+import dev.m00nl1ght.clockwork.utils.debug.profiler.Profilable;
 import dev.m00nl1ght.clockwork.event.*;
 import dev.m00nl1ght.clockwork.event.impl.EventDispatchers;
 import dev.m00nl1ght.clockwork.event.impl.EventListeners;
 import dev.m00nl1ght.clockwork.event.impl.EventTargetKey;
-import dev.m00nl1ght.clockwork.util.MapToSet;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.collections.MapToSet;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;

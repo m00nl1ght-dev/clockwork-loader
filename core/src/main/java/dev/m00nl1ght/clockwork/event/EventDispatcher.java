@@ -2,11 +2,11 @@ package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.debug.profiler.impl.EventDispatcherProfilerGroup;
-import dev.m00nl1ght.clockwork.debug.profiler.Profilable;
+import dev.m00nl1ght.clockwork.event.debug.EventDispatcherProfilerGroup;
+import dev.m00nl1ght.clockwork.utils.debug.profiler.Profilable;
 import dev.m00nl1ght.clockwork.event.impl.bus.EventDispatcherImpl;
 import dev.m00nl1ght.clockwork.event.impl.bus.EventDispatcherImplExact;
-import dev.m00nl1ght.clockwork.util.TypeRef;
+import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

@@ -1,7 +1,6 @@
 
 dependencies {
-    compileOnly group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
-    compileOnly group: 'org.slf4j', name: 'slf4j-api', version: '1.7.30'
+    api project(":utils")
 }
 
 publishing {

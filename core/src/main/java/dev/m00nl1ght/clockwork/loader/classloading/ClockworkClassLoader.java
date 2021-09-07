@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.loader.classloading;
 
-import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 

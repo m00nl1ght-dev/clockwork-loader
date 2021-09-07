@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.component;
 
-import dev.m00nl1ght.clockwork.util.ReflectionUtil;
+import dev.m00nl1ght.clockwork.utils.reflect.ReflectionUtil;
 
 import java.lang.invoke.MethodHandles;
 
@@ -18,6 +18,7 @@ public interface ComponentFactory<T extends ComponentTarget, C> {
     @SuppressWarnings("unchecked")
     static <T extends ComponentTarget, C> ComponentFactory<T, C>
     buildDefaultFactory(MethodHandles.Lookup lookup, Class<T> targetClass, Class<C> componentClass) {
+        ComponentFactory.class.getModule().addReads(componentClass.getModule());
         final var objCtr = ReflectionUtil.tryFindConstructor(lookup, componentClass, targetClass);
         if (objCtr != null) return o -> (C) objCtr.invoke(o);
         final var emptyCtr = ReflectionUtil.tryFindConstructor(lookup, componentClass);

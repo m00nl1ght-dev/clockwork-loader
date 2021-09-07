@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.component;
 
-import dev.m00nl1ght.clockwork.util.FormatUtil;
+import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 
 import java.util.Objects;
 

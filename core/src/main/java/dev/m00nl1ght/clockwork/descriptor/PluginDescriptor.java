@@ -1,8 +1,8 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
-import dev.m00nl1ght.clockwork.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
-import dev.m00nl1ght.clockwork.version.Version;
+import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.util.LinkedList;
 import java.util.List;
