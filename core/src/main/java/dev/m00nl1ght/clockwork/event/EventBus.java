@@ -3,11 +3,11 @@ package dev.m00nl1ght.clockwork.event;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.event.debug.EventBusProfilerGroup;
-import dev.m00nl1ght.clockwork.utils.debug.profiler.Profilable;
 import dev.m00nl1ght.clockwork.event.impl.forwarding.EventForwardingPolicyByComponent;
 import dev.m00nl1ght.clockwork.event.impl.forwarding.EventForwardingPolicyByLambda;
 import dev.m00nl1ght.clockwork.event.impl.listener.EventListenerSimple;
+import dev.m00nl1ght.clockwork.utils.profiler.Profilable;
+import dev.m00nl1ght.clockwork.utils.profiler.impl.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
@@ -16,7 +16,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Function;
 import java.util.function.Predicate;
 
-public interface EventBus<B extends Event> extends Profilable<EventBusProfilerGroup> {
+public interface EventBus<B extends Event> extends Profilable<SimpleProfilerGroup> {
 
     <E extends B, T extends ComponentTarget>
     @NotNull EventDispatcher<E, T> getEventDispatcher(

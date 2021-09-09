@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CWLAnnotations extends MainComponent {
 
-    static final Logger LOGGER = Logger.create("Clockwork-Ext-Annotations");
+    static final Logger LOGGER = Logger.getLogger("Clockwork-Ext-Annotations");
 
     private CWLAnnotations(@NotNull ClockworkCore core) {
         super(core);

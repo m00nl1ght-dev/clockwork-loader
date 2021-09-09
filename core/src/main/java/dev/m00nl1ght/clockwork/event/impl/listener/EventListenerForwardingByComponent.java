@@ -29,6 +29,11 @@ public class EventListenerForwardingByComponent<E extends Event, S extends Compo
         return this::invoke;
     }
 
+    @Override
+    public @NotNull String getUniqueID() {
+        return innerListener.getUniqueID() + " [FBC]";
+    }
+
     private void invoke(D innerTarget, E event) {
         final var container = innerTarget.getComponentContainer();
         @SuppressWarnings("unchecked")

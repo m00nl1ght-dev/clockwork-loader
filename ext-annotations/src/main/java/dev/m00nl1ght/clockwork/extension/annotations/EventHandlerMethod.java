@@ -130,8 +130,8 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
     }
 
     @Override
-    public String toString() {
-        return componentType + "#" + method.getName();
+    public @NotNull String getUniqueID() {
+        return method.getDeclaringClass().getName() + "#" + method.getName();
     }
 
     @Override

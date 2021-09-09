@@ -1,0 +1,14 @@
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            groupId = 'dev.m00nl1ght.clockwork.utils'
+            version = rootProject.version
+            artifactId = 'profiler'
+            from components.java
+        }
+    }
+}

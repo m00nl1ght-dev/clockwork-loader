@@ -1,0 +1,19 @@
+
+dependencies {
+    compileOnly group: 'org.apache.logging.log4j', name: 'log4j-api', version: log4jVersion
+    compileOnly group: 'org.slf4j', name: 'slf4j-api', version: slf4jVersion
+}
+
+sourceCompatibility = 11
+targetCompatibility = 11
+
+publishing {
+    publications {
+        main(MavenPublication) {
+            groupId = 'dev.m00nl1ght.clockwork.utils'
+            version = rootProject.version
+            artifactId = 'logger'
+            from components.java
+        }
+    }
+}

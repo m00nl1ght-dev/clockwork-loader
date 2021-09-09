@@ -1,10 +1,9 @@
 package dev.m00nl1ght.clockwork.event.impl;
 
-import dev.m00nl1ght.clockwork.component.ComponentTarget;
-import dev.m00nl1ght.clockwork.event.debug.EventDispatcherProfilerGroup;
-import dev.m00nl1ght.clockwork.event.EventListenerCollection;
-import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
+import dev.m00nl1ght.clockwork.event.EventListenerCollection;
+import dev.m00nl1ght.clockwork.event.debug.EventProfilerEntry;
+import dev.m00nl1ght.clockwork.utils.profiler.impl.SimpleProfilerGroup;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -23,15 +22,18 @@ public class CompiledListeners {
 
     @SuppressWarnings("unchecked")
     private CompiledListeners(@NotNull EventListener[] listeners,
-                              @Nullable EventDispatcherProfilerGroup profilerGroup) {
+                              @Nullable SimpleProfilerGroup profilerGroup) {
         this.listeners = Objects.requireNonNull(listeners);
         this.cIdxs = new int[listeners.length];
         this.consumers = new BiConsumer[listeners.length];
         if (profilerGroup != null) {
             for (int i = 0; i < listeners.length; i++) {
                 final var listener = listeners[i];
-                this.consumers[i] = profilerGroup.getEntry(listener);
+                final var entry = profilerGroup.entry(listener.getUniqueID(), s -> new EventProfilerEntry<>(s, listener));
+                this.consumers[i] = entry;
                 this.cIdxs[i] = listener.getComponentType().getInternalIdx();
+                if (entry.getListener() != listener)
+                    throw new IllegalStateException("duplicate listener: " + listener);
             }
         } else {
             for (int i = 0; i < listeners.length; i++) {
@@ -42,11 +44,9 @@ public class CompiledListeners {
         }
     }
 
-    @NotNull
-    public static <T extends ComponentTarget, E extends Event>
-    CompiledListeners build(@Nullable CompiledListeners inherited,
-                            @Nullable EventListenerCollection<E, T> collection,
-                            @Nullable EventDispatcherProfilerGroup<E, T> profilerGroup) {
+    public static @NotNull CompiledListeners build(@Nullable CompiledListeners inherited,
+                                                   @Nullable EventListenerCollection<?, ?> collection,
+                                                   @Nullable SimpleProfilerGroup profilerGroup) {
         final var emptyCollection = collection == null || collection.get().isEmpty();
         if (inherited == null) {
             if (emptyCollection) return EMPTY;

@@ -41,9 +41,11 @@ public abstract class EventListener<E extends Event, T extends ComponentTarget, 
 
     public abstract @NotNull BiConsumer<C, E> getConsumer();
 
+    public abstract @NotNull String getUniqueID();
+
     @Override
     public String toString() {
-        return eventType + "@" + componentType + "[" + phase + "]";
+        return eventType + " [" + phase + "] -> " + componentType + " (" + getUniqueID() + ")";
     }
 
     @Override

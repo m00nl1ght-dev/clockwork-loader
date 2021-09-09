@@ -2,10 +2,10 @@ package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.event.debug.EventDispatcherProfilerGroup;
-import dev.m00nl1ght.clockwork.utils.debug.profiler.Profilable;
 import dev.m00nl1ght.clockwork.event.impl.bus.EventDispatcherImpl;
 import dev.m00nl1ght.clockwork.event.impl.bus.EventDispatcherImplExact;
+import dev.m00nl1ght.clockwork.utils.profiler.Profilable;
+import dev.m00nl1ght.clockwork.utils.profiler.impl.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,7 +14,7 @@ import java.util.Collection;
 import java.util.List;
 import java.util.Objects;
 
-public interface EventDispatcher<E extends Event, T extends ComponentTarget> extends Profilable<EventDispatcherProfilerGroup<E, ? extends T>> {
+public interface EventDispatcher<E extends Event, T extends ComponentTarget> extends Profilable<SimpleProfilerGroup> {
 
     static <E extends Event, T extends ComponentTarget> EventDispatcher<E, T> of(
             @NotNull TypeRef<E> eventType,

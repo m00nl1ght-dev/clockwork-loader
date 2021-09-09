@@ -7,7 +7,7 @@ import org.jetbrains.annotations.NotNull;
 
 public final class CWLMixin extends MainComponent {
 
-    static final Logger LOGGER = Logger.create("Clockwork-Ext-Mixin");
+    static final Logger LOGGER = Logger.getLogger("Clockwork-Ext-Mixin");
 
     private CWLMixin(@NotNull ClockworkCore core) {
         super(core);

@@ -5,6 +5,7 @@ import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
+import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 import java.util.function.BiConsumer;
@@ -25,6 +26,11 @@ public class EventListenerSimple<E extends Event, T extends ComponentTarget, C> 
     @Override
     public BiConsumer<C, E> getConsumer() {
         return consumer;
+    }
+
+    @Override
+    public @NotNull String getUniqueID() {
+        return consumer.toString();
     }
 
     @Override

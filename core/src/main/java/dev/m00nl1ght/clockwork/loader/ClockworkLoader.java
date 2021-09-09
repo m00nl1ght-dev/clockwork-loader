@@ -5,8 +5,6 @@ import dev.m00nl1ght.clockwork.component.ComponentFactory;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.component.impl.SimpleComponentContainer;
-import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatureProviders;
-import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 import dev.m00nl1ght.clockwork.core.*;
 import dev.m00nl1ght.clockwork.core.ClockworkCore.Phase;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
@@ -23,9 +21,10 @@ import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
 import dev.m00nl1ght.clockwork.loader.jigsaw.impl.JigsawStrategyFlat;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
-import dev.m00nl1ght.clockwork.utils.logger.Logger;
-import dev.m00nl1ght.clockwork.utils.logger.impl.SysOutLogging;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatureProviders;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.utils.logger.Logger;
 import dev.m00nl1ght.clockwork.utils.reflect.ReflectionUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 import org.jetbrains.annotations.NotNull;
@@ -45,7 +44,7 @@ import java.util.stream.Collectors;
  */
 public final class ClockworkLoader implements ComponentTarget {
 
-    private static final Logger LOGGER = Logger.create("Clockwork-Loader");
+    private static final Logger LOGGER = Logger.getLogger("Clockwork-Loader");
     private static final Lookup INTERNAL_LOOKUP = MethodHandles.lookup();
 
     private static final int TARGET_JAVA_VERSION = 14;
@@ -58,8 +57,8 @@ public final class ClockworkLoader implements ComponentTarget {
                     version, TARGET_JAVA_VERSION);
         if (ClockworkLoader.class.getModule().getName() == null)
             throw FormatUtil.rtExc("Core module was not loaded correctly (the module is unnamed)");
-        if (LOGGER instanceof SysOutLogging.SysOutLogger)
-            LOGGER.warn("No supported logging framework detected. Printing logs to SOUT.");
+        if (Logger.isFallbackMode())
+            LOGGER.warn("No supported logging framework detected. Printing logs to SYSOUT.");
     }
 
     public static @NotNull ClockworkLoader build(@NotNull ClockworkConfig config) {

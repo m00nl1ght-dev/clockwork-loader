@@ -1,14 +1,18 @@
 package dev.m00nl1ght.clockwork.test;
 
-import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.component.TargetType;
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.event.impl.bus.EventBusImpl;
+import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
+import dev.m00nl1ght.clockwork.utils.profiler.ProfilerGroup;
+import dev.m00nl1ght.clockwork.utils.profiler.ProfilerUtils;
+import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.*;
 
 public abstract class AbstractEventHandlerTest extends ClockworkTest {
 
@@ -16,6 +20,8 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
     protected TargetType<TestTarget_B> targetTypeB;
     protected TargetType<TestTarget_C> targetTypeC;
     protected TargetType<TestTarget_D> targetTypeD;
+
+    protected ProfilerGroup profilerGroup;
 
     @Override
     protected TestEnvironment buildEnvironment(ClockworkCore core) {
@@ -25,6 +31,12 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         targetTypeC = core.getTargetTypeOrThrow(TestTarget_C.class);
         targetTypeD = core.getTargetTypeOrThrow(TestTarget_D.class);
         return env;
+    }
+
+    @Override
+    protected void setupComplete(ClockworkLoader loader) {
+        profilerGroup = eventBus().attachDefaultProfiler();
+        super.setupComplete(loader);
     }
 
     protected abstract EventBusImpl eventBus();
@@ -83,6 +95,11 @@ public abstract class AbstractEventHandlerTest extends ClockworkTest {
         assertTrue(event.getTestContext().isMarkerPresent("TestPlugin_A#onGenericTestEventForTargetB"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_C#onGenericTestEvent"));
         assertTrue(event.getTestContext().isMarkerPresent("TestComponent_D#onGenericTestEvent"));
+    }
+
+    @AfterAll
+    public void profilerResults() {
+        System.out.println(ProfilerUtils.printProfilerInfo(profilerGroup));
     }
 
 }

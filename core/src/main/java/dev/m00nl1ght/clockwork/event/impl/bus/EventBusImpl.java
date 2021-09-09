@@ -2,13 +2,13 @@ package dev.m00nl1ght.clockwork.event.impl.bus;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.event.debug.EventBusProfilerGroup;
-import dev.m00nl1ght.clockwork.utils.debug.profiler.Profilable;
 import dev.m00nl1ght.clockwork.event.*;
 import dev.m00nl1ght.clockwork.event.impl.EventDispatchers;
 import dev.m00nl1ght.clockwork.event.impl.EventListeners;
 import dev.m00nl1ght.clockwork.event.impl.EventTargetKey;
-import dev.m00nl1ght.clockwork.utils.collections.MapToSet;
+import dev.m00nl1ght.clockwork.utils.config.MapToSet;
+import dev.m00nl1ght.clockwork.utils.profiler.Profilable;
+import dev.m00nl1ght.clockwork.utils.profiler.impl.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 
@@ -22,7 +22,7 @@ public class EventBusImpl implements EventBus<Event> {
 
     protected final MapToSet<TargetType<?>, EventForwardingPolicy<Event, ?, ?>> forwardingPolicies = new MapToSet<>();
 
-    protected EventBusProfilerGroup profilerGroup;
+    protected SimpleProfilerGroup profilerGroup;
 
     @Override
     public <E extends Event, T extends ComponentTarget>
@@ -37,7 +37,7 @@ public class EventBusImpl implements EventBus<Event> {
     protected <E extends Event, T extends ComponentTarget>
     @NotNull EventDispatcher<E, T> buildDispatcher(@NotNull EventTargetKey<E, T> key) {
         final var dispatcher = EventDispatcher.of(key.getEventType(), key.getTargetType());
-        if (profilerGroup != null) profilerGroup.attachToDispatcher(dispatcher);
+        if (profilerGroup != null) profilerGroup.addSubgroup(dispatcher.attachDefaultProfiler());
         for (final var target : dispatcher.getCompatibleTargetTypes()) {
             final var compKey  = EventTargetKey.of(dispatcher.getEventType(), target);
             final var collection = listeners.getCollectionOrNull(compKey);
@@ -104,24 +104,26 @@ public class EventBusImpl implements EventBus<Event> {
     }
 
     @Override
-    public void attachProfiler(@NotNull EventBusProfilerGroup profilerGroup) {
+    public void attachProfiler(@NotNull SimpleProfilerGroup profilerGroup) {
         Objects.requireNonNull(profilerGroup);
         this.profilerGroup = profilerGroup;
-        dispatchers.getDispatchers().forEach(profilerGroup::attachToDispatcher);
+        for (final var dispatcher : dispatchers.getDispatchers()) {
+            profilerGroup.addSubgroup(dispatcher.attachDefaultProfiler());
+        }
     }
 
     @Override
-    public @NotNull Set<@NotNull ? extends EventBusProfilerGroup> attachDefaultProfilers() {
-        final var group = new EventBusProfilerGroup("EventBus", this);
+    public @NotNull SimpleProfilerGroup attachDefaultProfiler() {
+        final var group = new SimpleProfilerGroup("EventBus");
         this.attachProfiler(group);
-        return Set.of(group);
+        return group;
     }
 
     @Override
-    public void detachAllProfilers() {
+    public void detachProfiler() {
         if (this.profilerGroup == null) return;
         this.profilerGroup = null;
-        dispatchers.getDispatchers().forEach(Profilable::detachAllProfilers);
+        dispatchers.getDispatchers().forEach(Profilable::detachProfiler);
     }
 
     @Override

@@ -1,13 +1,17 @@
 
 dependencies {
-    api project(":utils")
+    api project(":utils-config")
+    api project(":utils-logger")
+    api project(":utils-profiler")
+    api project(":utils-version")
 }
 
 publishing {
     publications {
-        core(MavenPublication) {
+        main(MavenPublication) {
             groupId = 'dev.m00nl1ght.clockwork'
             version = rootProject.version
+            artifactId = 'core'
             from components.java
         }
     }

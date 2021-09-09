@@ -13,7 +13,7 @@ import java.util.stream.Collectors;
 
 public final class CWLSecurity extends MainComponent {
 
-    static final Logger LOGGER = Logger.create("Clockwork-Ext-Security");
+    static final Logger LOGGER = Logger.getLogger("Clockwork-Ext-Security");
 
     private CWLSecurity(ClockworkCore core) {
         super(core);

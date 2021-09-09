@@ -2,16 +2,18 @@ package dev.m00nl1ght.clockwork.event.impl.bus;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.event.debug.EventDispatcherProfilerGroup;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventDispatcher;
-import dev.m00nl1ght.clockwork.event.EventListenerCollection;
 import dev.m00nl1ght.clockwork.event.EventListener;
+import dev.m00nl1ght.clockwork.event.EventListenerCollection;
 import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
+import dev.m00nl1ght.clockwork.utils.profiler.impl.SimpleProfilerGroup;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.Arrays;
+import java.util.Collection;
+import java.util.List;
+import java.util.Objects;
 
 public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> implements EventDispatcher<E, T> {
 
@@ -23,7 +25,7 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
 
     protected final EventListenerCollection[] listenerCollections;
     protected final CompiledListeners[] compiledListeners;
-    protected EventDispatcherProfilerGroup[] profilerGroups;
+    protected SimpleProfilerGroup[] profilerGroups;
 
     public EventDispatcherImpl(TypeRef<E> eventType, TargetType<T> targetType) {
         this.eventType = Objects.requireNonNull(eventType);
@@ -39,7 +41,6 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
         final int idx = targetType.getSubtargetIdxFirst() - idxOffset;
         final var profiler = profilerGroups == null ? null : profilerGroups[idx];
         final var inherited = targetType == this.targetType ? null : getCompiledListeners(targetType.getParent());
-        @SuppressWarnings("unchecked")
         final var listeners = CompiledListeners.build(inherited, listenerCollections[idx], profiler);
         compiledListeners[idx] = listeners;
         return listeners;
@@ -120,27 +121,25 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
     }
 
     @Override
-    public synchronized void attachProfiler(EventDispatcherProfilerGroup<E, ? extends T> profilerGroup) {
+    public synchronized void attachProfiler(SimpleProfilerGroup profilerGroup) {
         Objects.requireNonNull(profilerGroup);
-        if (this.profilerGroups == null) this.profilerGroups = new EventDispatcherProfilerGroup[compiledListeners.length];
-        if (profilerGroup.getEventType() != this) throw new IllegalArgumentException();
-        checkCompatibility(profilerGroup.getTargetType());
-        final var idx = profilerGroup.getTargetType().getSubtargetIdxFirst() - idxOffset;
-        this.profilerGroups[idx] = profilerGroup;
-        this.compiledListeners[idx] = null;
+        this.profilerGroups = new SimpleProfilerGroup[compiledListeners.length];
+        for (final var target : targetType.getAllSubtargets()) {
+            final var idx = target.getSubtargetIdxFirst() - idxOffset;
+            this.profilerGroups[idx] = profilerGroup.subgroup(target.toString(), SimpleProfilerGroup::new);
+            this.compiledListeners[idx] = null;
+        }
     }
 
     @Override
-    public Set<? extends EventDispatcherProfilerGroup<E, ? extends T>> attachDefaultProfilers() {
-        final var groups = targetType.getAllSubtargets().stream()
-                .map(t -> new EventDispatcherProfilerGroup<>(this, t))
-                .collect(Collectors.toUnmodifiableSet());
-        groups.forEach(this::attachProfiler);
-        return groups;
+    public SimpleProfilerGroup attachDefaultProfiler() {
+        final var group = new SimpleProfilerGroup(eventType + "@" + targetType);
+        this.attachProfiler(group);
+        return group;
     }
 
     @Override
-    public synchronized void detachAllProfilers() {
+    public synchronized void detachProfiler() {
         if (this.profilerGroups == null) return;
         this.profilerGroups = null;
         Arrays.fill(compiledListeners, null);

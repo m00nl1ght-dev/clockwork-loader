@@ -50,6 +50,11 @@ public class EventListenerForwardingByLambda<E extends Event, S extends Componen
         return outerConsumer;
     }
 
+    @Override
+    public @NotNull String getUniqueID() {
+        return innerListener.getUniqueID() + " [FBL]";
+    }
+
     private void invokeExact(S target, E event) {
         final var innerTarget = targetMapper.apply(target);
         if (innerTarget == null) return;
