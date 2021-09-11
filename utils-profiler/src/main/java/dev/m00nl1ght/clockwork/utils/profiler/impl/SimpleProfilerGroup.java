@@ -3,68 +3,47 @@ package dev.m00nl1ght.clockwork.utils.profiler.impl;
 import dev.m00nl1ght.clockwork.utils.profiler.ProfilerEntry;
 import dev.m00nl1ght.clockwork.utils.profiler.ProfilerGroup;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.function.Function;
+import java.util.*;
 
 public class SimpleProfilerGroup extends ProfilerGroup {
 
     protected final Map<String, ProfilerEntry> entries = new LinkedHashMap<>();
     protected final Map<String, ProfilerGroup> subgroups = new LinkedHashMap<>();
 
-    protected final int entryCapacity;
-
     public SimpleProfilerGroup(@NotNull String name) {
-        this(name, 0);
-    }
-
-    public SimpleProfilerGroup(@NotNull String name, int entryCapacity) {
         super(name);
-        this.entryCapacity = entryCapacity;
-        if (entryCapacity < 0) throw new IllegalArgumentException();
     }
 
-    public ProfilerEntry entry(@NotNull String name) {
-        return entries.computeIfAbsent(Objects.requireNonNull(name), this::newEntry);
+    @Override
+    public @NotNull ProfilerEntry getEntry(String name) {
+        final var entry = entries.get(Objects.requireNonNull(name));
+        if (entry == null) throw new NoSuchElementException("No profiler entry with name: " + name);
+        return entry;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends ProfilerEntry> T entry(@NotNull String name, @NotNull Function<String, ? extends T> factory) {
-        final var ret = (T) entries.computeIfAbsent(Objects.requireNonNull(name), factory);
-        if (!ret.getName().equals(name)) throw new IllegalArgumentException();
-        return ret;
+    public @Nullable ProfilerEntry getEntryOrNull(String name) {
+        return entries.get(Objects.requireNonNull(name));
     }
 
-    public ProfilerGroup subgroup(@NotNull String name) {
-        return subgroups.computeIfAbsent(Objects.requireNonNull(name), this::newSubgroup);
+    @Override
+    public @NotNull ProfilerGroup getSubgroup(String name) {
+        final var group = subgroups.get(Objects.requireNonNull(name));
+        if (group == null) throw new NoSuchElementException("No profiler subgroup with name: " + name);
+        return group;
     }
 
-    @SuppressWarnings("unchecked")
-    public <T extends ProfilerGroup> T subgroup(@NotNull String name, @NotNull Function<String, ? extends T> factory) {
-        final var ret = (T) subgroups.computeIfAbsent(Objects.requireNonNull(name), factory);
-        if (!ret.getName().equals(name)) throw new IllegalArgumentException();
-        return ret;
+    public @Nullable ProfilerGroup getSubgroupOrNull(String name) {
+        return subgroups.get(Objects.requireNonNull(name));
     }
 
-    public void addEntry(@NotNull ProfilerEntry entry) {
-        final var existing = entries.putIfAbsent(entry.getName(), entry);
-        if (existing != null) throw new IllegalArgumentException("entry name duplicate: " + entry.getName());
+    public void putEntry(@NotNull ProfilerEntry entry) {
+        entries.put(entry.getName(), entry);
     }
 
-    public void addSubgroup(@NotNull ProfilerGroup group) {
-        final var existing = subgroups.putIfAbsent(group.getName(), group);
-        if (existing != null) throw new IllegalArgumentException("subgroup name duplicate: " + group.getName());
-    }
-
-    protected ProfilerEntry newEntry(@NotNull String name) {
-        return entryCapacity > 0 ? new CyclicProfilerEntry(name, entryCapacity) : new SimpleProfilerEntry(name);
-    }
-
-    protected ProfilerGroup newSubgroup(@NotNull String name) {
-        return new SimpleProfilerGroup(name);
+    public void putSubgroup(@NotNull ProfilerGroup group) {
+        subgroups.put(group.getName(), group);
     }
 
     @Override

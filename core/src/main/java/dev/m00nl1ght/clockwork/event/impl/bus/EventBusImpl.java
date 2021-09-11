@@ -37,7 +37,7 @@ public class EventBusImpl implements EventBus<Event> {
     protected <E extends Event, T extends ComponentTarget>
     @NotNull EventDispatcher<E, T> buildDispatcher(@NotNull EventTargetKey<E, T> key) {
         final var dispatcher = EventDispatcher.of(key.getEventType(), key.getTargetType());
-        if (profilerGroup != null) profilerGroup.addSubgroup(dispatcher.attachDefaultProfiler());
+        if (profilerGroup != null) profilerGroup.putSubgroup(dispatcher.attachDefaultProfiler());
         for (final var target : dispatcher.getCompatibleTargetTypes()) {
             final var compKey  = EventTargetKey.of(dispatcher.getEventType(), target);
             final var collection = listeners.getCollectionOrNull(compKey);
@@ -108,7 +108,7 @@ public class EventBusImpl implements EventBus<Event> {
         Objects.requireNonNull(profilerGroup);
         this.profilerGroup = profilerGroup;
         for (final var dispatcher : dispatchers.getDispatchers()) {
-            profilerGroup.addSubgroup(dispatcher.attachDefaultProfiler());
+            profilerGroup.putSubgroup(dispatcher.attachDefaultProfiler());
         }
     }
 

@@ -29,11 +29,16 @@ public class CompiledListeners {
         if (profilerGroup != null) {
             for (int i = 0; i < listeners.length; i++) {
                 final var listener = listeners[i];
-                final var entry = profilerGroup.entry(listener.getUniqueID(), s -> new EventProfilerEntry<>(s, listener));
-                this.consumers[i] = entry;
                 this.cIdxs[i] = listener.getComponentType().getInternalIdx();
-                if (entry.getListener() != listener)
-                    throw new IllegalStateException("duplicate listener: " + listener);
+                final var entry = (EventProfilerEntry) profilerGroup.getEntryOrNull(listener.getUniqueID());
+                if (entry == null) {
+                    final var newEntry = new EventProfilerEntry<>(listener.getUniqueID(), listener);
+                    this.consumers[i] = newEntry;
+                } else {
+                    this.consumers[i] = entry;
+                    if (entry.getListener() != listener)
+                        throw new IllegalStateException("Duplicate event listener: " + listener);
+                }
             }
         } else {
             for (int i = 0; i < listeners.length; i++) {

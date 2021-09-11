@@ -30,4 +30,9 @@ public abstract class ProfilerEntry {
 
     public abstract long getAverage();
 
+    @Override
+    public String toString() {
+        return getName() + " (" + getCount() + ") -> " + getAverage();
+    }
+
 }

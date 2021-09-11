@@ -17,12 +17,17 @@ public abstract class ProfilerGroup {
         return name;
     }
 
-    public @NotNull List<@NotNull ProfilerEntry> getEntries() {
-        return List.of();
-    }
+    public abstract @NotNull ProfilerEntry getEntry(String name);
 
-    public @NotNull List<@NotNull ProfilerGroup> getSubgroups() {
-        return List.of();
+    public abstract @NotNull ProfilerGroup getSubgroup(String name);
+
+    public abstract @NotNull List<@NotNull ProfilerEntry> getEntries();
+
+    public abstract @NotNull List<@NotNull ProfilerGroup> getSubgroups();
+
+    @Override
+    public String toString() {
+        return name;
     }
 
 }

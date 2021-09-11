@@ -5,11 +5,14 @@ import org.jetbrains.annotations.NotNull;
 
 import java.util.Arrays;
 
+/**
+ * Not thread-safe.
+ */
 public class CyclicProfilerEntry extends ProfilerEntry {
 
-    private final long[] data;
-    private long total = 0;
-    private int count = 0;
+    protected final long[] data;
+    protected long total = 0;
+    protected int count = 0;
 
     public CyclicProfilerEntry(@NotNull String name, int capacity) {
         super(name);

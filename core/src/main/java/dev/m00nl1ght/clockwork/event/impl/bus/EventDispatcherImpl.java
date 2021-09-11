@@ -126,7 +126,9 @@ public class EventDispatcherImpl<E extends Event, T extends ComponentTarget> imp
         this.profilerGroups = new SimpleProfilerGroup[compiledListeners.length];
         for (final var target : targetType.getAllSubtargets()) {
             final var idx = target.getSubtargetIdxFirst() - idxOffset;
-            this.profilerGroups[idx] = profilerGroup.subgroup(target.toString(), SimpleProfilerGroup::new);
+            final var group = new SimpleProfilerGroup(target.toString());
+            profilerGroup.putSubgroup(group);
+            this.profilerGroups[idx] = group;
             this.compiledListeners[idx] = null;
         }
     }
