@@ -1,13 +1,30 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
+import dev.m00nl1ght.clockwork.utils.config.impl.AttributesWrapper;
+import dev.m00nl1ght.clockwork.utils.config.impl.EmptyConfig;
+import dev.m00nl1ght.clockwork.utils.config.impl.ModifiableConfigImpl;
+
 import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
+import java.util.jar.Attributes;
 
 public interface Config {
 
-    Config EMPTY = new Empty();
+    Config EMPTY = EmptyConfig.INSTANCE;
+
+    static ModifiableConfig newConfig() {
+        return new ModifiableConfigImpl();
+    }
+
+    static Config fromAttributes(Attributes attributes) {
+        return new AttributesWrapper(attributes);
+    }
+
+    static Config fromAttributes(Attributes attributes, String keyPrefix) {
+        return new AttributesWrapper(attributes, keyPrefix);
+    }
 
     Set<String> getKeys();
 
@@ -17,7 +34,7 @@ public interface Config {
 
     List<String> getListOrNull(String key);
 
-    List<Config> getSubconfigListOrNull(String key);
+    List<? extends Config> getSubconfigListOrNull(String key);
 
     default String get(String key) {
         final var value = getOrNull(key);
@@ -40,7 +57,7 @@ public interface Config {
         return value;
     }
 
-    default Optional<Config> getOptionalSubconfig(String key) {
+    default Optional<? extends Config> getOptionalSubconfig(String key) {
         return Optional.ofNullable(getSubconfigOrNull(key));
     }
 
@@ -77,22 +94,22 @@ public interface Config {
         return List.of();
     }
 
-    default List<Config> getSubconfigList(String key) {
+    default List<? extends Config> getSubconfigList(String key) {
         final var value = getSubconfigListOrNull(key);
         if (value == null) throw new RuntimeException("Missing list " + key + " in config " + this);
         return value;
     }
 
-    default Optional<List<Config>> getOptionalSubconfigList(String key) {
+    default Optional<List<? extends Config>> getOptionalSubconfigList(String key) {
         return Optional.ofNullable(getSubconfigListOrNull(key));
     }
 
-    default List<Config> getSubconfigListOrEmpty(String key) {
+    default List<? extends Config> getSubconfigListOrEmpty(String key) {
         final var value = getSubconfigListOrNull(key);
         return value == null ? List.of() : value;
     }
 
-    default List<Config> getSubconfigListOrSingletonOrEmpty(String key) {
+    default List<? extends Config> getSubconfigListOrSingletonOrEmpty(String key) {
         final var list = getSubconfigListOrNull(key);
         if (list != null) return list;
         final var value = getSubconfigOrNull(key);
@@ -170,46 +187,16 @@ public interface Config {
         return found.orElseThrow(() -> new RuntimeException("Inavalid value " + key + " in config " + this + " (enum constant " + value + " does not exist)"));
     }
 
-    Config immutable();
+    Config copy();
 
-    default StrictConfig strict() {
-        return new StrictConfig(this);
+    ModifiableConfig modifiableCopy();
+
+    default Config asReadonly() {
+        return this;
     }
 
-    class Empty implements Config {
-
-        private Empty() {}
-
-        @Override
-        public Set<String> getKeys() {
-            return Set.of();
-        }
-
-        @Override
-        public String getOrNull(String key) {
-            return null;
-        }
-
-        @Override
-        public Config getSubconfigOrNull(String key) {
-            return null;
-        }
-
-        @Override
-        public List<String> getListOrNull(String key) {
-            return null;
-        }
-
-        @Override
-        public List<Config> getSubconfigListOrNull(String key) {
-            return null;
-        }
-
-        @Override
-        public Config immutable() {
-            return this;
-        }
-
+    default StrictConfig asStrict() {
+        return new StrictConfig(this);
     }
 
 }

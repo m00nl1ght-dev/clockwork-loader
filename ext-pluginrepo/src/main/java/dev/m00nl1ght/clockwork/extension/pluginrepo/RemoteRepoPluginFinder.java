@@ -1,12 +1,12 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
@@ -26,19 +26,18 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, RemoteRepoPluginFinder::new);
     }
 
-    public static Config newConfig(String name, URL rootURL, File cachePath, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, URL rootURL, File cachePath, boolean wildcard) {
         return newConfig(name, rootURL, cachePath, null, wildcard);
     }
 
-    public static Config newConfig(String name, URL rootURL, File cachePath, List<String> readers, boolean wildcard) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name, URL rootURL, File cachePath, List<String> readers, boolean wildcard) {
+        return Config.newConfig()
                 .putString("type", TYPE)
                 .putString("name", name)
                 .putStrings("readers", readers)
                 .putString("wildcard", wildcard)
                 .putString("rootURL", rootURL.toString())
-                .putString("cachePath", cachePath.getPath())
-                .build();
+                .putString("cachePath", cachePath.getPath());
     }
 
     private static final int MAX_META_SIZE = 1024 * 1024;

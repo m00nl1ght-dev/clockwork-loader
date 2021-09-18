@@ -1,17 +1,15 @@
-package dev.m00nl1ght.clockwork.utils.config.impl;
+package dev.m00nl1ght.clockwork.utils.config;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig.Builder;
+import dev.m00nl1ght.clockwork.utils.config.impl.ModifiableConfigImpl;
 
 import java.util.*;
 
 public class SimpleDataParser {
 
     public static final Segment<String> DEFAULT_STRING = new StringSegment('"', '"');
-    public static final Segment<Config> DEFAULT_CONFIG = new ConfigSegment(DEFAULT_STRING, '{', '}', '=', ',');
+    public static final Segment<ModifiableConfig> DEFAULT_CONFIG = new ConfigSegment(DEFAULT_STRING, '{', '}', '=', ',');
     public static final Segment<List<String>> DEFAULT_STRING_LIST = new StringListSegment(DEFAULT_STRING, '[', ']', ',');
-    public static final Segment<List<Config>> DEFAULT_CONFIG_LIST = new ConfigListSegment(DEFAULT_CONFIG, '[', ']', ',');
+    public static final Segment<List<ModifiableConfig>> DEFAULT_CONFIG_LIST = new ConfigListSegment(DEFAULT_CONFIG, '[', ']', ',');
     public static final Format DEFAULT_FORMAT = new Format(DEFAULT_STRING, DEFAULT_CONFIG, DEFAULT_STRING_LIST, DEFAULT_CONFIG_LIST);
 
     public static <T> T parse(Segment<T> segment, String input) {
@@ -100,7 +98,7 @@ public class SimpleDataParser {
 
         T consume(SimpleDataParser parser);
 
-        void applyToBuilder(T parsed, String key, Builder builder);
+        void applyToConfig(T parsed, String key, ModifiableConfig config);
 
         Collection<Character> getSpecialChars();
 
@@ -140,8 +138,8 @@ public class SimpleDataParser {
         }
 
         @Override
-        public void applyToBuilder(String parsed, String key, Builder builder) {
-            builder.putString(key, parsed);
+        public void applyToConfig(String parsed, String key, ModifiableConfig config) {
+            config.putString(key, parsed);
         }
 
         @Override
@@ -151,7 +149,7 @@ public class SimpleDataParser {
 
     }
 
-    public static class ConfigSegment implements Segment<Config> {
+    public static class ConfigSegment implements Segment<ModifiableConfig> {
 
         public final Segment<String> keySegment;
 
@@ -169,19 +167,19 @@ public class SimpleDataParser {
         }
 
         @Override
-        public Config consume(SimpleDataParser parser) {
+        public ModifiableConfig consume(SimpleDataParser parser) {
             if (parser.get() != TAG_START) return null;
-            final var builder = ImmutableConfig.builder();
+            final var config = new ModifiableConfigImpl();
             ploop: while (parser.tryAdvance()) {
                 final var key = keySegment.consume(parser);
                 if (key == null || parser.next() != MAPPING) throw parser.errorUnexpected();
                 if (!parser.tryAdvance()) throw parser.errorEOI();
                 for (final var segment : parser.format.segments) {
-                    if (tryConsumeValue(parser, builder, segment, key)) {
+                    if (tryConsumeValue(parser, config, segment, key)) {
                         final var next = parser.next();
                         if (next == DELIMETER) continue ploop;
                         if (next != TAG_END) throw parser.errorUnexpected();
-                        return builder.build();
+                        return config;
                     }
                 }
                 throw parser.errorInvalid();
@@ -189,21 +187,21 @@ public class SimpleDataParser {
             throw parser.errorEOI();
         }
 
-        protected <T> boolean tryConsumeValue(SimpleDataParser parser, Builder builder, Segment<T> segment, String key) {
+        protected <T> boolean tryConsumeValue(SimpleDataParser parser, ModifiableConfig config, Segment<T> segment, String key) {
             final var prev = parser.pos;
             final var value = segment.consume(parser);
             if (value == null) {
                 parser.pos = prev;
                 return false;
             } else {
-                segment.applyToBuilder(value, key, builder);
+                segment.applyToConfig(value, key, config);
                 return true;
             }
         }
 
         @Override
-        public void applyToBuilder(Config parsed, String key, Builder builder) {
-            builder.putSubconfig(key, parsed);
+        public void applyToConfig(ModifiableConfig parsed, String key, ModifiableConfig config) {
+            config.putSubconfig(key, parsed);
         }
 
         @Override
@@ -258,21 +256,21 @@ public class SimpleDataParser {
         }
 
         @Override
-        public void applyToBuilder(List<String> parsed, String key, Builder builder) {
-            builder.putStrings(key, parsed);
+        public void applyToConfig(List<String> parsed, String key, ModifiableConfig config) {
+            config.putStrings(key, parsed);
         }
 
     }
 
-    public static class ConfigListSegment extends ListSegment<Config> {
+    public static class ConfigListSegment extends ListSegment<ModifiableConfig> {
 
-        public ConfigListSegment(Segment<Config> elementSegment, char listStart, char listEnd, char delimeter) {
+        public ConfigListSegment(Segment<ModifiableConfig> elementSegment, char listStart, char listEnd, char delimeter) {
             super(elementSegment, listStart, listEnd, delimeter);
         }
 
         @Override
-        public void applyToBuilder(List<Config> parsed, String key, Builder builder) {
-            builder.putSubconfigs(key, parsed);
+        public void applyToConfig(List<ModifiableConfig> parsed, String key, ModifiableConfig config) {
+            config.putSubconfigs(key, parsed);
         }
 
     }

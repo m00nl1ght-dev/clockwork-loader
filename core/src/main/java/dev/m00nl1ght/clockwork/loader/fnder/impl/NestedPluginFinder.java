@@ -1,12 +1,12 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.io.IOException;
@@ -33,19 +33,18 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, NestedPluginFinder::new);
     }
 
-    public static Config newConfig(String name, Config innerFinder, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, Config innerFinder, boolean wildcard) {
         return newConfig(name, innerFinder, DEFAULT_PATH_IN_MODULE, null, wildcard);
     }
 
-    public static Config newConfig(String name, Config innerFinder, String pathInModule, List<String> readers, boolean wildcard) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name, Config innerFinder, String pathInModule, List<String> readers, boolean wildcard) {
+        return Config.newConfig()
                 .putString("type", TYPE)
                 .putString("name", name)
                 .putStrings("readers", readers)
                 .putString("wildcard", wildcard)
                 .putSubconfig("innerFinder", innerFinder)
-                .putString("pathInModule", pathInModule)
-                .build();
+                .putString("pathInModule", pathInModule);
     }
 
     protected NestedPluginFinder(ClockworkLoader loader, Config config) {

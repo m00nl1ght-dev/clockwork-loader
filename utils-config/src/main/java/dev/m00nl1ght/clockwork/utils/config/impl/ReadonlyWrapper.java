@@ -1,14 +1,17 @@
-package dev.m00nl1ght.clockwork.utils.config;
+package dev.m00nl1ght.clockwork.utils.config.impl;
 
-import java.util.*;
-import java.util.function.Predicate;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
-public class StrictConfig implements Config {
+import java.util.List;
+import java.util.Objects;
+import java.util.Set;
+
+public final class ReadonlyWrapper implements Config {
 
     private final Config config;
-    private final Set<String> queried = new HashSet<>();
 
-    protected StrictConfig(Config config) {
+    public ReadonlyWrapper(Config config) {
         this.config = Objects.requireNonNull(config);
     }
 
@@ -19,25 +22,21 @@ public class StrictConfig implements Config {
 
     @Override
     public String getOrNull(String key) {
-        queried.add(key);
         return config.getOrNull(key);
     }
 
     @Override
     public Config getSubconfigOrNull(String key) {
-        queried.add(key);
         return config.getSubconfigOrNull(key);
     }
 
     @Override
     public List<String> getListOrNull(String key) {
-        queried.add(key);
         return config.getListOrNull(key);
     }
 
     @Override
     public List<? extends Config> getSubconfigListOrNull(String key) {
-        queried.add(key);
         return config.getSubconfigListOrNull(key);
     }
 
@@ -49,25 +48,6 @@ public class StrictConfig implements Config {
     @Override
     public ModifiableConfig modifiableCopy() {
         return config.modifiableCopy();
-    }
-
-    public Set<String> getQueried() {
-        return Set.copyOf(queried);
-    }
-
-    public void throwOnRemaining() {
-        throwOnRemaining(s -> true);
-    }
-
-    public void throwOnRemaining(Predicate<String> condition) {
-        for (final var key : config.getKeys())
-            if (!queried.contains(key) && condition.test(key))
-                throw new RuntimeException("Config " + this + " contains entry " + key + " that is invalid or inapplicable in this context");
-    }
-
-    @Override
-    public StrictConfig asStrict() {
-        return this;
     }
 
     @Override

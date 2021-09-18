@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
@@ -26,18 +26,17 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, LocalRepoPluginFinder::new);
     }
 
-    public static Config newConfig(String name, File rootPath, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, File rootPath, boolean wildcard) {
         return newConfig(name, rootPath, null, wildcard);
     }
 
-    public static Config newConfig(String name, File rootPath, List<String> readers, boolean wildcard) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name, File rootPath, List<String> readers, boolean wildcard) {
+        return Config.newConfig()
                 .putString("type", TYPE)
                 .putString("name", name)
                 .putStrings("readers", readers)
                 .putString("wildcard", wildcard)
-                .putString("rootPath", rootPath.getPath())
-                .build();
+                .putString("rootPath", rootPath.getPath());
     }
 
     static final String JAR_FILE = "plugin.jar";

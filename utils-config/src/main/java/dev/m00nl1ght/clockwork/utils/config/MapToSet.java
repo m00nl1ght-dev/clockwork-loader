@@ -9,24 +9,17 @@ public class MapToSet<K, V> extends AbstractMap<K, Set<V>> {
 
     private final Map<K, Set<V>> map = new HashMap<>();
 
-    @NotNull
     @Override
-    public Set<Entry<K, Set<V>>> entrySet() {
+    public @NotNull Set<Entry<K, Set<V>>> entrySet() {
         return map.entrySet();
     }
 
     public boolean addValue(K key, V value) {
-        final var values = new HashSet<>(map.getOrDefault(key, Set.of()));
-        if (!values.add(value)) return false;
-        map.put(key, Set.copyOf(values));
-        return true;
+        return map.computeIfAbsent(key, n -> new HashSet<>()).add(value);
     }
 
     public boolean removeValue(K key, V value) {
-        final var values = new HashSet<>(map.getOrDefault(key, Set.of()));
-        if (!values.remove(value)) return false;
-        map.put(key, Set.copyOf(values));
-        return true;
+        return map.computeIfAbsent(key, n -> new HashSet<>()).remove(value);
     }
 
     @Override

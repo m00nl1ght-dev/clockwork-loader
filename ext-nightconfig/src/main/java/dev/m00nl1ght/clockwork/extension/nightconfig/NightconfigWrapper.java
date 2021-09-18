@@ -3,7 +3,7 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
 import java.io.File;
 import java.util.List;
@@ -55,30 +55,35 @@ public class NightconfigWrapper implements Config {
     }
 
     @Override
-    public Config immutable() {
-        final var builder = ImmutableConfig.builder();
+    public Config copy() {
+        return modifiableCopy().copy();
+    }
 
-        for (final var entry : config.entrySet()) {
+    @Override
+    public ModifiableConfig modifiableCopy() {
+        final var config = Config.newConfig();
+
+        for (final var entry : this.config.entrySet()) {
             final var value = entry.getValue();
             if (value instanceof List) {
                 final var list = (List<?>) value;
                 if (list.stream().allMatch(e -> UnmodifiableConfig.class.isAssignableFrom(e.getClass()))) {
-                    builder.putSubconfigs(entry.getKey(), list.stream()
-                            .map(config -> new NightconfigWrapper((UnmodifiableConfig) config))
+                    config.putSubconfigs(entry.getKey(), list.stream()
+                            .map(c -> new NightconfigWrapper((UnmodifiableConfig) c))
                             .collect(Collectors.toUnmodifiableSet()));
                 } else {
-                    builder.putStrings(entry.getKey(), list.stream()
+                    config.putStrings(entry.getKey(), list.stream()
                             .map(Object::toString)
                             .collect(Collectors.toUnmodifiableSet()));
                 }
             } else if (value instanceof UnmodifiableConfig) {
-                builder.putSubconfig(entry.getKey(), new NightconfigWrapper((UnmodifiableConfig) value));
+                config.putSubconfig(entry.getKey(), new NightconfigWrapper((UnmodifiableConfig) value));
             } else {
-                builder.putString(entry.getKey(), value.toString());
+                config.putString(entry.getKey(), value.toString());
             }
         }
 
-        return builder.build();
+        return config;
     }
 
 }

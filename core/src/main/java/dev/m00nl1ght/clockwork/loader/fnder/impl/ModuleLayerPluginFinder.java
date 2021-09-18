@@ -1,12 +1,12 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
 import java.lang.module.ResolvedModule;
 import java.util.Collection;
@@ -24,17 +24,16 @@ public class ModuleLayerPluginFinder extends AbstractPluginFinder {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, ModuleLayerPluginFinder::new);
     }
 
-    public static Config newConfig(String name, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, boolean wildcard) {
         return newConfig(name, null, wildcard);
     }
 
-    public static Config newConfig(String name, List<String> readers, boolean wildcard) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name, List<String> readers, boolean wildcard) {
+        return Config.newConfig()
                 .putString("type", TYPE)
                 .putString("name", name)
                 .putStrings("readers", readers)
-                .putString("wildcard", wildcard)
-                .build();
+                .putString("wildcard", wildcard);
     }
 
     protected final ModuleLayer moduleLayer;

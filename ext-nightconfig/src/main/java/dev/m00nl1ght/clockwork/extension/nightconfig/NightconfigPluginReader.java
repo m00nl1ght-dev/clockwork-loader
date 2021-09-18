@@ -3,11 +3,11 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.nio.file.Files;
@@ -23,12 +23,11 @@ public class NightconfigPluginReader implements PluginReader {
         loader.getFeatureProviders().register(PluginReader.class, TYPE, NightconfigPluginReader::new);
     }
 
-    public static Config newConfig(String name, String descriptorPath) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name, String descriptorPath) {
+        return Config.newConfig()
                 .putString("type", TYPE)
                 .putString("name", name)
-                .putString("descriptorPath", descriptorPath)
-                .build();
+                .putString("descriptorPath", descriptorPath);
     }
 
     protected final String name;

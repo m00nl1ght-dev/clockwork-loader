@@ -128,7 +128,7 @@ public final class ClockworkConfig {
         }
 
         public void extConfig(Config extConfig) {
-            this.extConfig = Objects.requireNonNull(extConfig).immutable();
+            this.extConfig = Objects.requireNonNull(extConfig).copy();
         }
 
     }

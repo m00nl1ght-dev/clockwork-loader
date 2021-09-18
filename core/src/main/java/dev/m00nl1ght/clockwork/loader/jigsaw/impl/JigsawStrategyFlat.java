@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.loader.jigsaw.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.loader.classloading.ClockworkClassLoader;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -29,16 +29,13 @@ public class JigsawStrategyFlat implements JigsawStrategy {
         loader.getFeatureProviders().register(JigsawStrategy.class, TYPE, JigsawStrategyFlat::new);
     }
 
-    public static Config newConfig(String name) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name) {
+        return Config.newConfig()
                 .putString("type", TYPE)
-                .putString("name", name)
-                .build();
+                .putString("name", name);
     }
 
-    protected JigsawStrategyFlat(ClockworkLoader loader, Config config) {
-
-    }
+    protected JigsawStrategyFlat(ClockworkLoader loader, Config config) {}
 
     @Override
     public @NotNull Map<@NotNull PluginReference, @NotNull ModuleLayer>

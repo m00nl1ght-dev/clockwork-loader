@@ -24,8 +24,8 @@ public class ConfiguredFeatureProviders<C> {
     }
 
     public <T> void register(@NotNull Class<T> featureType,
-                                     @NotNull String providerName,
-                                     @NotNull BiFunction<? super C, Config, ? extends T> provider) {
+                             @NotNull String providerName,
+                             @NotNull BiFunction<? super C, Config, ? extends T> provider) {
 
         if (locked) throw new IllegalStateException("Registry is locked");
         registryFor(Objects.requireNonNull(featureType)).register(providerName, provider);

@@ -1,7 +1,8 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
+import dev.m00nl1ght.clockwork.utils.config.SimpleDataParser;
 
 import java.util.List;
 import java.util.Objects;
@@ -63,15 +64,20 @@ public class AttributesWrapper implements Config {
     }
 
     @Override
-    public List<Config> getSubconfigListOrNull(String key) {
+    public List<? extends Config> getSubconfigListOrNull(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
         if (raw == null || !isList(raw.strip())) return null;
         return SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG_LIST, raw);
     }
 
     @Override
-    public Config immutable() {
-        final var builder = ImmutableConfig.builder();
+    public Config copy() {
+        return modifiableCopy().copy();
+    }
+
+    @Override
+    public ModifiableConfig modifiableCopy() {
+        final var config = new ModifiableConfigImpl();
 
         for (final var entry : attributes.entrySet()) {
             final var rawKey = entry.getKey().toString().strip();
@@ -79,28 +85,28 @@ public class AttributesWrapper implements Config {
             final var key = rawKey.substring(keyPrefix.length());
             final var value = entry.getValue().toString().strip();
             if (isConfig(value)) {
-                final var config = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, value);
-                if (config != null) {
-                    builder.putSubconfig(key, config);
+                final var subconfig = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, value);
+                if (subconfig != null) {
+                    config.putSubconfig(key, subconfig);
                 }
             } else if (isList(value)) {
                 final var stringList = SimpleDataParser.parse(SimpleDataParser.DEFAULT_STRING_LIST, value);
                 if (stringList != null) {
-                    builder.putStrings(key, stringList);
+                    config.putStrings(key, stringList);
                 } else {
                     final var configList = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG_LIST, value);
                     if (configList != null) {
-                        builder.putSubconfigs(key, configList);
+                        config.putSubconfigs(key, configList);
                     }
                 }
             } else if (isQuoted(value)) {
-                builder.putString(key, value.substring(1, value.length() - 1));
+                config.putString(key, value.substring(1, value.length() - 1));
             } else {
-                builder.putString(key, value);
+                config.putString(key, value);
             }
         }
 
-        return builder.build();
+        return config;
     }
 
     protected boolean isList(String val) {

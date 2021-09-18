@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.loader.reader.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ImmutableConfig;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
@@ -22,16 +22,15 @@ public class ManifestPluginReader implements PluginReader {
         loader.getFeatureProviders().register(PluginReader.class, TYPE, ManifestPluginReader::new);
     }
 
-    public static Config newConfig(String name) {
+    public static ModifiableConfig newConfig(String name) {
         return newConfig(name, "META-INF/MANIFEST.MF");
     }
 
-    public static Config newConfig(String name, String manifestPath) {
-        return ImmutableConfig.builder()
+    public static ModifiableConfig newConfig(String name, String manifestPath) {
+        return Config.newConfig()
                 .putString("type", TYPE)
                 .putString("name", name)
-                .putString("manifestPath", manifestPath)
-                .build();
+                .putString("manifestPath", manifestPath);
     }
 
     private static final String HEADER_PREFIX = "CWL-";
@@ -70,7 +69,7 @@ public class ManifestPluginReader implements PluginReader {
     }
 
     public Optional<PluginDescriptor> read(Manifest manifest) {
-        final var mainConfig = new AttributesWrapper(manifest.getMainAttributes(), HEADER_PREFIX).strict();
+        final var mainConfig = new AttributesWrapper(manifest.getMainAttributes(), HEADER_PREFIX).asStrict();
         final String pluginId = mainConfig.getOrNull(HEADER_PLUGIN_ID);
         if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
@@ -85,7 +84,7 @@ public class ManifestPluginReader implements PluginReader {
         for (final var entry : manifest.getEntries().entrySet()) {
             final var className = extractClassName(entry.getKey());
             if (className == null) continue;
-            final var entryConfig = new AttributesWrapper(entry.getValue(), HEADER_PREFIX).strict();
+            final var entryConfig = new AttributesWrapper(entry.getValue(), HEADER_PREFIX).asStrict();
             final var componentId = entryConfig.getOrNull(HEADER_COMPONENT_ID);
             if (componentId != null) {
                 if (componentId.equals(pluginId)) {
