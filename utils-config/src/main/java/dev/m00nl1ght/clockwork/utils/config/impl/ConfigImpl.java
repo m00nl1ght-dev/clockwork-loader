@@ -76,4 +76,9 @@ public class ConfigImpl implements Config {
         return new ModifiableConfigImpl(this);
     }
 
+    @Override
+    public String toString() {
+        return "Config";
+    }
+
 }

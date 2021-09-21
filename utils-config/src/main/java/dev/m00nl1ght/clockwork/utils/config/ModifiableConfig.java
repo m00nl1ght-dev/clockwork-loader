@@ -15,7 +15,7 @@ public interface ModifiableConfig extends Config {
 
     default ModifiableConfig getModifiableSubconfig(String key) {
         final var value = getModifiableSubconfigOrNull(key);
-        if (value == null) throw new RuntimeException("Missing subconfig " + key + " in config " + this);
+        if (value == null) throw new ConfigException(this, "Missing subconfig for entry " + key + " in " + this);
         return value;
     }
 
@@ -35,7 +35,7 @@ public interface ModifiableConfig extends Config {
 
     default List<? extends ModifiableConfig> getModifiableSubconfigList(String key) {
         final var value = getModifiableSubconfigListOrNull(key);
-        if (value == null) throw new RuntimeException("Missing list " + key + " in config " + this);
+        if (value == null) throw new ConfigException(this, "Missing list for entry " + key + " in " + this);
         return value;
     }
 

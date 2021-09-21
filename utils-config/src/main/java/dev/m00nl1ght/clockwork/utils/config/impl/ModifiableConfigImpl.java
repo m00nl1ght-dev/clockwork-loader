@@ -70,4 +70,9 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
         return new ConfigImpl(this);
     }
 
+    @Override
+    public String toString() {
+        return "ModifiableConfig";
+    }
+
 }

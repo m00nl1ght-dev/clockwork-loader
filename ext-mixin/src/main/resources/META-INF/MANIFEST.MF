@@ -1,14 +1,14 @@
 Manifest-Version: 1.0
-CWL-Plugin-Id: cwl-mixin
+CWL-Plugin-Id: "cwl-mixin"
 CWL-Plugin-Version: 0.7
-CWL-Plugin-Display-Name: [CWL-Extension] Mixin Framework
-CWL-Plugin-Description: An extension for the Clockwork Loader that integrates the Mixin framework.
-CWL-Plugin-Authors: m00nl1ght
+CWL-Plugin-Display-Name: "[CWL-Extension] Mixin Framework"
+CWL-Plugin-Description: "An extension for the Clockwork Loader that integrates the Mixin framework."
+CWL-Plugin-Authors: "m00nl1ght"
 
 Name: dev/m00nl1ght/clockwork/extension/mixin/CWLMixin.class
-CWL-Component-Id: cwl-mixin
-CWL-Component-Requires: clockwork[0.7]
+CWL-Component-Id: "cwl-mixin"
+CWL-Component-Requires: "clockwork[0.7]"
 
 Name: dev/m00nl1ght/clockwork/extension/mixin/CWLMixinExtension.class
-CWL-Component-Id: cwl-mixin:extension
-CWL-Component-Target: clockwork:loader
+CWL-Component-Id: "cwl-mixin:extension"
+CWL-Component-Target: "clockwork:loader"

@@ -1,12 +1,11 @@
 package dev.m00nl1ght.clockwork.loader.reader.impl;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
-import dev.m00nl1ght.clockwork.utils.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.nio.file.Files;
@@ -69,7 +68,7 @@ public class ManifestPluginReader implements PluginReader {
     }
 
     public Optional<PluginDescriptor> read(Manifest manifest) {
-        final var mainConfig = new AttributesWrapper(manifest.getMainAttributes(), HEADER_PREFIX).asStrict();
+        final var mainConfig = Config.fromAttributes(manifest.getMainAttributes(), HEADER_PREFIX).asStrict();
         final String pluginId = mainConfig.getOrNull(HEADER_PLUGIN_ID);
         if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
@@ -79,12 +78,12 @@ public class ManifestPluginReader implements PluginReader {
         mainConfig.getListOrSingletonOrEmpty(HEADER_PLUGIN_AUTHORS).forEach(descriptorBuilder::author);
         mainConfig.throwOnRemaining(e -> !e.startsWith(HEADER_EXT_PREFIX));
 
-        descriptorBuilder.extData(new AttributesWrapper(manifest.getMainAttributes(), HEADER_EXT_COMBINED));
+        descriptorBuilder.extData(Config.fromAttributes(manifest.getMainAttributes(), HEADER_EXT_COMBINED));
 
         for (final var entry : manifest.getEntries().entrySet()) {
             final var className = extractClassName(entry.getKey());
             if (className == null) continue;
-            final var entryConfig = new AttributesWrapper(entry.getValue(), HEADER_PREFIX).asStrict();
+            final var entryConfig = Config.fromAttributes(entry.getValue(), HEADER_PREFIX).asStrict();
             final var componentId = entryConfig.getOrNull(HEADER_COMPONENT_ID);
             if (componentId != null) {
                 if (componentId.equals(pluginId)) {
@@ -94,8 +93,8 @@ public class ManifestPluginReader implements PluginReader {
                     mainCompBuilder.componentClass(className);
                     entryConfig.getListOrSingletonOrEmpty(HEADER_COMPONENT_DEPENDENCIES)
                             .forEach(d -> mainCompBuilder.dependency(DependencyDescriptor.build(d)));
-                    mainCompBuilder.factoryChangesAllowed(entryConfig.getBooleanOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, false));
-                    mainCompBuilder.extData(new AttributesWrapper(entry.getValue(), HEADER_EXT_COMBINED));
+                    mainCompBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, Config.BOOLEAN, false));
+                    mainCompBuilder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.mainComponent(mainCompBuilder.build());
                 } else {
                     final var compBuilder = ComponentDescriptor.builder(pluginId, componentId);
@@ -104,9 +103,9 @@ public class ManifestPluginReader implements PluginReader {
                     compBuilder.target(Namespaces.combinedId(entryConfig.get(HEADER_COMPONENT_TARGET), pluginId));
                     entryConfig.getListOrSingletonOrEmpty(HEADER_COMPONENT_DEPENDENCIES)
                             .forEach(d -> compBuilder.dependency(DependencyDescriptor.build(d)));
-                    compBuilder.optional(entryConfig.getBooleanOrDefault(HEADER_COMPONENT_OPTIONAL, false));
-                    compBuilder.factoryChangesAllowed(entryConfig.getBooleanOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, false));
-                    compBuilder.extData(new AttributesWrapper(entry.getValue(), HEADER_EXT_COMBINED));
+                    compBuilder.optional(entryConfig.getOrDefault(HEADER_COMPONENT_OPTIONAL, Config.BOOLEAN, false));
+                    compBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, Config.BOOLEAN, false));
+                    compBuilder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.component(compBuilder.build());
                 }
             } else {
@@ -117,7 +116,7 @@ public class ManifestPluginReader implements PluginReader {
                     builder.targetClass(className);
                     entryConfig.getOptional(HEADER_TARGET_EXTENDS)
                             .ifPresent(e -> builder.parent(Namespaces.combinedId(e, pluginId)));
-                    builder.extData(new AttributesWrapper(entry.getValue(), HEADER_EXT_COMBINED));
+                    builder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.target(builder.build());
                 }
             }

@@ -22,7 +22,7 @@ public abstract class AbstractIndexedPluginFinder implements PluginFinder {
     protected AbstractIndexedPluginFinder(ClockworkLoader loader, Config config) {
         this.name = config.get("name");
         this.readerNames = config.getListOrNull("readers");
-        this.wildcard = config.getBooleanOrDefault("wildcard", false);
+        this.wildcard = config.getOrDefault("wildcard", Config.BOOLEAN, false);
     }
 
     @Override

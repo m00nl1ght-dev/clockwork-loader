@@ -47,4 +47,9 @@ public class EmptyConfig implements Config {
         return new ModifiableConfigImpl();
     }
 
+    @Override
+    public String toString() {
+        return "EmptyConfig";
+    }
+
 }

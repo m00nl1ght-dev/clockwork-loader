@@ -13,7 +13,11 @@ public class SimpleDataParser {
     public static final Format DEFAULT_FORMAT = new Format(DEFAULT_STRING, DEFAULT_CONFIG, DEFAULT_STRING_LIST, DEFAULT_CONFIG_LIST);
 
     public static <T> T parse(Segment<T> segment, String input) {
-        final var parser = new SimpleDataParser(input.strip(), DEFAULT_FORMAT);
+        return parse(DEFAULT_FORMAT, segment, input);
+    }
+
+    public static <T> T parse(Format format, Segment<T> segment, String input) {
+        final var parser = new SimpleDataParser(input, format);
         final var result = segment.consume(parser);
         if (result == null) return null;
         if (parser.tryAdvance()) throw parser.errorUnexpected();
@@ -92,6 +96,11 @@ public class SimpleDataParser {
             return segments;
         }
 
+        @SuppressWarnings("unchecked")
+        public <T> Optional<T> getSegment(Class<T> type) {
+            return segments.stream().filter(type::isInstance).map(s -> (T) s).findFirst();
+        }
+
     }
 
     public interface Segment<T> {
@@ -132,8 +141,9 @@ public class SimpleDataParser {
                         parser.pos = i - 1; return str;
                     }
                 }
+                final var str = parser.input.substring(parser.pos).strip();
                 parser.pos = parser.input.length() - 1;
-                return parser.input.substring(parser.pos).strip();
+                return str;
             }
         }
 

@@ -13,61 +13,58 @@ import java.util.stream.Collectors;
 public class AttributesWrapper implements Config {
 
     protected final Attributes attributes;
+    protected final SimpleDataParser.Format dataFormat;
+    protected final SimpleDataParser.StringSegment stringFormat;
+    protected final SimpleDataParser.ConfigSegment configFormat;
+    protected final SimpleDataParser.StringListSegment listFormat;
+    protected final SimpleDataParser.ConfigListSegment configListFormat;
     protected final String keyPrefix;
 
-    public AttributesWrapper(Attributes attributes) {
-        this(attributes, "");
-    }
-
-    public AttributesWrapper(Attributes attributes, String keyPrefix) {
+    public AttributesWrapper(Attributes attributes, SimpleDataParser.Format dataFormat, String keyPrefix) {
         this.attributes = Objects.requireNonNull(attributes);
+        this.dataFormat = Objects.requireNonNull(dataFormat);
+        this.stringFormat = dataFormat.getSegment(SimpleDataParser.StringSegment.class).orElseThrow();
+        this.configFormat = dataFormat.getSegment(SimpleDataParser.ConfigSegment.class).orElseThrow();
+        this.listFormat = dataFormat.getSegment(SimpleDataParser.StringListSegment.class).orElseThrow();
+        this.configListFormat = dataFormat.getSegment(SimpleDataParser.ConfigListSegment.class).orElseThrow();
         this.keyPrefix = Objects.requireNonNull(keyPrefix);
     }
 
     @Override
     public Set<String> getKeys() {
-        if (keyPrefix.isEmpty()) {
-            return attributes.keySet().stream()
+        return keyPrefix.isEmpty()
+                ? attributes.keySet().stream()
                     .map(Object::toString)
-                    .collect(Collectors.toUnmodifiableSet());
-        } else {
-            return attributes.keySet().stream()
+                    .collect(Collectors.toUnmodifiableSet())
+                : attributes.keySet().stream()
                     .map(Object::toString)
                     .filter(k -> k.startsWith(keyPrefix))
                     .map(k -> k.substring(keyPrefix.length()))
                     .collect(Collectors.toUnmodifiableSet());
-        }
     }
 
     @Override
     public String getOrNull(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
-        if (raw == null) return null;
-        final var val = raw.strip();
-        if (isList(val) || isConfig(val)) return null;
-        if (isQuoted(val)) return raw.substring(1, raw.length() - 1);
-        return raw;
+        return raw == null ? null : SimpleDataParser.parse(dataFormat, stringFormat, raw);
     }
 
     @Override
     public Config getSubconfigOrNull(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
-        if (raw == null || !isConfig(raw.strip())) return null;
-        return SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, raw);
+        return raw == null ? null : SimpleDataParser.parse(dataFormat, configFormat, raw);
     }
 
     @Override
     public List<String> getListOrNull(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
-        if (raw == null || !isList(raw.strip())) return null;
-        return SimpleDataParser.parse(SimpleDataParser.DEFAULT_STRING_LIST, raw);
+        return raw == null ? null : SimpleDataParser.parse(dataFormat, listFormat, raw);
     }
 
     @Override
     public List<? extends Config> getSubconfigListOrNull(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
-        if (raw == null || !isList(raw.strip())) return null;
-        return SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG_LIST, raw);
+        return raw == null ? null : SimpleDataParser.parse(dataFormat, configListFormat, raw);
     }
 
     @Override
@@ -84,44 +81,37 @@ public class AttributesWrapper implements Config {
             if (!rawKey.startsWith(keyPrefix)) continue;
             final var key = rawKey.substring(keyPrefix.length());
             final var value = entry.getValue().toString().strip();
-            if (isConfig(value)) {
-                final var subconfig = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG, value);
-                if (subconfig != null) {
-                    config.putSubconfig(key, subconfig);
-                }
-            } else if (isList(value)) {
-                final var stringList = SimpleDataParser.parse(SimpleDataParser.DEFAULT_STRING_LIST, value);
-                if (stringList != null) {
-                    config.putStrings(key, stringList);
-                } else {
-                    final var configList = SimpleDataParser.parse(SimpleDataParser.DEFAULT_CONFIG_LIST, value);
-                    if (configList != null) {
-                        config.putSubconfigs(key, configList);
-                    }
-                }
-            } else if (isQuoted(value)) {
-                config.putString(key, value.substring(1, value.length() - 1));
-            } else {
-                config.putString(key, value);
+
+            final var subconfig = SimpleDataParser.parse(dataFormat, configFormat, value);
+            if (subconfig != null) {
+                config.putSubconfig(key, subconfig);
+                continue;
+            }
+
+            final var stringList = SimpleDataParser.parse(dataFormat, listFormat, value);
+            if (stringList != null) {
+                config.putStrings(key, stringList);
+                continue;
+            }
+
+            final var configList = SimpleDataParser.parse(dataFormat, configListFormat, value);
+            if (configList != null) {
+                config.putSubconfigs(key, configList);
+                continue;
+            }
+
+            final var str = SimpleDataParser.parse(dataFormat, stringFormat, value);
+            if (str != null) {
+                config.putString(key, str);
             }
         }
 
         return config;
     }
 
-    protected boolean isList(String val) {
-        return val.charAt(0) == '[' &&
-                val.charAt(val.length() - 1) == ']';
-    }
-
-    protected boolean isConfig(String val) {
-        return val.charAt(0) == '{' &&
-                val.charAt(val.length() - 1) == '}';
-    }
-
-    protected boolean isQuoted(String val) {
-        return val.charAt(0) == '"' &&
-                val.charAt(val.length() - 1) == '"';
+    @Override
+    public String toString() {
+        return "Attributes";
     }
 
 }

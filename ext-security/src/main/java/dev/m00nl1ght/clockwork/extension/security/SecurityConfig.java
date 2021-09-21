@@ -79,7 +79,7 @@ public final class SecurityConfig {
     }
 
     public static PermissionsFactory permissionsFactoryFromConfig(Config config) {
-        final var reqDecl = config.getBooleanOrDefault("declared", false);
+        final var reqDecl = config.getOrDefault("declared", Config.BOOLEAN, false);
         final var perm = config.getSubconfigOrNull("permission");
         if (perm != null) {
             return new PermissionsFactory.Fixed(Set.of(permissionFromConfig(perm)), reqDecl);

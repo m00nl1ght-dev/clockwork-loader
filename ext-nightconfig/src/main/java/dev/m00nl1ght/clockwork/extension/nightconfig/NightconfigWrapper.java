@@ -86,4 +86,9 @@ public class NightconfigWrapper implements Config {
         return config;
     }
 
+    @Override
+    public String toString() {
+        return config.toString();
+    }
+
 }

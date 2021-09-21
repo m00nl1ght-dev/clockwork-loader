@@ -3,28 +3,49 @@ package dev.m00nl1ght.clockwork.utils.config;
 import dev.m00nl1ght.clockwork.utils.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.utils.config.impl.EmptyConfig;
 import dev.m00nl1ght.clockwork.utils.config.impl.ModifiableConfigImpl;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
 import java.util.jar.Attributes;
+import java.util.regex.Pattern;
 
 public interface Config {
 
     Config EMPTY = EmptyConfig.INSTANCE;
+
+    // VALUE TYPES
+
+    Type<String>    STRING      = new TypeString(null);
+    Type<Boolean>   BOOLEAN     = new TypeBoolean();
+    Type<Integer>   INT         = new TypeInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+    Type<Integer>   UINT        = new TypeInt(0, Integer.MAX_VALUE);
+    Type<Float>     FLOAT       = new TypeFloat(Float.MIN_VALUE, Float.MAX_VALUE);
+    Type<Float>     UFLOAT      = new TypeFloat(0f, Float.MAX_VALUE);
+
+    static <E extends Enum<E>> Type<E> ENUM(Class<E> enumClass) {
+        return new TypeEnum<>(enumClass);
+    }
+
+    // FACTORY METHODS
 
     static ModifiableConfig newConfig() {
         return new ModifiableConfigImpl();
     }
 
     static Config fromAttributes(Attributes attributes) {
-        return new AttributesWrapper(attributes);
+        return new AttributesWrapper(attributes, SimpleDataParser.DEFAULT_FORMAT, "");
     }
 
     static Config fromAttributes(Attributes attributes, String keyPrefix) {
-        return new AttributesWrapper(attributes, keyPrefix);
+        return new AttributesWrapper(attributes, SimpleDataParser.DEFAULT_FORMAT, keyPrefix);
     }
+
+    static Config fromAttributes(Attributes attributes, SimpleDataParser.Format dataFormat, String keyPrefix) {
+        return new AttributesWrapper(attributes, dataFormat, keyPrefix);
+    }
+
+    // INSTANCE METHODS
 
     Set<String> getKeys();
 
@@ -38,7 +59,7 @@ public interface Config {
 
     default String get(String key) {
         final var value = getOrNull(key);
-        if (value == null) throw new RuntimeException("Missing value " + key + " in config " + this);
+        if (value == null) throw new ConfigException(this, "Missing value for entry " + key + " in " + this);
         return value;
     }
 
@@ -53,7 +74,7 @@ public interface Config {
 
     default Config getSubconfig(String key) {
         final var value = getSubconfigOrNull(key);
-        if (value == null) throw new RuntimeException("Missing subconfig " + key + " in config " + this);
+        if (value == null) throw new ConfigException(this, "Missing subconfig for entry " + key + " in " + this);
         return value;
     }
 
@@ -73,7 +94,7 @@ public interface Config {
 
     default List<String> getList(String key) {
         final var value = getListOrNull(key);
-        if (value == null) throw new RuntimeException("Missing list " + key + " in config " + this);
+        if (value == null) throw new ConfigException(this, "Missing list for entry " + key + " in " + this);
         return value;
     }
 
@@ -96,7 +117,7 @@ public interface Config {
 
     default List<? extends Config> getSubconfigList(String key) {
         final var value = getSubconfigListOrNull(key);
-        if (value == null) throw new RuntimeException("Missing list " + key + " in config " + this);
+        if (value == null) throw new ConfigException(this, "Missing list for entry " + key + " in " + this);
         return value;
     }
 
@@ -117,74 +138,26 @@ public interface Config {
         return List.of();
     }
 
-    default int getInt(String key) {
-        return asInt(key, get(key));
-    }
-
-    default int getIntOrDefault(String key, int defaultValue) {
+    default <T> T getOrNull(String key, Type<T> valueType) {
         final var value = getOrNull(key);
-        return value == null ? defaultValue : asInt(key, value);
+        if (value == null) return null;
+        return valueType.get(this, key, value);
     }
 
-    private int asInt(String key, String value) {
-        try {
-            return Integer.parseInt(value);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Inavalid value " + key + " in config " + this + " (" + value + " is not an Integer)");
-        }
-    }
-
-    default float getFloat(String key) {
-        return asInt(key, get(key));
-    }
-
-    default float getFloatOrDefault(String key, float defaultValue) {
+    default <T> T get(String key, Type<T> valueType) {
         final var value = getOrNull(key);
-        return value == null ? defaultValue : asInt(key, value);
+        if (value == null) throw new ConfigException(this, "Missing value for entry " + key + " in " + this);
+        return valueType.get(this, key, value);
     }
 
-    private float asFloat(String key, String value) {
-        try {
-            return Float.parseFloat(value);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Inavalid value " + key + " in config " + this + " (" + value + " is not a Float)");
-        }
+    default <T> Optional<T> getOptional(String key, Type<T> valueType) {
+        return Optional.ofNullable(getOrNull(key, valueType));
     }
 
-    default boolean getBoolean(String key) {
-        return asBoolean(key, get(key));
-    }
-
-    default boolean getBooleanOrDefault(String key, boolean defaultValue) {
+    default <T> T getOrDefault(String key, Type<T> valueType, T defaultValue) {
         final var value = getOrNull(key);
-        return value == null ? defaultValue : asBoolean(key, value);
-    }
-
-    default boolean getBooleanOrFalse(String key) {
-        return getBooleanOrDefault(key, false);
-    }
-
-    private boolean asBoolean(String key, String value) {
-        try {
-            return Boolean.parseBoolean(value);
-        } catch (NumberFormatException e) {
-            throw new RuntimeException("Inavalid value " + key + " in config " + this + " (" + value + " is not a Boolean)");
-        }
-    }
-
-    default <E extends Enum<E>> E getEnum(String key, Class<E> enumClass) {
-        return asEnum(key, get(key), enumClass);
-    }
-
-    default <E extends Enum<E>> E getEnumOrDefault(String key, Class<E> enumClass, E defaultValue) {
-        final var value = getOrNull(key);
-        return value == null ? defaultValue : asEnum(key, value, enumClass);
-    }
-
-    private <E extends Enum<E>> E asEnum(String key, String value, Class<E> enumClass) {
-        final var found = Arrays.stream(enumClass.getEnumConstants())
-                .filter(e -> e.name().equalsIgnoreCase(value)).findAny();
-        return found.orElseThrow(() -> new RuntimeException("Inavalid value " + key + " in config " + this + " (enum constant " + value + " does not exist)"));
+        if (value == null) return defaultValue;
+        return valueType.get(this, key, value);
     }
 
     Config copy();
@@ -197,6 +170,151 @@ public interface Config {
 
     default StrictConfig asStrict() {
         return new StrictConfig(this);
+    }
+
+    // VALUE TYPE CLASSES
+
+    abstract class Type<T> {
+
+        public abstract @NotNull T get(@NotNull Config config, @NotNull String key, @NotNull String value);
+
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull T value) {
+            return null;
+        }
+
+        public abstract @NotNull Class<T> getValueClass();
+
+    }
+
+    class TypeString extends Type<String> {
+
+        public final Pattern pattern;
+
+        public TypeString(@Nullable Pattern pattern) {
+            this.pattern = pattern;
+        }
+
+        @Override
+        public @NotNull String get(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            return value;
+        }
+
+        @Override
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            if (pattern == null || pattern.matcher(value).matches()) return null;
+            return new ConfigException(config, key, value, "does not match pattern " + pattern);
+        }
+
+        @Override
+        public @NotNull Class<String> getValueClass() {
+            return String.class;
+        }
+
+    }
+
+    class TypeBoolean extends Type<Boolean> {
+
+        @Override
+        public @NotNull Boolean get(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            if (value.equalsIgnoreCase("true")) return true;
+            if (value.equalsIgnoreCase("false")) return false;
+            throw new ConfigException(config, key, value, "is not a boolean");
+        }
+
+        @Override
+        public @NotNull Class<Boolean> getValueClass() {
+            return Boolean.class;
+        }
+
+    }
+
+
+    class TypeInt extends Type<Integer> {
+
+        public final int minValue;
+        public final int maxValue;
+
+        public TypeInt(int minValue, int maxValue) {
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+        }
+
+        @Override
+        public @NotNull Integer get(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            try {
+                return Integer.parseInt(value);
+            } catch (NumberFormatException e) {
+                throw new ConfigException(config, key, value, "is not an integer");
+            }
+        }
+
+        @Override
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull Integer value) {
+            if (value >= minValue && value <= maxValue) return null;
+            return new ConfigException(config, key, value, "is not in range [" + minValue + ";" + maxValue + "]");
+        }
+
+        @Override
+        public @NotNull Class<Integer> getValueClass() {
+            return Integer.class;
+        }
+
+    }
+
+    class TypeFloat extends Type<Float> {
+
+        public final float minValue;
+        public final float maxValue;
+
+        public TypeFloat(float minValue, float maxValue) {
+            this.minValue = minValue;
+            this.maxValue = maxValue;
+        }
+
+        @Override
+        public @NotNull Float get(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            try {
+                return Float.parseFloat(value);
+            } catch (NumberFormatException e) {
+                throw new ConfigException(config, key, value, "is not a float");
+            }
+        }
+
+        @Override
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull Float value) {
+            if (value >= minValue && value <= maxValue) return null;
+            return new ConfigException(config, key, value, "is not in range [" + minValue + ";" + maxValue + "]");
+        }
+
+        @Override
+        public @NotNull Class<Float> getValueClass() {
+            return Float.class;
+        }
+
+    }
+
+    class TypeEnum<E extends Enum<E>> extends Type<E> {
+
+        public final Class<E> enumClass;
+
+        public TypeEnum(Class<E> enumClass) {
+            this.enumClass = Objects.requireNonNull(enumClass);
+        }
+
+        @Override
+        public @NotNull E get(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            try {
+                return Enum.valueOf(enumClass, value);
+            } catch (IllegalArgumentException e) {
+                throw new ConfigException(config, key, value, "is not a value of enum " + enumClass.getSimpleName());
+            }
+        }
+
+        @Override
+        public @NotNull Class<E> getValueClass() {
+            return enumClass;
+        }
+
     }
 
 }
