@@ -139,15 +139,18 @@ public interface Config {
     }
 
     default <T> T getOrNull(String key, Type<T> valueType) {
-        final var value = getOrNull(key);
-        if (value == null) return null;
-        return valueType.get(this, key, value);
+        final var raw = getOrNull(key);
+        if (raw == null) return null;
+        final var value = valueType.get(this, key, raw);
+        final var exc = valueType.verify(this, key, value);
+        if (exc != null) throw exc;
+        return value;
     }
 
     default <T> T get(String key, Type<T> valueType) {
-        final var value = getOrNull(key);
+        final var value = getOrNull(key, valueType);
         if (value == null) throw new ConfigException(this, "Missing value for entry " + key + " in " + this);
-        return valueType.get(this, key, value);
+        return value;
     }
 
     default <T> Optional<T> getOptional(String key, Type<T> valueType) {
@@ -155,9 +158,9 @@ public interface Config {
     }
 
     default <T> T getOrDefault(String key, Type<T> valueType, T defaultValue) {
-        final var value = getOrNull(key);
+        final var value = getOrNull(key, valueType);
         if (value == null) return defaultValue;
-        return valueType.get(this, key, value);
+        return value;
     }
 
     Config copy();
@@ -166,10 +169,6 @@ public interface Config {
 
     default Config asReadonly() {
         return this;
-    }
-
-    default StrictConfig asStrict() {
-        return new StrictConfig(this);
     }
 
     // VALUE TYPE CLASSES

@@ -68,7 +68,7 @@ public class ManifestPluginReader implements PluginReader {
     }
 
     public Optional<PluginDescriptor> read(Manifest manifest) {
-        final var mainConfig = Config.fromAttributes(manifest.getMainAttributes(), HEADER_PREFIX).asStrict();
+        final var mainConfig = Config.fromAttributes(manifest.getMainAttributes(), HEADER_PREFIX);
         final String pluginId = mainConfig.getOrNull(HEADER_PLUGIN_ID);
         if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
@@ -76,14 +76,13 @@ public class ManifestPluginReader implements PluginReader {
         descriptorBuilder.displayName(mainConfig.get(HEADER_PLUGIN_NAME));
         descriptorBuilder.description(mainConfig.getOrDefault(HEADER_PLUGIN_DESC, ""));
         mainConfig.getListOrSingletonOrEmpty(HEADER_PLUGIN_AUTHORS).forEach(descriptorBuilder::author);
-        mainConfig.throwOnRemaining(e -> !e.startsWith(HEADER_EXT_PREFIX));
 
         descriptorBuilder.extData(Config.fromAttributes(manifest.getMainAttributes(), HEADER_EXT_COMBINED));
 
         for (final var entry : manifest.getEntries().entrySet()) {
             final var className = extractClassName(entry.getKey());
             if (className == null) continue;
-            final var entryConfig = Config.fromAttributes(entry.getValue(), HEADER_PREFIX).asStrict();
+            final var entryConfig = Config.fromAttributes(entry.getValue(), HEADER_PREFIX);
             final var componentId = entryConfig.getOrNull(HEADER_COMPONENT_ID);
             if (componentId != null) {
                 if (componentId.equals(pluginId)) {
@@ -120,7 +119,6 @@ public class ManifestPluginReader implements PluginReader {
                     descriptorBuilder.target(builder.build());
                 }
             }
-            entryConfig.throwOnRemaining(e -> !e.startsWith(HEADER_EXT_PREFIX));
         }
 
         return Optional.of(descriptorBuilder.build());

@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Set;
 
-public final class ReadonlyWrapper implements Config {
+public class ReadonlyWrapper implements Config {
 
     private final Config config;
 
