@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
 import java.util.*;
@@ -8,13 +9,16 @@ import java.util.*;
 public class ConfigImpl implements Config {
 
     protected final Map<String, Object> map;
+    protected final ConfigSpec spec;
 
-    protected ConfigImpl() {
+    protected ConfigImpl(ConfigSpec spec) {
+        this.spec = spec;
         this.map = new HashMap<>();
     }
 
-    public ConfigImpl(ConfigImpl other) {
+    public ConfigImpl(ConfigImpl other, ConfigSpec spec) {
         this.map = deepCopy(other.map);
+        this.spec = spec;
     }
 
     protected Map<String, Object> deepCopy(Map<String, Object> src) {
@@ -43,25 +47,25 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public String getOrNull(String key) {
+    public String getString(String key) {
         final var val = map.get(key);
         return val instanceof String ? (String) val : null;
     }
 
     @Override
-    public Config getSubconfigOrNull(String key) {
+    public Config getSubconfig(String key) {
         final var val = map.get(key);
         return val instanceof Config ? (Config) val : null;
     }
 
     @Override
-    public List<String> getListOrNull(String key) {
+    public List<String> getStrings(String key) {
         final var val = map.get(key);
         return val instanceof String[] ? List.of((String[]) val) : null;
     }
 
     @Override
-    public List<Config> getSubconfigListOrNull(String key) {
+    public List<Config> getSubconfigs(String key) {
         final var val = map.get(key);
         return val instanceof Config[] ? List.of((Config[]) val) : null;
     }
@@ -72,8 +76,13 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public ModifiableConfig modifiableCopy() {
-        return new ModifiableConfigImpl(this);
+    public ModifiableConfig modifiableCopy(ConfigSpec spec) {
+        return new ModifiableConfigImpl(this, spec);
+    }
+
+    @Override
+    public ConfigSpec getSpec() {
+        return spec;
     }
 
     @Override

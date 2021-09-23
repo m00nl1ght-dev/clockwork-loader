@@ -20,8 +20,8 @@ public abstract class AbstractPluginFinder implements PluginFinder {
     protected final boolean wildcard;
 
     protected AbstractPluginFinder(ClockworkLoader loader, Config config) {
-        this.name = config.get("name");
-        this.readerNames = config.getListOrNull("readers");
+        this.name = config.getRequired("name", Config.STRING);
+        this.readerNames = config.getStrings("readers");
         this.wildcard = config.getOrDefault("wildcard", Config.BOOLEAN, false);
     }
 

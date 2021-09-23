@@ -1,7 +1,10 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Set;
@@ -18,22 +21,22 @@ public class EmptyConfig implements Config {
     }
 
     @Override
-    public String getOrNull(String key) {
+    public String getString(String key) {
         return null;
     }
 
     @Override
-    public Config getSubconfigOrNull(String key) {
+    public Config getSubconfig(String key) {
         return null;
     }
 
     @Override
-    public List<String> getListOrNull(String key) {
+    public List<String> getStrings(String key) {
         return null;
     }
 
     @Override
-    public List<Config> getSubconfigListOrNull(String key) {
+    public List<Config> getSubconfigs(String key) {
         return null;
     }
 
@@ -43,8 +46,8 @@ public class EmptyConfig implements Config {
     }
 
     @Override
-    public ModifiableConfig modifiableCopy() {
-        return new ModifiableConfigImpl();
+    public @NotNull ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec) {
+        return new ModifiableConfigImpl(spec);
     }
 
     @Override

@@ -1,7 +1,10 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
+import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -21,23 +24,23 @@ public class ReadonlyWrapper implements Config {
     }
 
     @Override
-    public String getOrNull(String key) {
-        return config.getOrNull(key);
+    public String getString(String key) {
+        return config.getString(key);
     }
 
     @Override
-    public Config getSubconfigOrNull(String key) {
-        return config.getSubconfigOrNull(key);
+    public Config getSubconfig(String key) {
+        return config.getSubconfig(key);
     }
 
     @Override
-    public List<String> getListOrNull(String key) {
-        return config.getListOrNull(key);
+    public List<String> getStrings(String key) {
+        return config.getStrings(key);
     }
 
     @Override
-    public List<? extends Config> getSubconfigListOrNull(String key) {
-        return config.getSubconfigListOrNull(key);
+    public List<? extends Config> getSubconfigs(String key) {
+        return config.getSubconfigs(key);
     }
 
     @Override
@@ -46,8 +49,8 @@ public class ReadonlyWrapper implements Config {
     }
 
     @Override
-    public ModifiableConfig modifiableCopy() {
-        return config.modifiableCopy();
+    public @NotNull ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec) {
+        return config.modifiableCopy(spec);
     }
 
     @Override

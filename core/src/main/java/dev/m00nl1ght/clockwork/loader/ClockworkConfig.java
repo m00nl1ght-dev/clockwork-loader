@@ -29,17 +29,17 @@ public final class ClockworkConfig {
     }
 
     private ClockworkConfig(Config data) {
-        this.wantedPlugins = List.copyOf(data.getListOrEmpty("plugins")
+        this.wantedPlugins = List.copyOf(data.getOrDefault("plugins", Config.LIST, List.of())
                 .stream().map(DependencyDescriptor::build)
                 .collect(Collectors.toUnmodifiableList()));
-        this.finders = Set.copyOf(data.getSubconfigListOrEmpty("finders"));
-        this.readers = Set.copyOf(data.getSubconfigListOrEmpty("readers"));
-        this.transformers = Set.copyOf(data.getSubconfigListOrEmpty("transformers"));
-        this.libModulePath = Set.copyOf(data.getListOrSingletonOrEmpty("libModulePath")
+        this.finders = Set.copyOf(data.getOrDefault("finders", Config.CLIST, List.of()));
+        this.readers = Set.copyOf(data.getOrDefault("readers", Config.CLIST, List.of()));
+        this.transformers = Set.copyOf(data.getOrDefault("transformers", Config.CLIST, List.of()));
+        this.libModulePath = Set.copyOf(data.getOrDefault("libModulePath", Config.LISTF, List.of())
                 .stream().map(Path::of)
                 .collect(Collectors.toUnmodifiableSet()));
-        this.jigsawStrategy = data.getSubconfigOrEmpty("jigsawStrategy");
-        this.extConfig = data.getSubconfigOrEmpty("ext");
+        this.jigsawStrategy = data.getOrDefault("jigsawStrategy", Config.CONFIG, Config.EMPTY);
+        this.extConfig = data.getOrDefault("ext", Config.CONFIG, Config.EMPTY);
     }
 
     public List<DependencyDescriptor> getWantedPlugins() {

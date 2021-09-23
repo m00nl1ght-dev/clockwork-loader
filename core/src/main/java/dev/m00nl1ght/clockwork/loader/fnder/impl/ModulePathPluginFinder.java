@@ -42,7 +42,7 @@ public class ModulePathPluginFinder extends AbstractPluginFinder {
 
     protected ModulePathPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
-        this.moduleFinder = ModuleFinder.of(Path.of(config.get("modulePath")));
+        this.moduleFinder = ModuleFinder.of(Path.of(config.getRequired("modulePath", Config.STRING)));
     }
 
     @Override

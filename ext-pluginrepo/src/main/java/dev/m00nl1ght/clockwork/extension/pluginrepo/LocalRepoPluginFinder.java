@@ -45,7 +45,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     protected LocalRepoPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
-        this.rootPath = Path.of(config.get("rootPath"));
+        this.rootPath = Path.of(config.getRequired("rootPath", Config.STRING));
     }
 
     @Override

@@ -8,6 +8,7 @@ import dev.m00nl1ght.clockwork.utils.reflect.ReflectionUtil;
 import java.security.Permission;
 import java.security.Permissions;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
@@ -35,7 +36,7 @@ public final class SecurityConfig {
                         e -> e.getValue().buildPermission(plugin.getDescriptor(), null),
                         (a, b) -> b, HashMap::new));
 
-        for (final var str : plugin.getDescriptor().getExtData().getListOrEmpty("Permissions")) {
+        for (final var str : plugin.getDescriptor().getExtData().getOrDefault("Permissions", Config.LIST, List.of())) {
             var i = str.indexOf(':');
             var perm = i < 0 ? str : str.substring(0, i);
             var value = i < 0 ? null : str.substring(i + 1);
@@ -58,14 +59,14 @@ public final class SecurityConfig {
     public static SecurityConfig from(Config config) {
         final var builder = builder();
 
-        final var shared = config.getSubconfigListOrEmpty("sharedPermissions");
+        final var shared = config.getOrDefault("sharedPermissions", Config.CLIST, List.of());
         for (final var permConf : shared) {
             builder.addSharedPermission(permissionFromConfig(permConf));
         }
 
-        final var declarable = config.getSubconfigListOrEmpty("declarablePermissions");
+        final var declarable = config.getOrDefault("declarablePermissions", Config.CLIST, List.of());
         for (final var permConf : declarable) {
-            final var name = permConf.get("name");
+            final var name = permConf.getRequired("name", Config.STRING);
             builder.addDeclarablePermission(name, permissionsFactoryFromConfig(permConf));
         }
 
@@ -73,18 +74,18 @@ public final class SecurityConfig {
     }
 
     public static Permission permissionFromConfig(Config config) {
-        final var className = config.get("permissionClass");
-        final var params = config.getListOrSingletonOrEmpty("params");
+        final var className = config.getRequired("permissionClass", Config.STRING);
+        final var params = config.getOrDefault("params", Config.LISTF, List.of());
         return ReflectionUtil.buildInstance(Permission.class, className, params);
     }
 
     public static PermissionsFactory permissionsFactoryFromConfig(Config config) {
-        final var reqDecl = config.getOrDefault("declared", Config.BOOLEAN, false);
-        final var perm = config.getSubconfigOrNull("permission");
+        final boolean reqDecl = config.getOrDefault("declared", Config.BOOLEAN, false);
+        final var perm = config.getSubconfig("permission");
         if (perm != null) {
             return new PermissionsFactory.Fixed(Set.of(permissionFromConfig(perm)), reqDecl);
         } else {
-            final var perms = config.getSubconfigListOrSingletonOrEmpty("permissions");
+            final var perms = config.getOrDefault("permissions", Config.CLISTF, List.of());
             final var constructed = perms.stream()
                     .map(SecurityConfig::permissionFromConfig)
                     .collect(Collectors.toUnmodifiableSet());

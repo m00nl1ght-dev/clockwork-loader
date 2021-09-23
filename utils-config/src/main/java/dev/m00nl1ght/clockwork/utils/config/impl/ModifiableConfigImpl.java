@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
 import java.util.*;
@@ -8,12 +9,12 @@ import java.util.stream.Collectors;
 
 public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig {
 
-    public ModifiableConfigImpl() {
-        super();
+    public ModifiableConfigImpl(ConfigSpec spec) {
+        super(spec);
     }
 
-    public ModifiableConfigImpl(ConfigImpl other) {
-        super(other);
+    public ModifiableConfigImpl(ConfigImpl other, ConfigSpec spec) {
+        super(other, spec);
     }
 
     @Override
@@ -22,8 +23,8 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
     }
 
     @Override
-    public ModifiableConfig getModifiableSubconfigOrNull(String key) {
-        final var config = getSubconfigOrNull(key);
+    public ModifiableConfig getModifiableSubconfig(String key) {
+        final var config = getSubconfig(key);
         if (config == null || config instanceof ModifiableConfig) return (ModifiableConfig) config;
         final var mConfig = config.modifiableCopy();
         map.put(key, mConfig);
@@ -31,8 +32,8 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
     }
 
     @Override
-    public List<ModifiableConfig> getModifiableSubconfigListOrNull(String key) {
-        final var list = getSubconfigListOrNull(key);
+    public List<ModifiableConfig> getModifiableSubconfigs(String key) {
+        final var list = getSubconfigs(key);
         if (list == null) return null;
         final var mList = list.stream().map(c -> c instanceof ModifiableConfig
                 ? (ModifiableConfig) c : c.modifiableCopy())
@@ -67,7 +68,7 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
 
     @Override
     public Config copy() {
-        return new ConfigImpl(this);
+        return new ConfigImpl(this, spec);
     }
 
     @Override

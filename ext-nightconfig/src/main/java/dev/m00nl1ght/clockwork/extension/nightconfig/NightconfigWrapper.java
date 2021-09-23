@@ -3,7 +3,9 @@ package dev.m00nl1ght.clockwork.extension.nightconfig;
 import com.electronwill.nightconfig.core.UnmodifiableConfig;
 import com.electronwill.nightconfig.core.file.FileConfig;
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
+import org.jetbrains.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
@@ -31,23 +33,23 @@ public class NightconfigWrapper implements Config {
     }
 
     @Override
-    public String getOrNull(String key) {
+    public String getString(String key) {
         return config.get(key);
     }
 
     @Override
-    public Config getSubconfigOrNull(String key) {
+    public Config getSubconfig(String key) {
         final UnmodifiableConfig sub = config.get(key);
         return sub == null ? null : new NightconfigWrapper(sub);
     }
 
     @Override
-    public List<String> getListOrNull(String key) {
+    public List<String> getStrings(String key) {
         return config.get(key);
     }
 
     @Override
-    public List<Config> getSubconfigListOrNull(String key) {
+    public List<Config> getSubconfigs(String key) {
         final List<UnmodifiableConfig> subs = config.get(key);
         return subs == null ? null : subs.stream()
                 .map(NightconfigWrapper::new)
@@ -60,8 +62,8 @@ public class NightconfigWrapper implements Config {
     }
 
     @Override
-    public ModifiableConfig modifiableCopy() {
-        final var config = Config.newConfig();
+    public ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec) {
+        final var config = Config.newConfig(spec);
 
         for (final var entry : this.config.entrySet()) {
             final var value = entry.getValue();

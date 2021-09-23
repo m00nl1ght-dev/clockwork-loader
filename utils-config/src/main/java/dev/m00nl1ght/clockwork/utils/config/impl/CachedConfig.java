@@ -9,9 +9,9 @@ public class CachedConfig extends ReadonlyWrapper {
     }
 
     @Override
-    public <T> T getOrNull(String key, Type<T> valueType) {
+    public <T> T get(String key, Type<T> valueType) {
         // TODO implement caching
-        final var value = super.getOrNull(key, valueType);
+        final var value = super.get(key, valueType);
         return value;
     }
 

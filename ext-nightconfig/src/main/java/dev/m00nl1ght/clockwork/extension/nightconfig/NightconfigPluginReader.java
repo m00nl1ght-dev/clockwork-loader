@@ -34,8 +34,8 @@ public class NightconfigPluginReader implements PluginReader {
     protected final String descriptorFilePath;
 
     protected NightconfigPluginReader(ClockworkLoader loader, Config config) {
-        this.name = config.get("name");
-        this.descriptorFilePath = config.get("descriptorPath");
+        this.name = config.getRequired("name", Config.STRING);
+        this.descriptorFilePath = config.getRequired("descriptorPath", Config.STRING);
     }
 
     @Override

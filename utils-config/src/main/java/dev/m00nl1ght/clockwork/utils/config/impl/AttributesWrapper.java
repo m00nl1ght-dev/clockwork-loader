@@ -1,8 +1,10 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.config.SimpleDataParser;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
 import java.util.Objects;
@@ -44,25 +46,25 @@ public class AttributesWrapper implements Config {
     }
 
     @Override
-    public String getOrNull(String key) {
+    public String getString(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
         return raw == null ? null : SimpleDataParser.parse(dataFormat, stringFormat, raw);
     }
 
     @Override
-    public Config getSubconfigOrNull(String key) {
+    public Config getSubconfig(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
         return raw == null ? null : SimpleDataParser.parse(dataFormat, configFormat, raw);
     }
 
     @Override
-    public List<String> getListOrNull(String key) {
+    public List<String> getStrings(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
         return raw == null ? null : SimpleDataParser.parse(dataFormat, listFormat, raw);
     }
 
     @Override
-    public List<? extends Config> getSubconfigListOrNull(String key) {
+    public List<? extends Config> getSubconfigs(String key) {
         final var raw = attributes.getValue(keyPrefix + key);
         return raw == null ? null : SimpleDataParser.parse(dataFormat, configListFormat, raw);
     }
@@ -73,8 +75,8 @@ public class AttributesWrapper implements Config {
     }
 
     @Override
-    public ModifiableConfig modifiableCopy() {
-        final var config = new ModifiableConfigImpl();
+    public ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec) {
+        final var config = new ModifiableConfigImpl(spec);
 
         for (final var entry : attributes.entrySet()) {
             final var rawKey = entry.getKey().toString().strip();

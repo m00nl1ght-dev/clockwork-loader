@@ -50,7 +50,7 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
     protected NestedPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
         this.innerFinderConfig = config.getSubconfig("innerFinder");
-        this.pathInModule = config.getOrDefault("pathInModule", DEFAULT_PATH_IN_MODULE);
+        this.pathInModule = config.getOrDefault("pathInModule", Config.STRING, DEFAULT_PATH_IN_MODULE);
     }
 
     @Override

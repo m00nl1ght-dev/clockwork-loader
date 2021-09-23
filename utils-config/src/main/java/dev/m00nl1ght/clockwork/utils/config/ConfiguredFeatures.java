@@ -24,7 +24,7 @@ public class ConfiguredFeatures {
                            @NotNull Config config,
                            @NotNull C context) {
 
-        final var featureName = config.getOrDefault("name", config.get("type"));
+        final var featureName = config.getOrDefault("name", Config.STRING, config.getRequired("type", Config.STRING));
         add(featureType, featureName, providers.newFeature(featureType, context, config));
     }
 

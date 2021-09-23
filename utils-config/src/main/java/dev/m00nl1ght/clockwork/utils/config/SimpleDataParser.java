@@ -179,7 +179,7 @@ public class SimpleDataParser {
         @Override
         public ModifiableConfig consume(SimpleDataParser parser) {
             if (parser.get() != TAG_START) return null;
-            final var config = new ModifiableConfigImpl();
+            final var config = new ModifiableConfigImpl(null);
             ploop: while (parser.tryAdvance()) {
                 final var key = keySegment.consume(parser);
                 if (key == null || parser.next() != MAPPING) throw parser.errorUnexpected();
