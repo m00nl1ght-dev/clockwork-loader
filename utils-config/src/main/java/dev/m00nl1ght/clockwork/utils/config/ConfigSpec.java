@@ -2,33 +2,61 @@ package dev.m00nl1ght.clockwork.utils.config;
 
 import dev.m00nl1ght.clockwork.utils.config.Config.Type;
 import org.jetbrains.annotations.NotNull;
+import org.jetbrains.annotations.Nullable;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class ConfigSpec {
 
+    protected final String specName;
     protected final ConfigSpec extendsFrom;
     protected final Map<String, Entry<?>> entryMap;
 
+    protected boolean allowAdditionalEntries;
+
     protected boolean locked;
 
-    public static ConfigSpec create() {
-        return new ConfigSpec(null);
+    public static ConfigSpec create(String specName) {
+        return new ConfigSpec(specName, null);
     }
 
-    public static ConfigSpec create(ConfigSpec extendsFrom) {
-        return new ConfigSpec(extendsFrom.lock());
+    public static ConfigSpec create(String specName, ConfigSpec extendsFrom) {
+        return new ConfigSpec(specName, extendsFrom.lock());
     }
 
-    protected ConfigSpec(ConfigSpec extendsFrom) {
+    protected ConfigSpec(String specName, ConfigSpec extendsFrom) {
+        this.specName = Objects.requireNonNull(specName);
         this.extendsFrom = extendsFrom;
         this.entryMap = new HashMap<>();
         if (extendsFrom != null) {
             this.entryMap.putAll(extendsFrom.entryMap);
         }
+    }
+
+    public ConfigException verify(Config config, boolean requireCompleteness) {
+        this.lock();
+        return entryMap.values().stream()
+                .map(entry -> verify(config, entry, requireCompleteness))
+                .filter(Objects::nonNull).findFirst().orElse(null);
+    }
+
+    private <T> ConfigException verify(Config config, Entry<T> entry, boolean requireCompleteness) {
+        final var value = config.get(entry.key, entry.type);
+        if (value != null) {
+            return entry.type.verify(config, entry.key, value);
+        } else if (requireCompleteness && entry.required) {
+            return new ConfigException(config, "Missing value for required entry " + entry.key + " in " + config);
+        } else return null;
+    }
+
+    public Set<String> findAdditionalEntries(Config config) {
+        this.lock();
+        return config.getKeys().stream().filter(k -> !entryMap.containsKey(k)).collect(Collectors.toSet());
     }
 
     public <T> Entry<T> add(String key, Type<T> valueType) {
@@ -49,8 +77,35 @@ public class ConfigSpec {
         return Set.copyOf(entryMap.values());
     }
 
+    public ConfigSpec forSubconfig(String key) {
+        final var entry = entryMap.get(key);
+        if (entry == null) return null;
+        if (entry.type instanceof Config.TypeConfig)
+            return ((Config.TypeConfig) entry.type).spec;
+        if (entry.type instanceof Config.TypeConfigList)
+            return ((Config.TypeConfigList) entry.type).spec;
+        return null;
+    }
+
+    public void allowAdditionalEntries() {
+        this.allowAdditionalEntries(true);
+    }
+
+    public void allowAdditionalEntries(boolean allowAdditionalEntries) {
+        this.requireNotLocked();
+        this.allowAdditionalEntries = allowAdditionalEntries;
+    }
+
+    public boolean doesAllowAdditionalEntries() {
+        return allowAdditionalEntries;
+    }
+
     public ConfigSpec getExtendsFrom() {
         return extendsFrom;
+    }
+
+    public String getName() {
+        return specName;
     }
 
     public ConfigSpec lock() {
@@ -66,6 +121,20 @@ public class ConfigSpec {
         if (this.locked) throw new IllegalStateException("ConfigSpec is already in use and can no longer be modified");
     }
 
+    public boolean canApplyAs(@NotNull ConfigSpec other) {
+        return other == this || (extendsFrom != null && extendsFrom.canApplyAs(other));
+    }
+
+    public static boolean canApply(@Nullable ConfigSpec spec, @Nullable ConfigSpec applyAs) {
+        // spec may extend from applyAs
+        return applyAs == null || (spec != null && spec.canApplyAs(applyAs));
+    }
+
+    @Override
+    public String toString() {
+        return specName;
+    }
+
     public static class Entry<T> implements Comparable<Entry<?>> {
 
         protected final ConfigSpec spec;
@@ -74,7 +143,7 @@ public class ConfigSpec {
         protected final int sortIndex;
 
         protected boolean required;
-        protected T defaultValue;
+        protected Function<Config, T> defaultSupplier;
 
         protected Entry(ConfigSpec spec, String key, Type<T> type, int sortIndex) {
             this.spec = Objects.requireNonNull(spec);
@@ -85,12 +154,26 @@ public class ConfigSpec {
 
         public Entry<T> defaultValue(T defaultValue) {
             spec.requireNotLocked();
-            this.defaultValue = defaultValue;
+            this.defaultSupplier = c -> defaultValue;
             return this;
         }
 
-        public T getDefaultValue() {
-            return defaultValue;
+        public Entry<T> defaultTo(Entry<T> other) {
+            spec.requireNotLocked();
+            if (!spec.canApplyAs(other.spec))
+                throw new IllegalArgumentException("Config spec mismatch");
+            this.defaultSupplier = c -> c.get(other);
+            return this;
+        }
+
+        public Entry<T> defaultTo(Function<Config, T> defaultSupplier) {
+            spec.requireNotLocked();
+            this.defaultSupplier = Objects.requireNonNull(defaultSupplier);
+            return this;
+        }
+
+        public T getDefaultValue(Config config) {
+            return defaultSupplier.apply(Objects.requireNonNull(config));
         }
 
         public Entry<T> required() {

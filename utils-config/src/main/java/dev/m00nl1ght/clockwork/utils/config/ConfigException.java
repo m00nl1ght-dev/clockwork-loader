@@ -10,6 +10,10 @@ public class ConfigException extends RuntimeException {
         this(config, "Value " + value + " for entry " + key + " in " + config + " " + append);
     }
 
+    public ConfigException(Config config, String key, Config value, String append) {
+        this(config, "Subconfig for entry " + key + " in " + config + " " + append);
+    }
+
     public ConfigException(Config config, String message) {
         super(message);
         this.config = Objects.requireNonNull(config);

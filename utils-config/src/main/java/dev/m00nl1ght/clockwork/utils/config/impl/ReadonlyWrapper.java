@@ -12,7 +12,7 @@ import java.util.Set;
 
 public class ReadonlyWrapper implements Config {
 
-    private final Config config;
+    protected final Config config;
 
     public ReadonlyWrapper(Config config) {
         this.config = Objects.requireNonNull(config);
@@ -44,13 +44,18 @@ public class ReadonlyWrapper implements Config {
     }
 
     @Override
-    public Config copy() {
-        return config.copy();
+    public Config copy(@Nullable ConfigSpec spec) {
+        return config.copy(spec);
     }
 
     @Override
     public @NotNull ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec) {
         return config.modifiableCopy(spec);
+    }
+
+    @Override
+    public @Nullable ConfigSpec getSpec() {
+        return config.getSpec();
     }
 
     @Override

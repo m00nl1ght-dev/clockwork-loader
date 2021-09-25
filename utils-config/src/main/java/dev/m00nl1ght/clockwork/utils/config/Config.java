@@ -48,6 +48,18 @@ public interface Config {
         return new TypeList<>(elementType, true);
     }
 
+    static @NotNull TypeConfig CONFIG(@NotNull ConfigSpec spec) {
+        return new TypeConfig(Objects.requireNonNull(spec));
+    }
+
+    static @NotNull TypeConfigList CLIST(@NotNull ConfigSpec spec) {
+        return new TypeConfigList(Objects.requireNonNull(spec), false);
+    }
+
+    static @NotNull TypeConfigList CLISTF(@NotNull ConfigSpec spec) {
+        return new TypeConfigList(Objects.requireNonNull(spec), true);
+    }
+
     // FACTORY METHODS
 
     static @NotNull ModifiableConfig newConfig() {
@@ -109,13 +121,25 @@ public interface Config {
     }
 
     default <T> @Nullable T get(@NotNull Entry<T> entry) {
-        if (entry.spec != this.getSpec()) throw new IllegalArgumentException("Config spec entry mismatch");
+        final var spec = getSpec();
         final var value = entry.type.get(this, entry.key);
-        if (value == null) return entry.defaultValue;
-        return value;
+        if (spec == null || !spec.canApplyAs(entry.spec)) {
+            final var exc = entry.type.verify(this, entry.key, value);
+            if (exc != null) throw exc;
+        }
+        if (value != null) return value;
+        if (entry.required) {
+            throw new ConfigException(this, "Missing value for required entry " + entry.key + " in " + this);
+        } else {
+            return entry.defaultSupplier.apply(this);
+        }
     }
 
-    @NotNull Config copy();
+    @NotNull Config copy(@Nullable ConfigSpec spec);
+
+    default @NotNull Config copy() {
+        return copy(getSpec());
+    }
 
     @NotNull ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec);
 
@@ -137,8 +161,14 @@ public interface Config {
 
         public abstract @Nullable T get(@NotNull Config config, @NotNull String key);
 
+        public abstract void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull T value);
+
         public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull T value) {
             return null;
+        }
+
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key) {
+            return verify(config, key, get(config, key));
         }
 
     }
@@ -151,7 +181,16 @@ public interface Config {
             return raw == null ? null : parse(config, key, raw);
         }
 
+        @Override
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull T value) {
+            config.putString(key, asString(value));
+        }
+
         public abstract @NotNull T parse(@NotNull Config config, @NotNull String key, @NotNull String value);
+
+        public @NotNull String asString(@NotNull T value) {
+            return value.toString();
+        }
 
     }
 
@@ -250,6 +289,11 @@ public interface Config {
         }
 
         @Override
+        public @NotNull String asString(@NotNull E value) {
+            return value.name();
+        }
+
+        @Override
         public @NotNull E parse(@NotNull Config config, @NotNull String key, @NotNull String value) {
             try {
                 return Enum.valueOf(enumClass, value);
@@ -282,6 +326,11 @@ public interface Config {
         }
 
         @Override
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull List<T> value) {
+            config.putStrings(key, value.stream().map(elementType::asString).collect(Collectors.toList()));
+        }
+
+        @Override
         public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull List<T> value) {
             return value.stream()
                     .map(element -> elementType.verify(config, key, element))
@@ -305,9 +354,19 @@ public interface Config {
         }
 
         @Override
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull Config value) {
+            config.putSubconfig(key, value);
+        }
+
+        @Override
         public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull Config value) {
             if (spec == null) return null;
-            throw new UnsupportedOperationException(); // TODO
+            final var vSpec = value.getSpec();
+            if (vSpec == null)
+                return new ConfigException(config, key, value, "does not have required spec " + spec);
+            if (!vSpec.canApplyAs(spec))
+                return new ConfigException(config, key, value, "has incompatible spec " + vSpec);
+            return null;
         }
 
     }
@@ -332,9 +391,21 @@ public interface Config {
         }
 
         @Override
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull List<? extends Config> value) {
+            config.putSubconfigs(key, value);
+        }
+
+        @Override
         public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull List<? extends Config> value) {
             if (spec == null) return null;
-            throw new UnsupportedOperationException(); // TODO
+            for (final var element : value) {
+                final var vSpec = element.getSpec();
+                if (vSpec == null)
+                    return new ConfigException(config, key, value, "does not have required spec " + spec);
+                if (!vSpec.canApplyAs(spec))
+                    return new ConfigException(config, key, element, "has incompatible spec " + vSpec);
+            }
+            return null;
         }
 
     }

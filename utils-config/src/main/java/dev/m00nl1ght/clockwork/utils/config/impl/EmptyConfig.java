@@ -41,8 +41,8 @@ public class EmptyConfig implements Config {
     }
 
     @Override
-    public Config copy() {
-        return INSTANCE;
+    public Config copy(@Nullable ConfigSpec spec) {
+        return spec == null ? INSTANCE : new ConfigImpl(spec);
     }
 
     @Override

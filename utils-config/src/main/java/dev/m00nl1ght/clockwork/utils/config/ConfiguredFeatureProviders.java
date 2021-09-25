@@ -18,7 +18,7 @@ public class ConfiguredFeatureProviders<C> {
                                      @NotNull C context,
                                      @NotNull Config config) {
 
-        final var providerName = config.getRequired("type", Config.STRING);
+        final var providerName = config.get(ConfiguredFeatures.CONFIG_ENTRY_TYPE);
         final var provider = registryFor(Objects.requireNonNull(featureType)).get(providerName);
         return provider.apply(Objects.requireNonNull(context), config);
     }

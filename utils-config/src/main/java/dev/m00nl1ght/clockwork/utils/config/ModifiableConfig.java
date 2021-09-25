@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
 import dev.m00nl1ght.clockwork.utils.config.impl.ReadonlyWrapper;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -20,6 +21,16 @@ public interface ModifiableConfig extends Config {
     @NotNull ModifiableConfig putStrings(@NotNull String key, @Nullable Collection<String> value);
 
     @NotNull ModifiableConfig putSubconfigs(@NotNull String key, @Nullable Collection<? extends Config> value);
+
+    default @NotNull <T> ModifiableConfig put(@NotNull String key, @NotNull Type<T> valueType, @Nullable T value) {
+        valueType.put(this, key, value);
+        return this;
+    }
+
+    default @NotNull <T> ModifiableConfig put(@NotNull Entry<T> entry, @Nullable T value) {
+        entry.type.put(this, entry.key, value);
+        return this;
+    }
 
     @Override
     default @NotNull Config asReadonly() {

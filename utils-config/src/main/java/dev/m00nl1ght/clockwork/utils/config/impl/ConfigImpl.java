@@ -11,23 +11,31 @@ public class ConfigImpl implements Config {
     protected final Map<String, Object> map;
     protected final ConfigSpec spec;
 
-    protected ConfigImpl(ConfigSpec spec) {
+    public ConfigImpl(ConfigSpec spec) {
         this.spec = spec;
         this.map = new HashMap<>();
     }
 
     public ConfigImpl(ConfigImpl other, ConfigSpec spec) {
-        this.map = deepCopy(other.map);
+        final var deepCopy = this instanceof ModifiableConfig ||
+                other instanceof ModifiableConfig || spec != other.spec;
+        this.map = deepCopy ? deepCopy(other.map) : other.map;
         this.spec = spec;
+        if (!ConfigSpec.canApply(other.spec, spec)) {
+            final var exc = spec.verify(this, false);
+            if (exc != null) throw exc;
+        }
     }
 
     protected Map<String, Object> deepCopy(Map<String, Object> src) {
         final var dest = new HashMap<String, Object>(src.size());
         src.forEach((k, v) -> {
             if (v instanceof Config) {
-                dest.put(k, deepCopy((Config) v));
+                final var subSpec = spec == null ? null : spec.forSubconfig(k);
+                dest.put(k, deepCopy((Config) v, subSpec));
             } else if (v instanceof Config[]) {
-                dest.put(k, Arrays.stream((Config[]) v).map(this::deepCopy).toArray(Config[]::new));
+                final var subSpec = spec == null ? null : spec.forSubconfig(k);
+                dest.put(k, Arrays.stream((Config[]) v).map(c -> deepCopy(c, subSpec)).toArray(Config[]::new));
             } else if (v instanceof String[]) {
                 dest.put(k, ((String[]) v).clone());
             } else {
@@ -37,8 +45,8 @@ public class ConfigImpl implements Config {
         return dest;
     }
 
-    protected Config deepCopy(Config src) {
-        return src.copy();
+    protected Config deepCopy(Config src, ConfigSpec spec) {
+        return src.copy(spec);
     }
 
     @Override
@@ -71,8 +79,9 @@ public class ConfigImpl implements Config {
     }
 
     @Override
-    public Config copy() {
-        return this;
+    public Config copy(ConfigSpec spec) {
+        if (spec == this.spec) return this;
+        return new ConfigImpl(this, spec);
     }
 
     @Override

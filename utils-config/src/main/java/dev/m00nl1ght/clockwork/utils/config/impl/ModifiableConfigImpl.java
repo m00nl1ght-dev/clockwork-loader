@@ -1,6 +1,7 @@
 package dev.m00nl1ght.clockwork.utils.config.impl;
 
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigException;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
@@ -18,8 +19,8 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
     }
 
     @Override
-    protected Config deepCopy(Config src) {
-        return src.modifiableCopy();
+    protected Config deepCopy(Config src, ConfigSpec spec) {
+        return src.modifiableCopy(spec);
     }
 
     @Override
@@ -45,30 +46,50 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
     @Override
     public ModifiableConfig putString(String key, Object value) {
         map.put(Objects.requireNonNull(key), value == null ? null : value.toString());
+        checkSpec(key);
         return this;
     }
 
     @Override
     public ModifiableConfig putSubconfig(String key, Config value) {
         map.put(Objects.requireNonNull(key), value);
+        checkSpec(key);
         return this;
     }
 
     @Override
     public ModifiableConfig putStrings(String key, Collection<String> value) {
         map.put(Objects.requireNonNull(key), value == null ? null : value.toArray(String[]::new));
+        checkSpec(key);
         return this;
     }
 
     @Override
     public ModifiableConfig putSubconfigs(String key, Collection<? extends Config> value) {
         map.put(Objects.requireNonNull(key), value == null ? null : value.toArray(Config[]::new));
+        checkSpec(key);
         return this;
     }
 
+    private void checkSpec(String key) {
+        if (spec == null) return;
+        final var entry = spec.getEntry(key);
+        if (entry != null) {
+            final var exc = entry.getType().verify(this, key);
+            if (exc != null) throw exc;
+        } else if (!spec.doesAllowAdditionalEntries()) {
+            throw new ConfigException(this, "Unknown entry " + key + " in " + this + " but not in spec " + spec);
+        }
+    }
+
     @Override
-    public Config copy() {
+    public Config copy(ConfigSpec spec) {
         return new ConfigImpl(this, spec);
+    }
+
+    @Override
+    public ModifiableConfig modifiableCopy(ConfigSpec spec) {
+        return new ModifiableConfigImpl(this, spec);
     }
 
     @Override

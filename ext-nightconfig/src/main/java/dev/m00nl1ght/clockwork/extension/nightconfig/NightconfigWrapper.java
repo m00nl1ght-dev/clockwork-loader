@@ -57,13 +57,17 @@ public class NightconfigWrapper implements Config {
     }
 
     @Override
-    public Config copy() {
-        return modifiableCopy().copy();
+    public Config copy(@Nullable ConfigSpec spec) {
+        return build().copy(spec);
     }
 
     @Override
     public ModifiableConfig modifiableCopy(@Nullable ConfigSpec spec) {
-        final var config = Config.newConfig(spec);
+        return spec == null ? build() : build().modifiableCopy(spec);
+    }
+
+    protected ModifiableConfig build() {
+        final var config = Config.newConfig();
 
         for (final var entry : this.config.entrySet()) {
             final var value = entry.getValue();
