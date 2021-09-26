@@ -1,28 +1,21 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
-import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public abstract class AbstractIndexedPluginFinder implements PluginFinder {
+public abstract class AbstractIndexedPluginFinder extends AbstractPluginFinder {
 
     private Map<String, Map<Version, PluginReference>> index;
 
-    protected final String name;
-    protected final List<String> readerNames;
-    protected final boolean wildcard;
-
     protected AbstractIndexedPluginFinder(ClockworkLoader loader, Config config) {
-        this.name = config.getRequired("name", Config.STRING);
-        this.readerNames = config.getStrings("readers");
-        this.wildcard = config.getOrDefault("wildcard", Config.BOOLEAN, false);
+        super(loader, config);
     }
 
     @Override
@@ -57,11 +50,6 @@ public abstract class AbstractIndexedPluginFinder implements PluginFinder {
         if (found.isEmpty()) return found;
         versionIndex.put(version, found.get());
         return found;
-    }
-
-    @Override
-    public boolean isWildcard() {
-        return wildcard;
     }
 
     protected abstract Set<String> indexPlugins(ClockworkLoader loader);

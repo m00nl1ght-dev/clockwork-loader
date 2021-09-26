@@ -101,7 +101,7 @@ public interface Config {
         if (value == null) return null;
         final var exc = valueType.verify(this, key, value);
         if (exc != null) throw exc;
-        return valueType.get(this, key);
+        return value;
     }
 
     default <T> @NotNull T getRequired(@NotNull String key, @NotNull Type<T> valueType) {
@@ -123,12 +123,13 @@ public interface Config {
     default <T> @Nullable T get(@NotNull Entry<T> entry) {
         final var spec = getSpec();
         final var value = entry.type.get(this, entry.key);
-        if (spec == null || !spec.canApplyAs(entry.spec)) {
-            final var exc = entry.type.verify(this, entry.key, value);
-            if (exc != null) throw exc;
-        }
-        if (value != null) return value;
-        if (entry.required) {
+        if (value != null) {
+            if (spec == null || !spec.canApplyAs(entry.spec)) {
+                final var exc = entry.type.verify(this, entry.key, value);
+                if (exc != null) throw exc;
+            }
+            return value;
+        } else if (entry.required) {
             throw new ConfigException(this, "Missing value for required entry " + entry.key + " in " + this);
         } else {
             return entry.defaultSupplier.apply(this);
@@ -168,7 +169,8 @@ public interface Config {
         }
 
         public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key) {
-            return verify(config, key, get(config, key));
+            final var value = get(config, key);
+            return value == null ? null : verify(config, key, value);
         }
 
     }
@@ -346,6 +348,7 @@ public interface Config {
 
         public TypeConfig(@Nullable ConfigSpec spec) {
             this.spec = spec;
+            if (spec != null) spec.lock();
         }
 
         @Override

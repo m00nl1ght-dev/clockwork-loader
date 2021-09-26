@@ -4,8 +4,13 @@ import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
+import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config.Type;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
@@ -22,6 +27,11 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     public static final String TYPE = "extension.pluginfinder.remoterepo";
 
+    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
+    public static final Entry<String> CONFIG_ENTRY_ROOTURL = CONFIG_SPEC.add("rootURL", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_CACHEPATH = CONFIG_SPEC.add("cachePath", Config.STRING).required();
+    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, RemoteRepoPluginFinder::new);
     }
@@ -31,13 +41,13 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     }
 
     public static ModifiableConfig newConfig(String name, URL rootURL, File cachePath, List<String> readers, boolean wildcard) {
-        return Config.newConfig()
-                .putString("type", TYPE)
-                .putString("name", name)
-                .putStrings("readers", readers)
-                .putString("wildcard", wildcard)
-                .putString("rootURL", rootURL.toString())
-                .putString("cachePath", cachePath.getPath());
+        return Config.newConfig(CONFIG_SPEC)
+                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
+                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
+                .put(AbstractPluginFinder.CONFIG_ENTRY_READERS, readers)
+                .put(AbstractPluginFinder.CONFIG_ENTRY_WILDCARD, wildcard)
+                .put(CONFIG_ENTRY_ROOTURL, rootURL.toString())
+                .put(CONFIG_ENTRY_CACHEPATH, cachePath.getPath());
     }
 
     private static final int MAX_META_SIZE = 1024 * 1024;
@@ -47,8 +57,8 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     protected RemoteRepoPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
-        this.rootURL = config.getRequired("rootURL", Config.STRING);
-        final var cachePath = new File(config.getRequired("cachePath", Config.STRING));
+        this.rootURL = config.get(CONFIG_ENTRY_ROOTURL);
+        final var cachePath = new File(config.get(CONFIG_ENTRY_CACHEPATH));
         final var cacheConfig = LocalRepoPluginFinder.newConfig("localCache", cachePath, readerNames, wildcard);
         this.localCache = new LocalRepoPluginFinder(loader, cacheConfig);
     }

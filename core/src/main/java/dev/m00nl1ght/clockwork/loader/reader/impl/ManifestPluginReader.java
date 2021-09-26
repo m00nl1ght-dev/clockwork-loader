@@ -5,12 +5,17 @@ import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config.Type;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.Manifest;
 
@@ -18,19 +23,23 @@ public class ManifestPluginReader implements PluginReader {
 
     public static final String TYPE = "internal.pluginreader.manifest";
 
+    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
+    public static final Entry<String> CONFIG_ENTRY_MANIFESTPATH = CONFIG_SPEC.add("manifestPath", Config.STRING).defaultValue("META-INF/MANIFEST.MF");
+    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(PluginReader.class, TYPE, ManifestPluginReader::new);
     }
 
     public static ModifiableConfig newConfig(String name) {
-        return newConfig(name, "META-INF/MANIFEST.MF");
+        return newConfig(name, CONFIG_ENTRY_MANIFESTPATH.getDefaultValue());
     }
 
     public static ModifiableConfig newConfig(String name, String manifestPath) {
-        return Config.newConfig()
-                .putString("type", TYPE)
-                .putString("name", name)
-                .putString("manifestPath", manifestPath);
+        return Config.newConfig(CONFIG_SPEC)
+                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
+                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
+                .put(CONFIG_ENTRY_MANIFESTPATH, manifestPath);
     }
 
     private static final String HEADER_PREFIX = "CWL-";
@@ -53,8 +62,8 @@ public class ManifestPluginReader implements PluginReader {
     protected final String manifestFilePath;
 
     protected ManifestPluginReader(ClockworkLoader loader, Config config) {
-        this.name = config.getRequired("name", Config.STRING);
-        this.manifestFilePath = config.getRequired("manifestPath", Config.STRING);
+        this.name = config.get(ConfiguredFeatures.CONFIG_ENTRY_NAME);
+        this.manifestFilePath = config.get(CONFIG_ENTRY_MANIFESTPATH);
     }
 
     @Override
@@ -70,7 +79,7 @@ public class ManifestPluginReader implements PluginReader {
 
     public Optional<PluginDescriptor> read(Manifest manifest) {
         final var mainConfig = Config.fromAttributes(manifest.getMainAttributes(), HEADER_PREFIX);
-        final String pluginId = mainConfig.getString(HEADER_PLUGIN_ID);
+        final String pluginId = mainConfig.get(HEADER_PLUGIN_ID, Config.STRING);
         if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
         final var version = new Version(mainConfig.getRequired(HEADER_PLUGIN_VERSION, Config.STRING), Version.VersionType.IVY);
@@ -84,7 +93,7 @@ public class ManifestPluginReader implements PluginReader {
             final var className = extractClassName(entry.getKey());
             if (className == null) continue;
             final var entryConfig = Config.fromAttributes(entry.getValue(), HEADER_PREFIX);
-            final var componentId = entryConfig.getString(HEADER_COMPONENT_ID);
+            final var componentId = entryConfig.get(HEADER_COMPONENT_ID, Config.STRING);
             if (componentId != null) {
                 if (componentId.equals(pluginId)) {
                     final var mainCompBuilder = ComponentDescriptor.builder(pluginId);
@@ -109,7 +118,7 @@ public class ManifestPluginReader implements PluginReader {
                     descriptorBuilder.component(compBuilder.build());
                 }
             } else {
-                final var targetId = entryConfig.getString(HEADER_TARGET_ID);
+                final var targetId = entryConfig.get(HEADER_TARGET_ID, Config.STRING);
                 if (targetId != null) {
                     final var builder = TargetDescriptor.builder(pluginId, targetId);
                     builder.version(version);

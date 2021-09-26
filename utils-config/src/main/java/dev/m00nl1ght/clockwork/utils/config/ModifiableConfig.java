@@ -14,7 +14,7 @@ public interface ModifiableConfig extends Config {
 
     @Nullable List<? extends ModifiableConfig> getModifiableSubconfigs(@NotNull String key);
 
-    @NotNull ModifiableConfig putString(@NotNull String key, @Nullable Object value);
+    @NotNull ModifiableConfig putString(@NotNull String key, @Nullable String value);
 
     @NotNull ModifiableConfig putSubconfig(@NotNull String key, @Nullable Config value);
 
@@ -23,12 +23,14 @@ public interface ModifiableConfig extends Config {
     @NotNull ModifiableConfig putSubconfigs(@NotNull String key, @Nullable Collection<? extends Config> value);
 
     default @NotNull <T> ModifiableConfig put(@NotNull String key, @NotNull Type<T> valueType, @Nullable T value) {
-        valueType.put(this, key, value);
+        if (value != null) valueType.put(this, key, value);
+        else putString(key, null);
         return this;
     }
 
     default @NotNull <T> ModifiableConfig put(@NotNull Entry<T> entry, @Nullable T value) {
-        entry.type.put(this, entry.key, value);
+        if (value != null) entry.type.put(this, entry.key, value);
+        else putString(entry.key, null);
         return this;
     }
 

@@ -44,8 +44,8 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
     }
 
     @Override
-    public ModifiableConfig putString(String key, Object value) {
-        map.put(Objects.requireNonNull(key), value == null ? null : value.toString());
+    public ModifiableConfig putString(String key, String value) {
+        map.put(Objects.requireNonNull(key), value);
         checkSpec(key);
         return this;
     }

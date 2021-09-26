@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
+import dev.m00nl1ght.clockwork.utils.config.Config.Type;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
 import org.jetbrains.annotations.NotNull;
 
@@ -8,10 +9,10 @@ import java.util.stream.Collectors;
 
 public class ConfiguredFeatures {
 
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create("ConfiguredFeature");
+    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create("configured_feature");
     public static final Entry<String> CONFIG_ENTRY_TYPE = CONFIG_SPEC.add("type", Config.STRING).required();
-    public static final Entry<String> CONFIG_ENTRY_NAME = CONFIG_SPEC.add("name", Config.STRING).defaultTo(CONFIG_ENTRY_TYPE);
-    static { CONFIG_SPEC.lock(); }
+    public static final Entry<String> CONFIG_ENTRY_NAME = CONFIG_SPEC.add("name", Config.STRING).required();
+    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     private final Map<Class, Registry> registryMap = new HashMap<>();
 

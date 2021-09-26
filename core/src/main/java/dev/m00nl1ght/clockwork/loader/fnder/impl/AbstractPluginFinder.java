@@ -1,69 +1,35 @@
 package dev.m00nl1ght.clockwork.loader.fnder.impl;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
-import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
-import dev.m00nl1ght.clockwork.utils.version.Version;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config.Type;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 
-import java.util.*;
-import java.util.stream.Collectors;
+import java.util.List;
 
 public abstract class AbstractPluginFinder implements PluginFinder {
 
-    private Map<String, Optional<PluginReference>> cache;
+    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create("internal.pluginfinder", ConfiguredFeatures.CONFIG_SPEC);
+    public static final Entry<List<String>> CONFIG_ENTRY_READERS = CONFIG_SPEC.add("readers", Config.LIST);
+    public static final Entry<Boolean> CONFIG_ENTRY_WILDCARD = CONFIG_SPEC.add("wildcard", Config.BOOLEAN).defaultValue(false);
+    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     protected final String name;
     protected final List<String> readerNames;
     protected final boolean wildcard;
 
     protected AbstractPluginFinder(ClockworkLoader loader, Config config) {
-        this.name = config.getRequired("name", Config.STRING);
-        this.readerNames = config.getStrings("readers");
-        this.wildcard = config.getOrDefault("wildcard", Config.BOOLEAN, false);
-    }
-
-    @Override
-    public Set<String> getAvailablePlugins(ClockworkLoader loader) {
-        scanIfNeeded(loader);
-        return Set.copyOf(cache.keySet());
-    }
-
-    @Override
-    public Set<Version> getAvailableVersions(ClockworkLoader loader, String pluginId) {
-        scanIfNeeded(loader);
-        final var ref = cache.getOrDefault(pluginId, Optional.empty());
-        return ref.isEmpty() ? Collections.emptySet() : Collections.singleton(ref.get().getVersion());
-    }
-
-    @Override
-    public Optional<PluginReference> find(ClockworkLoader loader, String pluginId, Version version) {
-        scanIfNeeded(loader);
-        final var ref = cache.getOrDefault(pluginId, Optional.empty());
-        return ref.isPresent() && ref.get().getVersion().equals(version) ? ref : Optional.empty();
+        this.name = config.get(ConfiguredFeatures.CONFIG_ENTRY_NAME);
+        this.readerNames = config.get(CONFIG_ENTRY_READERS);
+        this.wildcard = config.get(CONFIG_ENTRY_WILDCARD);
     }
 
     @Override
     public boolean isWildcard() {
         return wildcard;
-    }
-
-    protected void scanIfNeeded(ClockworkLoader loader) {
-        if (cache != null) return;
-        final var readers = readerNames == null
-                ? loader.getFeatures().getAll(PluginReader.class)
-                : loader.getFeatures().getAll(PluginReader.class, readerNames);
-        cache = scan(loader, readers).stream()
-                .collect(Collectors.groupingBy(PluginReference::getId,
-                        Collectors.reducing(this::onDuplicate)));
-    }
-
-    protected abstract Set<PluginReference> scan(ClockworkLoader loader, Collection<PluginReader> readers);
-
-    protected PluginReference onDuplicate(PluginReference a, PluginReference b) {
-        throw FormatUtil.rtExc("[] found multiple versions of the same plugin: [] and []", this, a, b);
     }
 
 }

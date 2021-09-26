@@ -1,12 +1,15 @@
 package dev.m00nl1ght.clockwork.loader.jigsaw.impl;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.classloading.ClassTransformer;
 import dev.m00nl1ght.clockwork.loader.classloading.ClockworkClassLoader;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config.Type;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -14,10 +17,7 @@ import org.jetbrains.annotations.Nullable;
 import java.lang.module.Configuration;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
-import java.util.Collection;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
+import java.util.*;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -25,14 +25,17 @@ public class JigsawStrategyFlat implements JigsawStrategy {
 
     public static final String TYPE = "internal.jigsaw.flat";
 
+    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
+    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(JigsawStrategy.class, TYPE, JigsawStrategyFlat::new);
     }
 
     public static ModifiableConfig newConfig(String name) {
-        return Config.newConfig()
-                .putString("type", TYPE)
-                .putString("name", name);
+        return Config.newConfig(CONFIG_SPEC)
+                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
+                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name));
     }
 
     protected JigsawStrategyFlat(ClockworkLoader loader, Config config) {}

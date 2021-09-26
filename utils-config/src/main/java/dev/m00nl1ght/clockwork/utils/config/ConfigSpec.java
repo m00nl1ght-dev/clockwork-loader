@@ -130,6 +130,10 @@ public class ConfigSpec {
         return applyAs == null || (spec != null && spec.canApplyAs(applyAs));
     }
 
+    public Type<Config> buildType() {
+        return Config.CONFIG(this);
+    }
+
     @Override
     public String toString() {
         return specName;
@@ -143,7 +147,7 @@ public class ConfigSpec {
         protected final int sortIndex;
 
         protected boolean required;
-        protected Function<Config, T> defaultSupplier;
+        protected Function<Config, T> defaultSupplier = c -> null;
 
         protected Entry(ConfigSpec spec, String key, Type<T> type, int sortIndex) {
             this.spec = Objects.requireNonNull(spec);
@@ -159,10 +163,14 @@ public class ConfigSpec {
         }
 
         public Entry<T> defaultTo(Entry<T> other) {
+            return defaultTo(other, null);
+        }
+
+        public Entry<T> defaultTo(Entry<T> other, T fallback) {
             spec.requireNotLocked();
             if (!spec.canApplyAs(other.spec))
                 throw new IllegalArgumentException("Config spec mismatch");
-            this.defaultSupplier = c -> c.get(other);
+            this.defaultSupplier = c -> c == null ? fallback : c.get(other);
             return this;
         }
 
@@ -172,8 +180,12 @@ public class ConfigSpec {
             return this;
         }
 
-        public T getDefaultValue(Config config) {
-            return defaultSupplier.apply(Objects.requireNonNull(config));
+        public T getDefaultValue() {
+            return getDefaultValue(null);
+        }
+
+        public T getDefaultValue(@Nullable Config config) {
+            return defaultSupplier.apply(config);
         }
 
         public Entry<T> required() {
