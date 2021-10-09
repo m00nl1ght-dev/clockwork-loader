@@ -7,10 +7,8 @@ import dev.m00nl1ght.clockwork.utils.config.impl.ModifiableConfigImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
-import java.util.List;
-import java.util.Objects;
-import java.util.Optional;
-import java.util.Set;
+import java.util.*;
+import java.util.function.Function;
 import java.util.jar.Attributes;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -28,24 +26,47 @@ public interface Config {
     TypeFloat           FLOAT       = new TypeFloat(Float.MIN_VALUE, Float.MAX_VALUE);
     TypeFloat           UFLOAT      = new TypeFloat(0f, Float.MAX_VALUE);
 
-    TypeList<String>    LIST        = new TypeList<>(STRING, false);
-    TypeList<String>    LISTF       = new TypeList<>(STRING, true);
+    TypeList<String>    LIST        = new TypeList<>(STRING, false, true);
+    TypeList<String>    LIST_U      = new TypeList<>(STRING, false, false);
+    TypeList<String>    LIST_F      = new TypeList<>(STRING, true, true);
+    TypeList<String>    LIST_UF     = new TypeList<>(STRING, true, false);
 
     TypeConfig          CONFIG      = new TypeConfig(null);
 
     TypeConfigList      CLIST       = new TypeConfigList(null, false);
     TypeConfigList      CLISTF      = new TypeConfigList(null, true);
 
-    static <E extends Enum<E>> @NotNull Type<E> ENUM(@NotNull Class<E> enumClass) {
+    static <E extends Enum<E>> @NotNull TypeEnum<E> ENUM(@NotNull Class<E> enumClass) {
         return new TypeEnum<>(enumClass);
     }
 
-    static <T> @NotNull Type<List<T>> LIST(@NotNull TypeParsed<T> elementType) {
-        return new TypeList<>(elementType, false);
+    static <T> @NotNull TypeParsedCustom<T> CUSTOM(@NotNull Class<T> targetClass,
+                                                   @NotNull Function<@NotNull String, @NotNull T> factory) {
+
+        return new TypeParsedCustom<>(targetClass, factory);
     }
 
-    static <T> @NotNull Type<List<T>> LISTF(@NotNull TypeParsed<T> elementType) {
-        return new TypeList<>(elementType, true);
+    static <T> @NotNull TypeCustom<T> CUSTOM(@NotNull Class<T> targetClass,
+                                             @NotNull Function<@NotNull Config, @NotNull T> fromConfig,
+                                             @NotNull Function<@NotNull T, @NotNull Config> toConfig) {
+
+        return new TypeCustom<>(targetClass, fromConfig, toConfig);
+    }
+
+    static <T> @NotNull TypeList<T> LIST(@NotNull TypeParsed<T> elementType) {
+        return new TypeList<>(elementType, false, true);
+    }
+
+    static <T> @NotNull TypeList<T> LIST_U(@NotNull TypeParsed<T> elementType) {
+        return new TypeList<>(elementType, false, false);
+    }
+
+    static <T> @NotNull TypeList<T> LIST_F(@NotNull TypeParsed<T> elementType) {
+        return new TypeList<>(elementType, true, true);
+    }
+
+    static <T> @NotNull TypeList<T> LIST_UF(@NotNull TypeParsed<T> elementType) {
+        return new TypeList<>(elementType, true, false);
     }
 
     static @NotNull TypeConfig CONFIG(@NotNull ConfigSpec spec) {
@@ -58,6 +79,14 @@ public interface Config {
 
     static @NotNull TypeConfigList CLISTF(@NotNull ConfigSpec spec) {
         return new TypeConfigList(Objects.requireNonNull(spec), true);
+    }
+
+    static <T> @NotNull TypeCustomList<T> CLIST(@NotNull TypeCustom<T> elementType) {
+        return new TypeCustomList<>(elementType, false);
+    }
+
+    static <T> @NotNull TypeCustomList<T> CLISTF(@NotNull TypeCustom<T> elementType) {
+        return new TypeCustomList<>(elementType, true);
     }
 
     // FACTORY METHODS
@@ -94,7 +123,7 @@ public interface Config {
 
     @Nullable List<@NotNull String> getStrings(@NotNull String key);
 
-    @Nullable List<? extends Config> getSubconfigs(@NotNull String key);
+    @Nullable List<Config> getSubconfigs(@NotNull String key);
 
     default <T> @Nullable T get(@NotNull String key, @NotNull Type<T> valueType) {
         final var value = valueType.get(this, key);
@@ -156,6 +185,15 @@ public interface Config {
         return null;
     }
 
+    default void requireSpec(@Nullable ConfigSpec reqSpec) {
+        if (reqSpec == null) return;
+        final var vSpec = getSpec();
+        if (vSpec == null)
+            throw new ConfigException(this, this + " does not have required spec " + reqSpec);
+        if (!vSpec.canApplyAs(reqSpec))
+            throw new ConfigException(this, this + " has incompatible spec " + vSpec + " where " + reqSpec + " is required");
+    }
+
     // VALUE TYPE CLASSES
 
     abstract class Type<T> {
@@ -177,6 +215,10 @@ public interface Config {
             return this.getClass() == other.getClass();
         }
 
+        public T getDefault() {
+            return null;
+        }
+
     }
 
     abstract class TypeParsed<T> extends Type<T> {
@@ -196,6 +238,34 @@ public interface Config {
 
         public @NotNull String asString(@NotNull T value) {
             return value.toString();
+        }
+
+    }
+
+    class TypeParsedCustom<T> extends TypeParsed<T> {
+
+        private final Class<T> parsedClass;
+        private final Function<String, T> parser;
+
+        public TypeParsedCustom(@NotNull Class<T> parsedClass, @NotNull Function<@NotNull String, @NotNull T> parser) {
+            this.parsedClass = Objects.requireNonNull(parsedClass);
+            this.parser = Objects.requireNonNull(parser);
+        }
+
+        @Override
+        public @NotNull T parse(@NotNull Config config, @NotNull String key, @NotNull String value) {
+            try {
+                return parser.apply(value);
+            } catch (Exception e) {
+                throw new ConfigException(config, key, value, "is not a valid " + parsedClass.getSimpleName(), e);
+            }
+        }
+
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeParsedCustom)) return false;
+            final var cOther = (TypeParsedCustom<?>) other;
+            return cOther.parsedClass == parsedClass;
         }
 
     }
@@ -226,6 +296,11 @@ public interface Config {
             return cOther.pattern.pattern().equals(pattern.pattern());
         }
 
+        @Override
+        public String getDefault() {
+            return "";
+        }
+
     }
 
     class TypeBoolean extends TypeParsed<Boolean> {
@@ -235,6 +310,11 @@ public interface Config {
             if (value.equalsIgnoreCase("true")) return true;
             if (value.equalsIgnoreCase("false")) return false;
             throw new ConfigException(config, key, value, "is not a boolean");
+        }
+
+        @Override
+        public Boolean getDefault() {
+            return false;
         }
 
     }
@@ -271,6 +351,11 @@ public interface Config {
             return cOther.minValue >= minValue && cOther.maxValue <= maxValue;
         }
 
+        @Override
+        public Integer getDefault() {
+            return 0;
+        }
+
     }
 
     class TypeFloat extends TypeParsed<Float> {
@@ -303,6 +388,11 @@ public interface Config {
             if (!(other instanceof TypeFloat)) return false;
             final var cOther = (TypeFloat) other;
             return cOther.minValue >= minValue && cOther.maxValue <= maxValue;
+        }
+
+        @Override
+        public Float getDefault() {
+            return 0f;
         }
 
     }
@@ -342,10 +432,12 @@ public interface Config {
 
         public final TypeParsed<T> elementType;
         public final boolean allowSingleton;
+        public final boolean allowDuplicates;
 
-        public TypeList(@NotNull TypeParsed<T> elementType, boolean allowSingleton) {
+        public TypeList(@NotNull TypeParsed<T> elementType, boolean allowSingleton, boolean allowDuplicates) {
             this.elementType = Objects.requireNonNull(elementType);
             this.allowSingleton = allowSingleton;
+            this.allowDuplicates = allowDuplicates;
         }
 
         @Override
@@ -366,6 +458,13 @@ public interface Config {
 
         @Override
         public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull List<T> value) {
+            if (!allowDuplicates) {
+                final var tempSet = new HashSet<>();
+                for (T element : value) {
+                    if (!tempSet.add(element))
+                        return new ConfigException(config, key, value, "is present more than once, but duplicates are not allowed");
+                }
+            }
             return value.stream()
                     .map(element -> elementType.verify(config, key, element))
                     .filter(Objects::nonNull)
@@ -377,6 +476,11 @@ public interface Config {
             if (!(other instanceof TypeList)) return false;
             final var cOther = (TypeList<?>) other;
             return cOther.elementType.isCompatible(cOther.elementType);
+        }
+
+        @Override
+        public List<T> getDefault() {
+            return List.of();
         }
 
     }
@@ -407,7 +511,7 @@ public interface Config {
             if (vSpec == null)
                 return new ConfigException(config, key, value, "does not have required spec " + spec);
             if (!vSpec.canApplyAs(spec))
-                return new ConfigException(config, key, value, "has incompatible spec " + vSpec);
+                return new ConfigException(config, key, value, "has incompatible spec " + vSpec + " where " + spec + " is required");
             return null;
         }
 
@@ -418,9 +522,61 @@ public interface Config {
             return ConfigSpec.canApply(cOther.spec, spec);
         }
 
+        @Override
+        public Config getDefault() {
+            return EMPTY;
+        }
+
     }
 
-    class TypeConfigList extends Type<List<? extends Config>> {
+    class TypeCustom<T> extends Type<T> {
+
+        private final Class<T> targetClass;
+        private final Function<Config, T> fromConfig;
+        private final Function<T, Config> toConfig;
+
+        public TypeCustom(@NotNull Class<T> targetClass,
+                          @NotNull Function<@NotNull Config, @NotNull T> fromConfig,
+                          @NotNull Function<@NotNull T, @NotNull Config> toConfig) {
+
+            this.targetClass = Objects.requireNonNull(targetClass);
+            this.fromConfig = Objects.requireNonNull(fromConfig);
+            this.toConfig = Objects.requireNonNull(toConfig);
+        }
+
+        @Override
+        public @Nullable T get(@NotNull Config config, @NotNull String key) {
+            return fromConfig(config, key, config.getSubconfig(key));
+        }
+
+        public @Nullable T fromConfig(@NotNull Config config, @NotNull String key, @Nullable Config value) {
+            if (value == null) return null;
+            try {
+                return fromConfig.apply(value);
+            } catch (Exception e) {
+                throw new ConfigException(config, key, value, "is not a valid " + targetClass.getSimpleName(), e);
+            }
+        }
+
+        @Override
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull T value) {
+            config.putSubconfig(key, toConfig(value));
+        }
+
+        public @NotNull Config toConfig(@NotNull T value) {
+            return toConfig.apply(Objects.requireNonNull(value));
+        }
+
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeCustom)) return false;
+            final var cOther = (TypeCustom<?>) other;
+            return cOther.targetClass == targetClass;
+        }
+
+    }
+
+    class TypeConfigList extends Type<List<Config>> {
 
         public final ConfigSpec spec;
         public final boolean allowSingleton;
@@ -431,7 +587,7 @@ public interface Config {
         }
 
         @Override
-        public @Nullable List<? extends Config> get(@NotNull Config config, @NotNull String key) {
+        public @Nullable List<Config> get(@NotNull Config config, @NotNull String key) {
             final var list = config.getSubconfigs(key);
             if (list != null) return list;
             if (!allowSingleton) return null;
@@ -440,19 +596,19 @@ public interface Config {
         }
 
         @Override
-        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull List<? extends Config> value) {
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull List<Config> value) {
             config.putSubconfigs(key, value);
         }
 
         @Override
-        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull List<? extends Config> value) {
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull List<Config> value) {
             if (spec == null) return null;
             for (final var element : value) {
                 final var vSpec = element.getSpec();
                 if (vSpec == null)
                     return new ConfigException(config, key, value, "does not have required spec " + spec);
                 if (!vSpec.canApplyAs(spec))
-                    return new ConfigException(config, key, element, "has incompatible spec " + vSpec);
+                    return new ConfigException(config, key, element, "has incompatible spec " + vSpec + " where " + spec + " is required");
             }
             return null;
         }
@@ -462,6 +618,59 @@ public interface Config {
             if (!(other instanceof TypeConfigList)) return false;
             final var cOther = (TypeConfigList) other;
             return ConfigSpec.canApply(cOther.spec, spec);
+        }
+
+        @Override
+        public List<Config> getDefault() {
+            return List.of();
+        }
+
+    }
+
+    class TypeCustomList<T> extends Type<List<T>> {
+
+        public final TypeCustom<T> elementType;
+        public final boolean allowSingleton;
+
+        public TypeCustomList(@NotNull TypeCustom<T> elementType, boolean allowSingleton) {
+            this.elementType = Objects.requireNonNull(elementType);
+            this.allowSingleton = allowSingleton;
+        }
+
+        @Override
+        public @Nullable List<T> get(@NotNull Config config, @NotNull String key) {
+            final var raw = config.getSubconfigs(key);
+            if (raw != null) return raw.stream()
+                    .map(v -> elementType.fromConfig(config, key, v))
+                    .collect(Collectors.toList());
+            if (!allowSingleton) return null;
+            final var singleton = config.getSubconfig(key);
+            return singleton == null ? null : List.of(elementType.fromConfig(config, key, singleton));
+        }
+
+        @Override
+        public void put(@NotNull ModifiableConfig config, @NotNull String key, @NotNull List<T> value) {
+            config.putSubconfigs(key, value.stream().map(elementType::toConfig).collect(Collectors.toList()));
+        }
+
+        @Override
+        public @Nullable ConfigException verify(@NotNull Config config, @NotNull String key, @NotNull List<T> value) {
+            return value.stream()
+                    .map(element -> elementType.verify(config, key, element))
+                    .filter(Objects::nonNull)
+                    .findFirst().orElse(null);
+        }
+
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeCustomList)) return false;
+            final var cOther = (TypeCustomList<?>) other;
+            return cOther.elementType.isCompatible(cOther.elementType);
+        }
+
+        @Override
+        public List<T> getDefault() {
+            return List.of();
         }
 
     }

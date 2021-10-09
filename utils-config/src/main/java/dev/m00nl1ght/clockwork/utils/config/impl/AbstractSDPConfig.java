@@ -45,7 +45,7 @@ public abstract class AbstractSDPConfig implements Config {
     }
 
     @Override
-    public List<? extends Config> getSubconfigs(String key) {
+    public List<Config> getSubconfigs(String key) {
         final var raw = getRaw(key);
         return raw == null ? null : SimpleDataParser.parse(dataFormat, configListFormat, raw);
     }

@@ -75,7 +75,7 @@ public final class SecurityConfig {
 
     public static Permission permissionFromConfig(Config config) {
         final var className = config.getRequired("permissionClass", Config.STRING);
-        final var params = config.getOrDefault("params", Config.LISTF, List.of());
+        final var params = config.getOrDefault("params", Config.LIST_F, List.of());
         return ReflectionUtil.buildInstance(Permission.class, className, params);
     }
 

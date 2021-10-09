@@ -43,7 +43,7 @@ public class JigsawStrategyFlat implements JigsawStrategy {
     @Override
     public @NotNull Map<@NotNull PluginReference, @NotNull ModuleLayer>
     buildModuleLayers(@NotNull Collection<@NotNull PluginReference> plugins,
-                      @NotNull Set<@NotNull Path> libModulePath,
+                      @NotNull List<@NotNull Path> libModulePath,
                       @NotNull List<@NotNull ClassTransformer> transformers,
                       @Nullable ClockworkCore parent) {
 

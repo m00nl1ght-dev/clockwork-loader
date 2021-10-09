@@ -39,7 +39,7 @@ public class ReadonlyWrapper implements Config {
     }
 
     @Override
-    public List<? extends Config> getSubconfigs(String key) {
+    public List<Config> getSubconfigs(String key) {
         return config.getSubconfigs(key);
     }
 

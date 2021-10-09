@@ -4,24 +4,29 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.loader.ClockworkConfig;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
-import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("MixinLoadTest")
 public class MixinLoadTest extends ClockworkTest {
 
     @Override
-    protected ClockworkConfig.Builder buildBootLayerConfig() {
-        return ClockworkConfig.builder()
-                .addPluginReader(ManifestPluginReader.newConfig("manifest"))
-                .addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", false))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-mixin"));
+    protected Config buildBootLayerConfig() {
+        final var config = Config.newConfig(ClockworkConfig.SPEC);
+        config.put(ClockworkConfig.PLUGIN_READERS, List.of(PluginReader.DEFAULT));
+        config.put(ClockworkConfig.PLUGIN_FINDERS, List.of(ModuleLayerPluginFinder.newConfig("boot", false)));
+        config.put(ClockworkConfig.WANTED_PLUGINS, List.of(
+                DependencyDescriptor.buildAnyVersion("clockwork"),
+                DependencyDescriptor.buildAnyVersion("test-env"),
+                DependencyDescriptor.buildAnyVersion("cwl-annotations"),
+                DependencyDescriptor.buildAnyVersion("cwl-mixin")));
+        return config;
     }
 
     @Test

@@ -6,20 +6,24 @@ import dev.m00nl1ght.clockwork.extension.nightconfig.NightconfigPluginReader;
 import dev.m00nl1ght.clockwork.loader.ClockworkConfig;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModulePathPluginFinder;
 import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 @DisplayName("NightconfigReaderLoad")
 public class NightconfigReaderLoadTest extends ClockworkTest {
 
     @Override
-    protected ClockworkConfig.Builder buildPluginLayerConfig() {
-        return ClockworkConfig.builder()
-                .addPluginReader(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml"))
-                .addPluginFinder(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR, false))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
+    protected Config buildPluginLayerConfig() {
+        final var config = Config.newConfig(ClockworkConfig.SPEC);
+        config.put(ClockworkConfig.PLUGIN_READERS, List.of(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml")));
+        config.put(ClockworkConfig.PLUGIN_FINDERS, List.of(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR, false)));
+        config.put(ClockworkConfig.WANTED_PLUGINS, List.of(DependencyDescriptor.buildAnyVersion("test-plugin-a")));
+        return config;
     }
 
     @Test

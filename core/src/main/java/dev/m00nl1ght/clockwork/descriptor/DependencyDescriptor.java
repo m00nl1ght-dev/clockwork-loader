@@ -5,8 +5,7 @@ import dev.m00nl1ght.clockwork.utils.version.VersionRequirement;
 
 import java.util.Objects;
 
-import static dev.m00nl1ght.clockwork.descriptor.Namespaces.COMBINED_ID_PATTERN;
-import static dev.m00nl1ght.clockwork.descriptor.Namespaces.DEPENDENCY_PATTERN;
+import static dev.m00nl1ght.clockwork.descriptor.Namespaces.*;
 
 public final class DependencyDescriptor {
 
@@ -40,6 +39,13 @@ public final class DependencyDescriptor {
         } else {
             throw new IllegalArgumentException("invalid descriptor: " + descriptor);
         }
+    }
+
+    public static DependencyDescriptor buildPlugin(String descriptor) {
+        final var desc = build(descriptor);
+        if (!desc.getComponent().isEmpty())
+            throw new IllegalArgumentException("Not a plugin id: " + descriptor);
+        return desc;
     }
 
     public static DependencyDescriptor buildIvyRange(String targetId, String versionRange) {

@@ -7,10 +7,13 @@ import dev.m00nl1ght.clockwork.loader.ClockworkConfig;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModuleLayerPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.ModulePathPluginFinder;
-import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.test.env.TestEnvironment;
+import dev.m00nl1ght.clockwork.utils.config.Config;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.TestInstance;
+
+import java.util.List;
 
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 public abstract class ClockworkTest {
@@ -20,10 +23,10 @@ public abstract class ClockworkTest {
 
     @BeforeAll
     public void setup() {
-        final var bootLayerConfig = buildBootLayerConfig().build();
+        final var bootLayerConfig = buildBootLayerConfig();
         final var bootLayerLoader = ClockworkLoader.build(bootLayerConfig);
         final var bootLayerCore = bootLayerLoader.loadAndInit();
-        final var pluginLayerConfig = buildPluginLayerConfig().build();
+        final var pluginLayerConfig = buildPluginLayerConfig();
         final var pluginLayerLoader = ClockworkLoader.build(bootLayerCore, pluginLayerConfig);
         this.clockworkCore = pluginLayerLoader.load();
         this.envComponentType = clockworkCore.getComponentTypeOrThrow(TestEnvironment.class, ClockworkCore.class);
@@ -32,21 +35,24 @@ public abstract class ClockworkTest {
         this.setupComplete(pluginLayerLoader);
     }
 
-    protected ClockworkConfig.Builder buildBootLayerConfig() {
-        return ClockworkConfig.builder()
-                .addPluginReader(ManifestPluginReader.newConfig("manifest"))
-                .addPluginFinder(ModuleLayerPluginFinder.newConfig("boot", false))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("clockwork"))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-env"))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-annotations"))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("cwl-nightconfig"));
+    protected Config buildBootLayerConfig() {
+        final var config = Config.newConfig(ClockworkConfig.SPEC);
+        config.put(ClockworkConfig.PLUGIN_READERS, List.of(PluginReader.DEFAULT));
+        config.put(ClockworkConfig.PLUGIN_FINDERS, List.of(ModuleLayerPluginFinder.newConfig("boot", false)));
+        config.put(ClockworkConfig.WANTED_PLUGINS, List.of(
+                DependencyDescriptor.buildAnyVersion("clockwork"),
+                DependencyDescriptor.buildAnyVersion("test-env"),
+                DependencyDescriptor.buildAnyVersion("cwl-annotations"),
+                DependencyDescriptor.buildAnyVersion("cwl-nightconfig")));
+        return config;
     }
 
-    protected ClockworkConfig.Builder buildPluginLayerConfig() {
-        return ClockworkConfig.builder()
-                .addPluginReader(ManifestPluginReader.newConfig("manifest"))
-                .addPluginFinder(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR, false))
-                .addWantedPlugin(DependencyDescriptor.buildAnyVersion("test-plugin-a"));
+    protected Config buildPluginLayerConfig() {
+        final var config = Config.newConfig(ClockworkConfig.SPEC);
+        config.put(ClockworkConfig.PLUGIN_READERS, List.of(PluginReader.DEFAULT));
+        config.put(ClockworkConfig.PLUGIN_FINDERS, List.of(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR, false)));
+        config.put(ClockworkConfig.WANTED_PLUGINS, List.of(DependencyDescriptor.buildAnyVersion("test-plugin-a")));
+        return config;
     }
 
     public ClockworkCore core() {

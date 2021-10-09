@@ -7,9 +7,9 @@ import java.util.*;
 public class SimpleDataParser {
 
     public static final Segment<String> DEFAULT_STRING = new StringSegment('"', '"');
-    public static final Segment<ModifiableConfig> DEFAULT_CONFIG = new ConfigSegment(DEFAULT_STRING, '{', '}', '=', ',');
+    public static final Segment<Config> DEFAULT_CONFIG = new ConfigSegment(DEFAULT_STRING, '{', '}', '=', ',');
     public static final Segment<List<String>> DEFAULT_STRING_LIST = new StringListSegment(DEFAULT_STRING, '[', ']', ',');
-    public static final Segment<List<ModifiableConfig>> DEFAULT_CONFIG_LIST = new ConfigListSegment(DEFAULT_CONFIG, '[', ']', ',');
+    public static final Segment<List<Config>> DEFAULT_CONFIG_LIST = new ConfigListSegment(DEFAULT_CONFIG, '[', ']', ',');
     public static final Format DEFAULT_FORMAT = new Format(DEFAULT_STRING, DEFAULT_CONFIG, DEFAULT_STRING_LIST, DEFAULT_CONFIG_LIST);
 
     public static <T> T parse(Segment<T> segment, String input) {
@@ -159,7 +159,7 @@ public class SimpleDataParser {
 
     }
 
-    public static class ConfigSegment implements Segment<ModifiableConfig> {
+    public static class ConfigSegment implements Segment<Config> {
 
         public final Segment<String> keySegment;
 
@@ -177,7 +177,7 @@ public class SimpleDataParser {
         }
 
         @Override
-        public ModifiableConfig consume(SimpleDataParser parser) {
+        public Config consume(SimpleDataParser parser) {
             if (parser.get() != TAG_START) return null;
             final var config = new ModifiableConfigImpl(null);
             ploop: while (parser.tryAdvance()) {
@@ -210,7 +210,7 @@ public class SimpleDataParser {
         }
 
         @Override
-        public void applyToConfig(ModifiableConfig parsed, String key, ModifiableConfig config) {
+        public void applyToConfig(Config parsed, String key, ModifiableConfig config) {
             config.putSubconfig(key, parsed);
         }
 
@@ -272,14 +272,14 @@ public class SimpleDataParser {
 
     }
 
-    public static class ConfigListSegment extends ListSegment<ModifiableConfig> {
+    public static class ConfigListSegment extends ListSegment<Config> {
 
-        public ConfigListSegment(Segment<ModifiableConfig> elementSegment, char listStart, char listEnd, char delimeter) {
+        public ConfigListSegment(Segment<Config> elementSegment, char listStart, char listEnd, char delimeter) {
             super(elementSegment, listStart, listEnd, delimeter);
         }
 
         @Override
-        public void applyToConfig(List<ModifiableConfig> parsed, String key, ModifiableConfig config) {
+        public void applyToConfig(List<Config> parsed, String key, ModifiableConfig config) {
             config.putSubconfigs(key, parsed);
         }
 

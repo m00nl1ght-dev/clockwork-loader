@@ -85,7 +85,7 @@ public class ManifestPluginReader implements PluginReader {
         final var version = new Version(mainConfig.getRequired(HEADER_PLUGIN_VERSION, Config.STRING), Version.VersionType.IVY);
         descriptorBuilder.displayName(mainConfig.getRequired(HEADER_PLUGIN_NAME, Config.STRING));
         descriptorBuilder.description(mainConfig.getOrDefault(HEADER_PLUGIN_DESC, Config.STRING, ""));
-        mainConfig.getOrDefault(HEADER_PLUGIN_AUTHORS, Config.LISTF, List.of()).forEach(descriptorBuilder::author);
+        mainConfig.getOrDefault(HEADER_PLUGIN_AUTHORS, Config.LIST_F, List.of()).forEach(descriptorBuilder::author);
 
         descriptorBuilder.extData(Config.fromAttributes(manifest.getMainAttributes(), HEADER_EXT_COMBINED));
 
@@ -100,7 +100,7 @@ public class ManifestPluginReader implements PluginReader {
                     mainCompBuilder.version(version);
                     mainCompBuilder.target(ClockworkCore.CORE_TARGET_ID);
                     mainCompBuilder.componentClass(className);
-                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, Config.LISTF, List.of())
+                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, Config.LIST_F, List.of())
                             .forEach(d -> mainCompBuilder.dependency(DependencyDescriptor.build(d)));
                     mainCompBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, Config.BOOLEAN, false));
                     mainCompBuilder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
@@ -110,7 +110,7 @@ public class ManifestPluginReader implements PluginReader {
                     compBuilder.version(version);
                     compBuilder.componentClass(className);
                     compBuilder.target(Namespaces.combinedId(entryConfig.getRequired(HEADER_COMPONENT_TARGET, Config.STRING), pluginId));
-                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, Config.LISTF, List.of())
+                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, Config.LIST_F, List.of())
                             .forEach(d -> compBuilder.dependency(DependencyDescriptor.build(d)));
                     compBuilder.optional(entryConfig.getOrDefault(HEADER_COMPONENT_OPTIONAL, Config.BOOLEAN, false));
                     compBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, Config.BOOLEAN, false));

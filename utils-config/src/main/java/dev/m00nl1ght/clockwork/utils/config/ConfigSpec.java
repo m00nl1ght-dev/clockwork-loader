@@ -138,7 +138,7 @@ public class ConfigSpec {
         return applyAs == null || (spec != null && spec.canApplyAs(applyAs));
     }
 
-    public Type<Config> buildType() {
+    public Config.TypeConfig buildType() {
         return Config.CONFIG(this);
     }
 
@@ -168,6 +168,10 @@ public class ConfigSpec {
             spec.requireNotLocked();
             this.defaultSupplier = c -> defaultValue;
             return this;
+        }
+
+        public Entry<T> defaultValue() {
+            return defaultValue(type.getDefault());
         }
 
         public Entry<T> defaultTo(Entry<T> other) {

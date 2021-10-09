@@ -1,136 +1,51 @@
 package dev.m00nl1ght.clockwork.loader;
 
-import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
-import dev.m00nl1ght.clockwork.loader.jigsaw.impl.JigsawStrategyFlat;
+import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
+import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.Config.Type;
+import dev.m00nl1ght.clockwork.utils.config.Config.TypeParsed;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 
 import java.nio.file.Path;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public final class ClockworkConfig {
 
-    private final List<DependencyDescriptor> wantedPlugins;
-    private final Set<Config> finders;
-    private final Set<Config> readers;
-    private final Set<Config> transformers;
-    private final Config jigsawStrategy;
-    private final Set<Path> libModulePath;
-    private final Config extConfig;
+    public static final ConfigSpec SPEC = ConfigSpec.create("clockwork_config");
 
-    private ClockworkConfig(Builder builder) {
-        this.wantedPlugins = List.copyOf(builder.wantedPlugins);
-        this.finders = Set.copyOf(builder.finders);
-        this.readers = Set.copyOf(builder.readers);
-        this.transformers = Set.copyOf(builder.transformers);
-        this.libModulePath = Set.copyOf(builder.libModulePath);
-        this.jigsawStrategy = builder.jigsawStrategy;
-        this.extConfig = builder.extConfig;
-    }
+    public static final TypeParsed<Path>                    TYPE_PATH
+            = Config.CUSTOM(Path.class,                     Path::of);
 
-    private ClockworkConfig(Config data) {
-        this.wantedPlugins = List.copyOf(data.getOrDefault("plugins", Config.LIST, List.of())
-                .stream().map(DependencyDescriptor::build)
-                .collect(Collectors.toUnmodifiableList()));
-        this.finders = Set.copyOf(data.getOrDefault("finders", Config.CLIST, List.of()));
-        this.readers = Set.copyOf(data.getOrDefault("readers", Config.CLIST, List.of()));
-        this.transformers = Set.copyOf(data.getOrDefault("transformers", Config.CLIST, List.of()));
-        this.libModulePath = Set.copyOf(data.getOrDefault("libModulePath", Config.LISTF, List.of())
-                .stream().map(Path::of)
-                .collect(Collectors.toUnmodifiableSet()));
-        this.jigsawStrategy = data.getOrDefault("jigsawStrategy", Config.CONFIG, Config.EMPTY);
-        this.extConfig = data.getOrDefault("ext", Config.CONFIG, Config.EMPTY);
-    }
+    public static final TypeParsed<DependencyDescriptor>    TYPE_DEPENDENCY
+            = Config.CUSTOM(DependencyDescriptor.class,     DependencyDescriptor::buildPlugin);
 
-    public List<DependencyDescriptor> getWantedPlugins() {
-        return wantedPlugins;
-    }
+    public static final Entry<List<DependencyDescriptor>>   WANTED_PLUGINS
+            = SPEC.put("plugins",                           Config.LIST_U(TYPE_DEPENDENCY))         .defaultValue();
 
-    public Set<Config> getFinders() {
-        return finders;
-    }
+    public static final Entry<List<Config>>                 PLUGIN_FINDERS
+            = SPEC.put("pluginFinders",                     ConfiguredFeatures.CONFIG_LIST_TYPE)    .defaultValue();
 
-    public Set<Config> getReaders() {
-        return readers;
-    }
+    public static final Entry<List<Config>>                 PLUGIN_READERS
+            = SPEC.put("pluginReaders",                     ConfiguredFeatures.CONFIG_LIST_TYPE)    .defaultValue(List.of(PluginReader.DEFAULT));
 
-    public Set<Config> getTransformers() {
-        return transformers;
-    }
+    public static final Entry<List<Config>>                 CLASS_TRANSFORMERS
+            = SPEC.put("classTransformers",                 ConfiguredFeatures.CONFIG_LIST_TYPE)    .defaultValue();
 
-    public Config getJigsawStrategy() {
-        return jigsawStrategy;
-    }
+    public static final Entry<Config>                       JIGSAW_STRATEGY
+            = SPEC.put("jigsawStrategy",                    ConfiguredFeatures.CONFIG_TYPE)         .defaultValue(JigsawStrategy.DEFAULT);
 
-    public Set<Path> getLibModulePath() {
-        return libModulePath;
-    }
+    public static final Entry<List<Path>>                   LIB_MODULE_PATH
+            = SPEC.put("libModulePath",                     Config.LIST_UF(TYPE_PATH))              .defaultValue();
 
-    public Config getExtConfig() {
-        return extConfig;
-    }
+    public static final Entry<Config>                       EXT_CONFIG
+            = SPEC.put("ext",                               Config.CONFIG)                          .defaultValue();
 
-    public static ClockworkConfig from(Config data) {
-        return new ClockworkConfig(data);
-    }
+    public static final Type<Config> TYPE = SPEC.buildType();
 
-    public static Builder builder() {
-        return new Builder();
-    }
-
-    public static class Builder {
-
-        private final List<DependencyDescriptor> wantedPlugins = new LinkedList<>();
-        private final Set<Config> finders = new LinkedHashSet<>();
-        private final Set<Config> readers = new LinkedHashSet<>();
-        private final Set<Config> transformers = new LinkedHashSet<>();
-        private final Set<Path> libModulePath = new LinkedHashSet<>();
-        private Config extConfig = Config.EMPTY;
-        private Config jigsawStrategy;
-
-        private Builder() {}
-
-        public ClockworkConfig build() {
-            if (jigsawStrategy == null) jigsawStrategy = JigsawStrategyFlat.newConfig("default");
-            return new ClockworkConfig(this);
-        }
-
-        public Builder addPluginFinder(Config finder) {
-            this.finders.add(finder);
-            return this;
-        }
-
-        public Builder addPluginReader(Config reader) {
-            this.readers.add(reader);
-            return this;
-        }
-
-        public Builder addClassTransformer(Config transformer) {
-            this.transformers.add(transformer);
-            return this;
-        }
-
-        public Builder addWantedPlugin(DependencyDescriptor descriptor) {
-            if (!descriptor.getComponent().isEmpty()) throw new IllegalArgumentException("not a plugin id");
-            if (wantedPlugins.stream().anyMatch(d -> d.getPlugin().equals(descriptor.getPlugin())))
-                throw new IllegalArgumentException("duplicate wanted plugin: " + descriptor.getPlugin());
-            this.wantedPlugins.add(descriptor);
-            return this;
-        }
-
-        public Builder addToLibModulePath(Path modulePath) {
-            this.libModulePath.add(modulePath);
-            return this;
-        }
-
-        public void setJigsawStrategy(Config jigsawConfig) {
-            this.jigsawStrategy = Objects.requireNonNull(jigsawConfig);
-        }
-
-        public void extConfig(Config extConfig) {
-            this.extConfig = Objects.requireNonNull(extConfig).copy();
-        }
-
-    }
+    private ClockworkConfig() {}
 
 }
