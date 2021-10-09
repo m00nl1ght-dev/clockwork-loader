@@ -59,12 +59,20 @@ public class ConfigSpec {
         return config.getKeys().stream().filter(k -> !entryMap.containsKey(k)).collect(Collectors.toSet());
     }
 
-    public <T> Entry<T> add(String key, Type<T> valueType) {
+    public <T> Entry<T> put(String key, Type<T> valueType) {
         this.requireNotLocked();
-        final var entry = new Entry<>(this, key, valueType, entryMap.size());
-        if (entryMap.putIfAbsent(key, entry) != null) {
-            throw new RuntimeException("ConfigSpec already contains entry for key: " + key);
+        final var existing = entryMap.get(key);
+        if (existing != null) {
+            if (existing.type.isCompatible(valueType)) {
+                final var entry = new Entry<>(this, key, valueType, existing.sortIndex);
+                entryMap.put(key, entry);
+                return entry;
+            } else {
+                throw new RuntimeException("ConfigSpec already contains incompatible entry for key: " + key);
+            }
         } else {
+            final var entry = new Entry<>(this, key, valueType, entryMap.size());
+            entryMap.put(key, entry);
             return entry;
         }
     }

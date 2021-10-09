@@ -25,7 +25,7 @@ public class NightconfigPluginReader implements PluginReader {
     public static final String TYPE = "extension.pluginreader.nightconfig";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_DESCRIPTORPATH = CONFIG_SPEC.add("descriptorPath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_DESCRIPTORPATH = CONFIG_SPEC.put("descriptorPath", Config.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     public static void registerTo(ClockworkLoader loader) {

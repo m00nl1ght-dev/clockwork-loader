@@ -24,7 +24,7 @@ public class ManifestPluginReader implements PluginReader {
     public static final String TYPE = "internal.pluginreader.manifest";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_MANIFESTPATH = CONFIG_SPEC.add("manifestPath", Config.STRING).defaultValue("META-INF/MANIFEST.MF");
+    public static final Entry<String> CONFIG_ENTRY_MANIFESTPATH = CONFIG_SPEC.put("manifestPath", Config.STRING).defaultValue("META-INF/MANIFEST.MF");
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     public static void registerTo(ClockworkLoader loader) {

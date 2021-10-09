@@ -28,7 +28,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     public static final String TYPE = "extension.pluginfinder.localrepo";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_ROOTPATH = CONFIG_SPEC.add("rootPath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_ROOTPATH = CONFIG_SPEC.put("rootPath", Config.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     public static void registerTo(ClockworkLoader loader) {

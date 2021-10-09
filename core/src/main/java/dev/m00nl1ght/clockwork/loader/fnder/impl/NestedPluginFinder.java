@@ -26,8 +26,8 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
     public static final String TYPE = "internal.pluginfinder.nested";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_PATH = CONFIG_SPEC.add("pathInModule", Config.STRING).defaultValue("libs/");
-    public static final Entry<Config> CONFIG_ENTRY_INNER = CONFIG_SPEC.add("innerFinder", ConfiguredFeatures.CONFIG_TYPE).required();
+    public static final Entry<String> CONFIG_ENTRY_PATH = CONFIG_SPEC.put("pathInModule", Config.STRING).defaultValue("libs/");
+    public static final Entry<Config> CONFIG_ENTRY_INNER = CONFIG_SPEC.put("innerFinder", ConfiguredFeatures.CONFIG_TYPE).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     protected final Config innerFinderConfig;

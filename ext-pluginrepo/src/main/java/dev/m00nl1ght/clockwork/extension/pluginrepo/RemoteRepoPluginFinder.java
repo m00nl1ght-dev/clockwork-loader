@@ -28,8 +28,8 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     public static final String TYPE = "extension.pluginfinder.remoterepo";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_ROOTURL = CONFIG_SPEC.add("rootURL", Config.STRING).required();
-    public static final Entry<String> CONFIG_ENTRY_CACHEPATH = CONFIG_SPEC.add("cachePath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_ROOTURL = CONFIG_SPEC.put("rootURL", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_CACHEPATH = CONFIG_SPEC.put("cachePath", Config.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     public static void registerTo(ClockworkLoader loader) {

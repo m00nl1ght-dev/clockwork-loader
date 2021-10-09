@@ -173,6 +173,10 @@ public interface Config {
             return value == null ? null : verify(config, key, value);
         }
 
+        public boolean isCompatible(Type<?> other) {
+            return this.getClass() == other.getClass();
+        }
+
     }
 
     abstract class TypeParsed<T> extends Type<T> {
@@ -215,6 +219,13 @@ public interface Config {
             return new ConfigException(config, key, value, "does not match pattern " + pattern);
         }
 
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeString)) return false;
+            final var cOther = (TypeString) other;
+            return cOther.pattern.pattern().equals(pattern.pattern());
+        }
+
     }
 
     class TypeBoolean extends TypeParsed<Boolean> {
@@ -253,6 +264,13 @@ public interface Config {
             return new ConfigException(config, key, value, "is not in range [" + minValue + ";" + maxValue + "]");
         }
 
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeInt)) return false;
+            final var cOther = (TypeInt) other;
+            return cOther.minValue >= minValue && cOther.maxValue <= maxValue;
+        }
+
     }
 
     class TypeFloat extends TypeParsed<Float> {
@@ -280,6 +298,13 @@ public interface Config {
             return new ConfigException(config, key, value, "is not in range [" + minValue + ";" + maxValue + "]");
         }
 
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeFloat)) return false;
+            final var cOther = (TypeFloat) other;
+            return cOther.minValue >= minValue && cOther.maxValue <= maxValue;
+        }
+
     }
 
     class TypeEnum<E extends Enum<E>> extends TypeParsed<E> {
@@ -302,6 +327,13 @@ public interface Config {
             } catch (IllegalArgumentException e) {
                 throw new ConfigException(config, key, value, "is not a value of enum " + enumClass.getSimpleName());
             }
+        }
+
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeEnum)) return false;
+            final var cOther = (TypeEnum<?>) other;
+            return cOther.enumClass == enumClass;
         }
 
     }
@@ -340,6 +372,13 @@ public interface Config {
                     .findFirst().orElse(null);
         }
 
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeList)) return false;
+            final var cOther = (TypeList<?>) other;
+            return cOther.elementType.isCompatible(cOther.elementType);
+        }
+
     }
 
     class TypeConfig extends Type<Config> {
@@ -370,6 +409,13 @@ public interface Config {
             if (!vSpec.canApplyAs(spec))
                 return new ConfigException(config, key, value, "has incompatible spec " + vSpec);
             return null;
+        }
+
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeConfig)) return false;
+            final var cOther = (TypeConfig) other;
+            return ConfigSpec.canApply(cOther.spec, spec);
         }
 
     }
@@ -409,6 +455,13 @@ public interface Config {
                     return new ConfigException(config, key, element, "has incompatible spec " + vSpec);
             }
             return null;
+        }
+
+        @Override
+        public boolean isCompatible(Type<?> other) {
+            if (!(other instanceof TypeConfigList)) return false;
+            final var cOther = (TypeConfigList) other;
+            return ConfigSpec.canApply(cOther.spec, spec);
         }
 
     }

@@ -23,7 +23,7 @@ public class ModulePathPluginFinder extends AbstractScanningPluginFinder {
     public static final String TYPE = "internal.pluginfinder.modulepath";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_MODULEPATH = CONFIG_SPEC.add("modulePath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_MODULEPATH = CONFIG_SPEC.put("modulePath", Config.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     protected final ModuleFinder moduleFinder;
