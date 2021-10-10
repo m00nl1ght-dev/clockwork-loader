@@ -98,4 +98,19 @@ public final class DependencyDescriptor {
         return builder.toString();
     }
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        DependencyDescriptor that = (DependencyDescriptor) o;
+        return plugin.equals(that.plugin)
+                && component.equals(that.component)
+                && versionRequirement.equals(that.versionRequirement);
+    }
+
+    @Override
+    public int hashCode() {
+        return Objects.hash(plugin, component, versionRequirement);
+    }
+
 }

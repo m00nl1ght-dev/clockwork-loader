@@ -1,14 +1,16 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
-import dev.m00nl1ght.clockwork.utils.config.impl.AttributesWrapper;
 import dev.m00nl1ght.clockwork.utils.config.impl.EmptyConfig;
+import dev.m00nl1ght.clockwork.utils.config.impl.MinimalSDPConfig;
 import dev.m00nl1ght.clockwork.utils.config.impl.ModifiableConfigImpl;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.*;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.jar.Attributes;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
@@ -89,7 +91,7 @@ public interface Config {
         return new TypeCustomList<>(elementType, true);
     }
 
-    // FACTORY METHODS
+    // STATIC METHODS
 
     static @NotNull ModifiableConfig newConfig() {
         return new ModifiableConfigImpl(null);
@@ -99,18 +101,138 @@ public interface Config {
         return new ModifiableConfigImpl(spec);
     }
 
-    static @NotNull Config fromAttributes(@NotNull Attributes attributes) {
-        return new AttributesWrapper(attributes, SimpleDataParser.DEFAULT_FORMAT, "");
+    static @NotNull Config fromMapLike(@NotNull Function<? super String, ?> valueProvider,
+                                       @NotNull Supplier<? extends Collection<?>> keyProvider,
+                                       @NotNull SimpleDataParser.Format dataFormat,
+                                       @NotNull String keyPrefix,
+                                       @NotNull String name) {
+        return new MinimalSDPConfig(valueProvider, keyProvider, dataFormat, keyPrefix, name);
+    }
+
+    static @NotNull Config fromMapLike(@NotNull Function<? super String, ?> valueProvider,
+                                       @NotNull Supplier<? extends Collection<?>> keyProvider,
+                                       @NotNull String keyPrefix,
+                                       @NotNull String name) {
+        return new MinimalSDPConfig(valueProvider, keyProvider, SimpleDataParser.DEFAULT_FORMAT, keyPrefix, name);
+    }
+
+    static @NotNull Config fromMapLike(@NotNull Function<? super String, ?> valueProvider,
+                                       @NotNull Supplier<? extends Collection<?>> keyProvider,
+                                       @NotNull String name) {
+        return new MinimalSDPConfig(valueProvider, keyProvider, SimpleDataParser.DEFAULT_FORMAT, "", name);
+    }
+
+    static @NotNull Config fromMapLike(@NotNull Function<? super String, ?> valueProvider,
+                                       @NotNull SimpleDataParser.Format dataFormat,
+                                       @NotNull String keyPrefix,
+                                       @NotNull String name) {
+        return new MinimalSDPConfig(valueProvider, null, dataFormat, keyPrefix, name);
+    }
+
+    static @NotNull Config fromMapLike(@NotNull Function<? super String, ?> valueProvider,
+                                       @NotNull String keyPrefix,
+                                       @NotNull String name) {
+        return new MinimalSDPConfig(valueProvider, null, SimpleDataParser.DEFAULT_FORMAT, keyPrefix, name);
+    }
+
+    static @NotNull Config fromMapLike(@NotNull Function<? super String, ?> valueProvider,
+                                       @NotNull String name) {
+        return new MinimalSDPConfig(valueProvider, null, SimpleDataParser.DEFAULT_FORMAT, "", name);
+    }
+
+    static @NotNull Config fromMap(@NotNull Map<String, ?> map,
+                                   @NotNull SimpleDataParser.Format dataFormat,
+                                   @NotNull String keyPrefix,
+                                   @NotNull String name) {
+        return new MinimalSDPConfig(map::get, map::keySet, dataFormat, keyPrefix, name);
+    }
+
+    static @NotNull Config fromMap(@NotNull Map<String, ?> map, @NotNull String keyPrefix, @NotNull String name) {
+        return fromMap(map, SimpleDataParser.DEFAULT_FORMAT, keyPrefix, name);
+    }
+
+    static @NotNull Config fromMap(@NotNull Map<String, ?> map, @NotNull String name) {
+        return fromMap(map, SimpleDataParser.DEFAULT_FORMAT, "", name);
     }
 
     static @NotNull Config fromAttributes(@NotNull Attributes attributes, @NotNull String keyPrefix) {
-        return new AttributesWrapper(attributes, SimpleDataParser.DEFAULT_FORMAT, keyPrefix);
+        return fromMapLike(attributes::getValue, attributes::keySet, "Attributes");
     }
 
-    static @NotNull Config fromAttributes(@NotNull Attributes attributes,
-                                          @NotNull SimpleDataParser.Format dataFormat,
-                                          @NotNull String keyPrefix) {
-        return new AttributesWrapper(attributes, dataFormat, keyPrefix);
+    static @NotNull Config fromAttributes(@NotNull Attributes attributes) {
+        return fromAttributes(attributes, "");
+    }
+
+    static @NotNull Config fromProperties(@NotNull Properties properties, @NotNull String keyPrefix) {
+        return fromMapLike(properties::getProperty, properties::keySet, keyPrefix, "Properties");
+    }
+
+    static @NotNull Config fromProperties(@NotNull Properties properties) {
+        return fromProperties(properties, "");
+    }
+
+    static @NotNull Config fromSystemProperties(@NotNull String keyPrefix) {
+        return fromProperties(System.getProperties(), keyPrefix);
+    }
+
+    static @NotNull Config fromSystemProperties() {
+        return fromProperties(System.getProperties(), "");
+    }
+
+    static @NotNull Config merge(Config base, Config other) {
+        final var spec = base.getSpec();
+        final var merged = base.modifiableCopy();
+        final var allowAdditional = spec == null || spec.allowAdditionalEntries;
+
+        for (final var key : other.getKeys()) {
+            final var entry = spec == null ? null : spec.getEntry(key);
+            if (entry != null) {
+                merge(merged, other, entry);
+            } else if (allowAdditional) {
+                merge(merged, other, key);
+            }
+        }
+
+        return merged;
+    }
+
+    private static <T> void merge(ModifiableConfig config, Config other, Entry<T> entry) {
+        final var otherValue = other.get(entry.key, entry.type);
+        if (otherValue == null) return;
+        config.put(entry, otherValue);
+    }
+
+    private static void merge(ModifiableConfig config, Config other, String key) {
+
+        final var asString = other.getString(key);
+        if (asString != null) {
+            config.putString(key, asString);
+            return;
+        }
+
+        final var asConfig = other.getSubconfig(key);
+        if (asConfig != null) {
+            final var base = config.getSubconfig(key);
+            config.putSubconfig(key, base == null ? asConfig : merge(base, asConfig));
+            return;
+        }
+
+        final var asList = other.getStrings(key);
+        if (asList != null) {
+            final var base = config.getStrings(key);
+            config.putStrings(key, base == null ? asList : JOIN(base, asList));
+            return;
+        }
+
+        final var asConfigList = other.getSubconfigs(key);
+        if (asConfigList != null) {
+            final var base = config.getSubconfigs(key);
+            config.putSubconfigs(key, base == null ? asConfigList : JOIN(base, asConfigList));
+        }
+    }
+
+    static @NotNull Config merge(List<Config> configs) {
+        return configs.stream().reduce(Config::merge).orElseThrow();
     }
 
     // INSTANCE METHODS
@@ -165,6 +287,23 @@ public interface Config {
         }
     }
 
+    default @Nullable Object getObject(@NotNull String key) {
+        final var spec = getSpec();
+        final var entry = spec == null ? null : spec.getEntry(key);
+        if (entry != null) return get(key, entry.type);
+        final var asString = getString(key);
+        if (asString != null) return asString;
+        final var asConfig = getSubconfig(key);
+        if (asConfig != null) return asConfig;
+        final var asList = getStrings(key);
+        if (asList != null) return asList;
+        return getSubconfigs(key);
+    }
+
+    default @NotNull Map<@NotNull String, @NotNull Object> toMap() {
+        return getKeys().stream().collect(Collectors.toMap(Function.identity(), this::getObject));
+    }
+
     @NotNull Config copy(@Nullable ConfigSpec spec);
 
     default @NotNull Config copy() {
@@ -211,11 +350,15 @@ public interface Config {
             return value == null ? null : verify(config, key, value);
         }
 
-        public boolean isCompatible(Type<?> other) {
+        public boolean isCompatible(@NotNull Type<?> other) {
             return this.getClass() == other.getClass();
         }
 
-        public T getDefault() {
+        public @NotNull BinaryOperator<T> getDefaultMergeFunction() {
+            return Config::REPLACE;
+        }
+
+        public @Nullable T getDefaultValue() {
             return null;
         }
 
@@ -297,7 +440,7 @@ public interface Config {
         }
 
         @Override
-        public String getDefault() {
+        public String getDefaultValue() {
             return "";
         }
 
@@ -313,7 +456,7 @@ public interface Config {
         }
 
         @Override
-        public Boolean getDefault() {
+        public Boolean getDefaultValue() {
             return false;
         }
 
@@ -352,7 +495,7 @@ public interface Config {
         }
 
         @Override
-        public Integer getDefault() {
+        public Integer getDefaultValue() {
             return 0;
         }
 
@@ -391,7 +534,7 @@ public interface Config {
         }
 
         @Override
-        public Float getDefault() {
+        public Float getDefaultValue() {
             return 0f;
         }
 
@@ -479,7 +622,12 @@ public interface Config {
         }
 
         @Override
-        public List<T> getDefault() {
+        public @NotNull BinaryOperator<List<T>> getDefaultMergeFunction() {
+            return Config::JOIN;
+        }
+
+        @Override
+        public List<T> getDefaultValue() {
             return List.of();
         }
 
@@ -523,7 +671,12 @@ public interface Config {
         }
 
         @Override
-        public Config getDefault() {
+        public @NotNull BinaryOperator<Config> getDefaultMergeFunction() {
+            return Config::merge;
+        }
+
+        @Override
+        public Config getDefaultValue() {
             return EMPTY;
         }
 
@@ -621,7 +774,12 @@ public interface Config {
         }
 
         @Override
-        public List<Config> getDefault() {
+        public @NotNull BinaryOperator<List<Config>> getDefaultMergeFunction() {
+            return Config::JOIN;
+        }
+
+        @Override
+        public List<Config> getDefaultValue() {
             return List.of();
         }
 
@@ -669,10 +827,28 @@ public interface Config {
         }
 
         @Override
-        public List<T> getDefault() {
+        public @NotNull BinaryOperator<List<T>> getDefaultMergeFunction() {
+            return Config::JOIN;
+        }
+
+        @Override
+        public List<T> getDefaultValue() {
             return List.of();
         }
 
+    }
+
+    static <T> T KEEP(T a, T b) { return a; }
+    static <T> T REPLACE(T a, T b) { return b; }
+
+    static boolean AND(boolean a, boolean b) { return a && b; }
+    static boolean OR(boolean a, boolean b) { return a || b; }
+
+    static <T> List<T> JOIN(List<T> a, List<T> b) {
+        final var joined = new ArrayList<T>(a.size() + b.size());
+        joined.addAll(a);
+        joined.addAll(b);
+        return joined;
     }
 
 }

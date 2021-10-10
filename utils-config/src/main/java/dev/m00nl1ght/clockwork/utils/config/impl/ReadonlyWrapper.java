@@ -7,6 +7,7 @@ import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
 
@@ -41,6 +42,21 @@ public class ReadonlyWrapper implements Config {
     @Override
     public List<Config> getSubconfigs(String key) {
         return config.getSubconfigs(key);
+    }
+
+    @Override
+    public <T> @Nullable T get(ConfigSpec.@NotNull Entry<T> entry) {
+        return config.get(entry);
+    }
+
+    @Override
+    public @Nullable Object getObject(@NotNull String key) {
+        return config.getObject(key);
+    }
+
+    @Override
+    public @NotNull Map<@NotNull String, @NotNull Object> toMap() {
+        return config.toMap();
     }
 
     @Override

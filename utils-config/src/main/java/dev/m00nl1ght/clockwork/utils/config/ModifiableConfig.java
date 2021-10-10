@@ -10,6 +10,10 @@ import java.util.List;
 
 public interface ModifiableConfig extends Config {
 
+    static ModifiableConfig of(Config config) {
+        return config instanceof ModifiableConfig ? (ModifiableConfig) config : config.modifiableCopy();
+    }
+
     @Nullable ModifiableConfig getModifiableSubconfig(@NotNull String key);
 
     @Nullable List<? extends ModifiableConfig> getModifiableSubconfigs(@NotNull String key);

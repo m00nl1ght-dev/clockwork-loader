@@ -8,6 +8,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -156,11 +157,13 @@ public class ConfigSpec {
 
         protected boolean required;
         protected Function<Config, T> defaultSupplier = c -> null;
+        protected BinaryOperator<T> mergeFunction;
 
         protected Entry(ConfigSpec spec, String key, Type<T> type, int sortIndex) {
             this.spec = Objects.requireNonNull(spec);
             this.key = Objects.requireNonNull(key);
             this.type = Objects.requireNonNull(type);
+            this.mergeFunction = type.getDefaultMergeFunction();
             this.sortIndex = sortIndex;
         }
 
@@ -171,7 +174,7 @@ public class ConfigSpec {
         }
 
         public Entry<T> defaultValue() {
-            return defaultValue(type.getDefault());
+            return defaultValue(type.getDefaultValue());
         }
 
         public Entry<T> defaultTo(Entry<T> other) {
@@ -212,6 +215,10 @@ public class ConfigSpec {
 
         public boolean isRequired() {
             return required;
+        }
+
+        public void mergeWith(BinaryOperator<T> mergeFunction) {
+            this.mergeFunction = Objects.requireNonNull(mergeFunction);
         }
 
         public final String getKey() {
