@@ -49,7 +49,8 @@ public class MinimalSDPConfig extends AbstractSDPConfig {
 
     @Override
     protected String getRaw(String key) {
-        return valueProvider.apply(keyPrefix + key).toString();
+        final var raw = valueProvider.apply(keyPrefix + key);
+        return raw == null ? null : raw.toString();
     }
 
     @Override

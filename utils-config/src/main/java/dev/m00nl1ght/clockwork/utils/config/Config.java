@@ -156,7 +156,7 @@ public interface Config {
     }
 
     static @NotNull Config fromAttributes(@NotNull Attributes attributes, @NotNull String keyPrefix) {
-        return fromMapLike(attributes::getValue, attributes::keySet, "Attributes");
+        return fromMapLike(attributes::getValue, attributes::keySet, keyPrefix, "Attributes");
     }
 
     static @NotNull Config fromAttributes(@NotNull Attributes attributes) {
