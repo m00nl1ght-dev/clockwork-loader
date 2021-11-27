@@ -39,7 +39,7 @@ public final class CWLAnnotationsExtension extends LoaderExtension {
     @Override
     public void onCoreInitialised() {
         for (final var plugin : target.getCore().getLoadedPlugins()) {
-            if (plugin.getDescriptor().getExtData().getOrDefault("usesEventHandlers", ConfigValue.BOOLEAN, false)) {
+            if (plugin.getDescriptor().getExtData().getOrDefault("usesEventHandlers", ConfigValue.T_BOOLEAN, false)) {
                 for (final var component : plugin.getComponentTypes()) {
                     try {
                         collectHandlers(plugin, component.getComponentClass());

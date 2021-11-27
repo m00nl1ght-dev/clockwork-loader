@@ -3,6 +3,9 @@ package dev.m00nl1ght.clockwork.utils.config;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
+import java.io.File;
+import java.net.URI;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -16,72 +19,71 @@ public class ConfigValue {
 
     private ConfigValue() {}
 
-    public static final TypeString          STRING      = new TypeString(null);
-    public static final TypeParsedList<String> LIST_UF     = new TypeParsedList<>(STRING, true, false);
-    public static final TypeParsedList<String> LIST_F      = new TypeParsedList<>(STRING, true, true);
-    public static final TypeParsedList<String> LIST_U      = new TypeParsedList<>(STRING, false, false);
-    public static final TypeParsedList<String> LIST        = new TypeParsedList<>(STRING, false, true);
-    public static final TypeBoolean         BOOLEAN     = new TypeBoolean();
-    public static final TypeInt             INT         = new TypeInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
-    public static final TypeInt             UINT        = new TypeInt(0, Integer.MAX_VALUE);
-    public static final TypeFloat           FLOAT       = new TypeFloat(Float.MIN_VALUE, Float.MAX_VALUE);
-    public static final TypeFloat           UFLOAT      = new TypeFloat(0f, Float.MAX_VALUE);
-    public static final TypeConfig          CONFIG      = new TypeConfig(null);
-    public static final TypeConfigList      CLIST       = new TypeConfigList(null, false);
-    public static final TypeConfigList      CLISTF      = new TypeConfigList(null, true);
+    // BASIC STATIC TYPES
 
-    public static <E extends Enum<E>> @NotNull TypeEnum<E> ENUM(@NotNull Class<E> enumClass) {
-        return new TypeEnum<>(enumClass);
-    }
+    public static final TypeString                  T_STRING        = new TypeString(null);
+    public static final TypeParsedList<String>      T_LIST_UF       = new TypeParsedList<>(T_STRING, true, false);
+    public static final TypeParsedList<String>      T_LIST_F        = new TypeParsedList<>(T_STRING, true, true);
+    public static final TypeParsedList<String>      T_LIST_U        = new TypeParsedList<>(T_STRING, false, false);
+    public static final TypeParsedList<String>      T_LIST          = new TypeParsedList<>(T_STRING, false, true);
+    public static final TypeBoolean                 T_BOOLEAN       = new TypeBoolean();
+    public static final TypeInt                     T_INT           = new TypeInt(Integer.MIN_VALUE, Integer.MAX_VALUE);
+    public static final TypeInt                     T_UINT          = new TypeInt(0, Integer.MAX_VALUE);
+    public static final TypeFloat                   T_FLOAT         = new TypeFloat(Float.MIN_VALUE, Float.MAX_VALUE);
+    public static final TypeFloat                   T_UFLOAT        = new TypeFloat(0f, Float.MAX_VALUE);
+    public static final TypeConfig                  T_CONFIG        = new TypeConfig(null);
+    public static final TypeConfigList              T_CLIST         = new TypeConfigList(null, false);
+    public static final TypeConfigList              T_CLIST_F       = new TypeConfigList(null, true);
 
-    public static <T> @NotNull TypeParsedCustom<T> CUSTOM(@NotNull Class<T> targetClass,
-                                                          @NotNull Function<@NotNull String, @NotNull T> factory) {
+    // COMMON STATIC TYPES
 
-        return new TypeParsedCustom<>(targetClass, factory);
-    }
+    public static final TypeParsedCustom<Path>      T_PATH          = new TypeParsedCustom<>(Path.class, Path::of);
+    public static final TypeParsedCustom<File>      T_FILE          = new TypeParsedCustom<>(File.class, File::new);
+    public static final TypeParsedCustom<URI>       T_URI           = new TypeParsedCustom<>(URI.class, URI::create);
 
-    public static <T> @NotNull TypeCustom<T> CUSTOM(@NotNull Class<T> targetClass,
-                                                    @NotNull Function<@NotNull Config, @NotNull T> fromConfig,
-                                                    @NotNull Function<@NotNull T, @NotNull Config> toConfig) {
+    // BASIC DYNAMIC TYPES
 
-        return new TypeCustom<>(targetClass, fromConfig, toConfig);
-    }
-
-    public static <T> @NotNull TypeParsedList<T> LIST(@NotNull TypeParsed<T> elementType) {
+    public static <T> @NotNull TypeParsedList<T> T_LIST(@NotNull TypeParsed<T> elementType) {
         return new TypeParsedList<>(elementType, false, true);
     }
 
-    public static <T> @NotNull TypeParsedList<T> LIST_U(@NotNull TypeParsed<T> elementType) {
+    public static <T> @NotNull TypeParsedList<T> T_LIST_U(@NotNull TypeParsed<T> elementType) {
         return new TypeParsedList<>(elementType, false, false);
     }
 
-    public static <T> @NotNull TypeParsedList<T> LIST_F(@NotNull TypeParsed<T> elementType) {
+    public static <T> @NotNull TypeParsedList<T> T_LIST_F(@NotNull TypeParsed<T> elementType) {
         return new TypeParsedList<>(elementType, true, true);
     }
 
-    public static <T> @NotNull TypeParsedList<T> LIST_UF(@NotNull TypeParsed<T> elementType) {
+    public static <T> @NotNull TypeParsedList<T> T_LIST_UF(@NotNull TypeParsed<T> elementType) {
         return new TypeParsedList<>(elementType, true, false);
     }
 
-    public static @NotNull TypeConfig CONFIG(@NotNull ConfigSpec spec) {
+    public static @NotNull TypeConfig T_CONFIG(@NotNull ConfigSpec spec) {
         return new TypeConfig(Objects.requireNonNull(spec));
     }
 
-    public static @NotNull TypeConfigList CLIST(@NotNull ConfigSpec spec) {
+    public static @NotNull TypeConfigList T_CLIST(@NotNull ConfigSpec spec) {
         return new TypeConfigList(Objects.requireNonNull(spec), false);
     }
 
-    public static @NotNull TypeConfigList CLISTF(@NotNull ConfigSpec spec) {
+    public static @NotNull TypeConfigList T_CLIST_F(@NotNull ConfigSpec spec) {
         return new TypeConfigList(Objects.requireNonNull(spec), true);
     }
 
-    public static <T> @NotNull TypeCustomList<T> CLIST(@NotNull TypeCustom<T> elementType) {
+    public static <T> @NotNull TypeCustomList<T> T_CLIST(@NotNull TypeCustom<T> elementType) {
         return new TypeCustomList<>(elementType, false);
     }
 
-    public static <T> @NotNull TypeCustomList<T> CLISTF(@NotNull TypeCustom<T> elementType) {
+    public static <T> @NotNull TypeCustomList<T> T_CLIST_F(@NotNull TypeCustom<T> elementType) {
         return new TypeCustomList<>(elementType, true);
     }
+
+    public static <E extends Enum<E>> @NotNull TypeEnum<E> T_ENUM(@NotNull Class<E> enumClass) {
+        return new TypeEnum<>(enumClass);
+    }
+
+    // TYPE CLASSES
 
     public abstract static class Type<T> {
 
@@ -103,7 +105,7 @@ public class ConfigValue {
         }
 
         public @NotNull BinaryOperator<T> getDefaultMergeFunction() {
-            return ConfigValue::REPLACE;
+            return ConfigValue::M_REPLACE;
         }
 
         public @Nullable T getDefaultValue() {
@@ -371,7 +373,7 @@ public class ConfigValue {
 
         @Override
         public @NotNull BinaryOperator<List<T>> getDefaultMergeFunction() {
-            return ConfigValue::JOIN;
+            return ConfigValue::M_JOIN;
         }
 
         @Override
@@ -387,7 +389,6 @@ public class ConfigValue {
 
         public TypeConfig(@Nullable ConfigSpec spec) {
             this.spec = spec;
-            if (spec != null) spec.lock();
         }
 
         @Override
@@ -523,7 +524,7 @@ public class ConfigValue {
 
         @Override
         public @NotNull BinaryOperator<List<Config>> getDefaultMergeFunction() {
-            return ConfigValue::JOIN;
+            return ConfigValue::M_JOIN;
         }
 
         @Override
@@ -576,7 +577,7 @@ public class ConfigValue {
 
         @Override
         public @NotNull BinaryOperator<List<T>> getDefaultMergeFunction() {
-            return ConfigValue::JOIN;
+            return ConfigValue::M_JOIN;
         }
 
         @Override
@@ -586,15 +587,17 @@ public class ConfigValue {
 
     }
 
-    public static <T> T KEEP(T a, T b) { return a; }
+    // COMMON MERGE FUNCTIONS
 
-    public static <T> T REPLACE(T a, T b) { return b; }
+    public static <T> T M_KEEP(T a, T b) { return a; }
 
-    public static boolean AND(boolean a, boolean b) { return a && b; }
+    public static <T> T M_REPLACE(T a, T b) { return b; }
 
-    public static boolean OR(boolean a, boolean b) { return a || b; }
+    public static boolean M_AND(boolean a, boolean b) { return a && b; }
 
-    public static <T> List<T> JOIN(List<T> a, List<T> b) {
+    public static boolean M_OR(boolean a, boolean b) { return a || b; }
+
+    public static <T> List<T> M_JOIN(List<T> a, List<T> b) {
         final var joined = new ArrayList<T>(a.size() + b.size());
         joined.addAll(a);
         joined.addAll(b);

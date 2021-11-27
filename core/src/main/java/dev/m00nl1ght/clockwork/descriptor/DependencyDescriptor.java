@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.descriptor;
 
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 import dev.m00nl1ght.clockwork.utils.version.VersionRequirement;
 
@@ -8,6 +9,9 @@ import java.util.Objects;
 import static dev.m00nl1ght.clockwork.descriptor.Namespaces.*;
 
 public final class DependencyDescriptor {
+
+    public static final ConfigValue.TypeParsed<DependencyDescriptor> T_VALUE
+            = new ConfigValue.TypeParsedCustom<>(DependencyDescriptor.class, DependencyDescriptor::buildPlugin);
 
     private final String plugin;
     private final String component;

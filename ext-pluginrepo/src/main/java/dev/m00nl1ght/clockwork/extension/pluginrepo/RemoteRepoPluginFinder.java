@@ -6,45 +6,42 @@ import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.utils.config.*;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
-import java.io.File;
 import java.io.FileOutputStream;
 import java.net.URL;
 import java.nio.channels.Channels;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
+
+import static dev.m00nl1ght.clockwork.utils.config.ConfigValue.*;
 
 public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     public static final String TYPE = "extension.pluginfinder.remoterepo";
-
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_ROOTURL = CONFIG_SPEC.put("rootURL", ConfigValue.STRING).required();
-    public static final Entry<String> CONFIG_ENTRY_CACHEPATH = CONFIG_SPEC.put("cachePath", ConfigValue.STRING).required();
-    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+    public static final Spec SPEC = new Spec();
 
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, RemoteRepoPluginFinder::new);
     }
 
-    public static ModifiableConfig newConfig(String name, URL rootURL, File cachePath, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, URL rootURL, Path cachePath, boolean wildcard) {
         return newConfig(name, rootURL, cachePath, null, wildcard);
     }
 
-    public static ModifiableConfig newConfig(String name, URL rootURL, File cachePath, List<String> readers, boolean wildcard) {
-        return Config.newConfig(CONFIG_SPEC)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
-                .put(AbstractPluginFinder.CONFIG_ENTRY_READERS, readers)
-                .put(AbstractPluginFinder.CONFIG_ENTRY_WILDCARD, wildcard)
-                .put(CONFIG_ENTRY_ROOTURL, rootURL.toString())
-                .put(CONFIG_ENTRY_CACHEPATH, cachePath.getPath());
+    public static ModifiableConfig newConfig(String name, URL rootURL, Path cachePath, List<String> readers, boolean wildcard) {
+        return Config.newConfig(SPEC)
+                .put(SPEC.FEATURE_TYPE, TYPE)
+                .put(SPEC.FEATURE_NAME, Objects.requireNonNull(name))
+                .put(SPEC.READERS, readers)
+                .put(SPEC.WILDCARD, wildcard)
+                .put(SPEC.ROOT_URL, rootURL.toString())
+                .put(SPEC.CACHE_PATH, cachePath);
     }
 
     private static final int MAX_META_SIZE = 1024 * 1024;
@@ -54,8 +51,8 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     protected RemoteRepoPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
-        this.rootURL = config.get(CONFIG_ENTRY_ROOTURL);
-        final var cachePath = new File(config.get(CONFIG_ENTRY_CACHEPATH));
+        this.rootURL = config.get(SPEC.ROOT_URL);
+        final var cachePath = config.get(SPEC.CACHE_PATH);
         final var cacheConfig = LocalRepoPluginFinder.newConfig("localCache", cachePath, readerNames, wildcard);
         this.localCache = new LocalRepoPluginFinder(loader, cacheConfig);
     }
@@ -119,6 +116,22 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
     @Override
     public String toString() {
         return TYPE + "[" + name +  "]";
+    }
+
+    public static class Spec extends AbstractPluginFinder.Spec {
+
+        public final Entry<String>          ROOT_URL    = entry("rootURL", T_STRING).required();
+        public final Entry<Path>            CACHE_PATH  = entry("cachePath", T_PATH).required();
+
+        protected Spec(String specName) {
+            super(specName);
+        }
+
+        private Spec() {
+            super(TYPE);
+            initialize();
+        }
+
     }
 
 }

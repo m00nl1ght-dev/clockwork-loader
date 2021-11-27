@@ -7,42 +7,39 @@ import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
-import dev.m00nl1ght.clockwork.utils.config.*;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
-import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static dev.m00nl1ght.clockwork.utils.config.ConfigValue.*;
+
 public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     public static final String TYPE = "extension.pluginfinder.localrepo";
-
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_ROOTPATH = CONFIG_SPEC.put("rootPath", ConfigValue.STRING).required();
-    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+    public static final Spec SPEC = new Spec();
 
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, LocalRepoPluginFinder::new);
     }
 
-    public static ModifiableConfig newConfig(String name, File rootPath, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, Path rootPath, boolean wildcard) {
         return newConfig(name, rootPath, null, wildcard);
     }
 
-    public static ModifiableConfig newConfig(String name, File rootPath, List<String> readers, boolean wildcard) {
-        return Config.newConfig(CONFIG_SPEC)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
-                .put(AbstractPluginFinder.CONFIG_ENTRY_READERS, readers)
-                .put(AbstractPluginFinder.CONFIG_ENTRY_WILDCARD, wildcard)
-                .put(CONFIG_ENTRY_ROOTPATH, rootPath.getPath());
+    public static ModifiableConfig newConfig(String name, Path rootPath, List<String> readers, boolean wildcard) {
+        return Config.newConfig(SPEC)
+                .put(SPEC.FEATURE_TYPE, TYPE)
+                .put(SPEC.FEATURE_NAME, Objects.requireNonNull(name))
+                .put(SPEC.READERS, readers)
+                .put(SPEC.WILDCARD, wildcard)
+                .put(SPEC.ROOT_PATH, rootPath);
     }
 
     static final String JAR_FILE = "plugin.jar";
@@ -51,7 +48,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
 
     protected LocalRepoPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
-        this.rootPath = Path.of(config.get(CONFIG_ENTRY_ROOTPATH));
+        this.rootPath = config.get(SPEC.ROOT_PATH);
     }
 
     @Override
@@ -105,6 +102,21 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     @Override
     public String toString() {
         return TYPE + "[" + name +  "]";
+    }
+
+    public static class Spec extends AbstractPluginFinder.Spec {
+
+        public final Entry<Path> ROOT_PATH = entry("rootPath", T_PATH).required();
+
+        protected Spec(String specName) {
+            super(specName);
+        }
+
+        private Spec() {
+            super(TYPE);
+            initialize();
+        }
+
     }
 
 }

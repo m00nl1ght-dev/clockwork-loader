@@ -37,7 +37,7 @@ public final class SecurityConfig {
                         e -> e.getValue().buildPermission(plugin.getDescriptor(), null),
                         (a, b) -> b, HashMap::new));
 
-        for (final var str : plugin.getDescriptor().getExtData().getOrDefault("Permissions", ConfigValue.LIST, List.of())) {
+        for (final var str : plugin.getDescriptor().getExtData().getOrDefault("Permissions", ConfigValue.T_LIST, List.of())) {
             var i = str.indexOf(':');
             var perm = i < 0 ? str : str.substring(0, i);
             var value = i < 0 ? null : str.substring(i + 1);
@@ -60,14 +60,14 @@ public final class SecurityConfig {
     public static SecurityConfig from(Config config) {
         final var builder = builder();
 
-        final var shared = config.getOrDefault("sharedPermissions", ConfigValue.CLIST, List.of());
+        final var shared = config.getOrDefault("sharedPermissions", ConfigValue.T_CLIST, List.of());
         for (final var permConf : shared) {
             builder.addSharedPermission(permissionFromConfig(permConf));
         }
 
-        final var declarable = config.getOrDefault("declarablePermissions", ConfigValue.CLIST, List.of());
+        final var declarable = config.getOrDefault("declarablePermissions", ConfigValue.T_CLIST, List.of());
         for (final var permConf : declarable) {
-            final var name = permConf.getRequired("name", ConfigValue.STRING);
+            final var name = permConf.getRequired("name", ConfigValue.T_STRING);
             builder.addDeclarablePermission(name, permissionsFactoryFromConfig(permConf));
         }
 
@@ -75,18 +75,18 @@ public final class SecurityConfig {
     }
 
     public static Permission permissionFromConfig(Config config) {
-        final var className = config.getRequired("permissionClass", ConfigValue.STRING);
-        final var params = config.getOrDefault("params", ConfigValue.LIST_F, List.of());
+        final var className = config.getRequired("permissionClass", ConfigValue.T_STRING);
+        final var params = config.getOrDefault("params", ConfigValue.T_LIST_F, List.of());
         return ReflectionUtil.buildInstance(Permission.class, className, params);
     }
 
     public static PermissionsFactory permissionsFactoryFromConfig(Config config) {
-        final boolean reqDecl = config.getOrDefault("declared", ConfigValue.BOOLEAN, false);
-        final var perm = config.get("permission", ConfigValue.CONFIG);
+        final boolean reqDecl = config.getOrDefault("declared", ConfigValue.T_BOOLEAN, false);
+        final var perm = config.get("permission", ConfigValue.T_CONFIG);
         if (perm != null) {
             return new PermissionsFactory.Fixed(Set.of(permissionFromConfig(perm)), reqDecl);
         } else {
-            final var perms = config.getOrDefault("permissions", ConfigValue.CLISTF, List.of());
+            final var perms = config.getOrDefault("permissions", ConfigValue.T_CLIST_F, List.of());
             final var constructed = perms.stream()
                     .map(SecurityConfig::permissionFromConfig)
                     .collect(Collectors.toUnmodifiableSet());

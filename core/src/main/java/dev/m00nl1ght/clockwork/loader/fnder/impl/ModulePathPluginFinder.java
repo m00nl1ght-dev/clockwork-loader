@@ -5,23 +5,20 @@ import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
-import dev.m00nl1ght.clockwork.utils.config.*;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
-import java.io.File;
 import java.lang.module.ModuleFinder;
 import java.nio.file.Path;
 import java.util.*;
 import java.util.stream.Collectors;
 
+import static dev.m00nl1ght.clockwork.utils.config.ConfigValue.*;
+
 public class ModulePathPluginFinder extends AbstractScanningPluginFinder {
 
     public static final String TYPE = "internal.pluginfinder.modulepath";
-
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_MODULEPATH = CONFIG_SPEC.put("modulePath", ConfigValue.STRING).required();
-    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+    public static final Spec SPEC = new Spec();
 
     protected final ModuleFinder moduleFinder;
 
@@ -29,22 +26,22 @@ public class ModulePathPluginFinder extends AbstractScanningPluginFinder {
         loader.getFeatureProviders().register(PluginFinder.class, TYPE, ModulePathPluginFinder::new);
     }
 
-    public static ModifiableConfig newConfig(String name, File modulePath, boolean wildcard) {
+    public static ModifiableConfig newConfig(String name, Path modulePath, boolean wildcard) {
         return newConfig(name, modulePath, null, wildcard);
     }
 
-    public static ModifiableConfig newConfig(String name, File modulePath, List<String> readers, boolean wildcard) {
-        return Config.newConfig(CONFIG_SPEC)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
-                .put(AbstractPluginFinder.CONFIG_ENTRY_READERS, readers)
-                .put(AbstractPluginFinder.CONFIG_ENTRY_WILDCARD, wildcard)
-                .put(CONFIG_ENTRY_MODULEPATH, modulePath.getPath());
+    public static ModifiableConfig newConfig(String name, Path modulePath, List<String> readers, boolean wildcard) {
+        return Config.newConfig(SPEC)
+                .put(SPEC.FEATURE_TYPE, TYPE)
+                .put(SPEC.FEATURE_NAME, Objects.requireNonNull(name))
+                .put(SPEC.READERS, readers)
+                .put(SPEC.WILDCARD, wildcard)
+                .put(SPEC.MODULE_PATH, modulePath);
     }
 
     protected ModulePathPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
-        this.moduleFinder = ModuleFinder.of(Path.of(config.get(CONFIG_ENTRY_MODULEPATH)));
+        this.moduleFinder = ModuleFinder.of(config.get(SPEC.MODULE_PATH));
     }
 
     @Override
@@ -58,6 +55,21 @@ public class ModulePathPluginFinder extends AbstractScanningPluginFinder {
     @Override
     public String toString() {
         return TYPE + "[" + name +  "]";
+    }
+
+    public static class Spec extends AbstractPluginFinder.Spec {
+
+        public final Entry<Path> MODULE_PATH = entry("modulePath", T_PATH).required();
+
+        protected Spec(String specName) {
+            super(specName);
+        }
+
+        private Spec() {
+            super(TYPE);
+            initialize();
+        }
+
     }
 
 }

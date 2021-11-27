@@ -4,9 +4,9 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.utils.config.*;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.nio.file.Files;
@@ -16,27 +16,26 @@ import java.util.Objects;
 import java.util.Optional;
 import java.util.jar.Manifest;
 
+import static dev.m00nl1ght.clockwork.utils.config.ConfigValue.*;
+
 public class ManifestPluginReader implements PluginReader {
 
     public static final String TYPE = "internal.pluginreader.manifest";
-
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_MANIFESTPATH = CONFIG_SPEC.put("manifestPath", ConfigValue.STRING).defaultValue("META-INF/MANIFEST.MF");
-    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+    public static final Spec SPEC = new Spec();
 
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(PluginReader.class, TYPE, ManifestPluginReader::new);
     }
 
     public static ModifiableConfig newConfig(String name) {
-        return newConfig(name, CONFIG_ENTRY_MANIFESTPATH.getDefaultValue());
+        return newConfig(name, SPEC.MANIFEST_PATH.getDefaultValue());
     }
 
     public static ModifiableConfig newConfig(String name, String manifestPath) {
-        return Config.newConfig(CONFIG_SPEC)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
-                .put(CONFIG_ENTRY_MANIFESTPATH, manifestPath);
+        return Config.newConfig(SPEC)
+                .put(SPEC.FEATURE_TYPE, TYPE)
+                .put(SPEC.FEATURE_NAME, Objects.requireNonNull(name))
+                .put(SPEC.MANIFEST_PATH, manifestPath);
     }
 
     private static final String HEADER_PREFIX = "CWL-";
@@ -59,8 +58,8 @@ public class ManifestPluginReader implements PluginReader {
     protected final String manifestFilePath;
 
     protected ManifestPluginReader(ClockworkLoader loader, Config config) {
-        this.name = config.get(ConfiguredFeatures.CONFIG_ENTRY_NAME);
-        this.manifestFilePath = config.get(CONFIG_ENTRY_MANIFESTPATH);
+        this.name = config.get(SPEC.FEATURE_NAME);
+        this.manifestFilePath = config.get(SPEC.MANIFEST_PATH);
     }
 
     @Override
@@ -76,13 +75,13 @@ public class ManifestPluginReader implements PluginReader {
 
     public Optional<PluginDescriptor> read(Manifest manifest) {
         final var mainConfig = Config.fromAttributes(manifest.getMainAttributes(), HEADER_PREFIX);
-        final String pluginId = mainConfig.get(HEADER_PLUGIN_ID, ConfigValue.STRING);
+        final String pluginId = mainConfig.get(HEADER_PLUGIN_ID, T_STRING);
         if (pluginId == null) return Optional.empty();
         final var descriptorBuilder = PluginDescriptor.builder(pluginId);
-        final var version = new Version(mainConfig.getRequired(HEADER_PLUGIN_VERSION, ConfigValue.STRING), Version.VersionType.IVY);
-        descriptorBuilder.displayName(mainConfig.getRequired(HEADER_PLUGIN_NAME, ConfigValue.STRING));
-        descriptorBuilder.description(mainConfig.getOrDefault(HEADER_PLUGIN_DESC, ConfigValue.STRING, ""));
-        mainConfig.getOrDefault(HEADER_PLUGIN_AUTHORS, ConfigValue.LIST_F, List.of()).forEach(descriptorBuilder::author);
+        final var version = new Version(mainConfig.getRequired(HEADER_PLUGIN_VERSION, T_STRING), Version.VersionType.IVY);
+        descriptorBuilder.displayName(mainConfig.getRequired(HEADER_PLUGIN_NAME, T_STRING));
+        descriptorBuilder.description(mainConfig.getOrDefault(HEADER_PLUGIN_DESC, T_STRING, ""));
+        mainConfig.getOrDefault(HEADER_PLUGIN_AUTHORS, T_LIST_F, List.of()).forEach(descriptorBuilder::author);
 
         descriptorBuilder.extData(Config.fromAttributes(manifest.getMainAttributes(), HEADER_EXT_COMBINED));
 
@@ -90,37 +89,37 @@ public class ManifestPluginReader implements PluginReader {
             final var className = extractClassName(entry.getKey());
             if (className == null) continue;
             final var entryConfig = Config.fromAttributes(entry.getValue(), HEADER_PREFIX);
-            final var componentId = entryConfig.get(HEADER_COMPONENT_ID, ConfigValue.STRING);
+            final var componentId = entryConfig.get(HEADER_COMPONENT_ID, T_STRING);
             if (componentId != null) {
                 if (componentId.equals(pluginId)) {
                     final var mainCompBuilder = ComponentDescriptor.builder(pluginId);
                     mainCompBuilder.version(version);
                     mainCompBuilder.target(ClockworkCore.CORE_TARGET_ID);
                     mainCompBuilder.componentClass(className);
-                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, ConfigValue.LIST_F, List.of())
+                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, T_LIST_F, List.of())
                             .forEach(d -> mainCompBuilder.dependency(DependencyDescriptor.build(d)));
-                    mainCompBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, ConfigValue.BOOLEAN, false));
+                    mainCompBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, T_BOOLEAN, false));
                     mainCompBuilder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.mainComponent(mainCompBuilder.build());
                 } else {
                     final var compBuilder = ComponentDescriptor.builder(pluginId, componentId);
                     compBuilder.version(version);
                     compBuilder.componentClass(className);
-                    compBuilder.target(Namespaces.combinedId(entryConfig.getRequired(HEADER_COMPONENT_TARGET, ConfigValue.STRING), pluginId));
-                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, ConfigValue.LIST_F, List.of())
+                    compBuilder.target(Namespaces.combinedId(entryConfig.getRequired(HEADER_COMPONENT_TARGET, T_STRING), pluginId));
+                    entryConfig.getOrDefault(HEADER_COMPONENT_DEPENDENCIES, T_LIST_F, List.of())
                             .forEach(d -> compBuilder.dependency(DependencyDescriptor.build(d)));
-                    compBuilder.optional(entryConfig.getOrDefault(HEADER_COMPONENT_OPTIONAL, ConfigValue.BOOLEAN, false));
-                    compBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, ConfigValue.BOOLEAN, false));
+                    compBuilder.optional(entryConfig.getOrDefault(HEADER_COMPONENT_OPTIONAL, T_BOOLEAN, false));
+                    compBuilder.factoryChangesAllowed(entryConfig.getOrDefault(HEADER_COMPONENT_FACTORY_CHANGES, T_BOOLEAN, false));
                     compBuilder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.component(compBuilder.build());
                 }
             } else {
-                final var targetId = entryConfig.get(HEADER_TARGET_ID, ConfigValue.STRING);
+                final var targetId = entryConfig.get(HEADER_TARGET_ID, T_STRING);
                 if (targetId != null) {
                     final var builder = TargetDescriptor.builder(pluginId, targetId);
                     builder.version(version);
                     builder.targetClass(className);
-                    entryConfig.getOptional(HEADER_TARGET_EXTENDS, ConfigValue.STRING)
+                    entryConfig.getOptional(HEADER_TARGET_EXTENDS, T_STRING)
                             .ifPresent(e -> builder.parent(Namespaces.combinedId(e, pluginId)));
                     builder.extData(Config.fromAttributes(entry.getValue(), HEADER_EXT_COMBINED));
                     descriptorBuilder.target(builder.build());
@@ -139,6 +138,21 @@ public class ManifestPluginReader implements PluginReader {
     @Override
     public String toString() {
         return TYPE + "[" + name +  "]";
+    }
+
+    public static class Spec extends ConfiguredFeatures.Spec {
+
+        public final Entry<String> MANIFEST_PATH = entry("manifestPath", T_STRING).defaultValue("META-INF/MANIFEST.MF");
+
+        protected Spec(String specName) {
+            super(specName);
+        }
+
+        private Spec() {
+            super(TYPE);
+            initialize();
+        }
+
     }
 
 }

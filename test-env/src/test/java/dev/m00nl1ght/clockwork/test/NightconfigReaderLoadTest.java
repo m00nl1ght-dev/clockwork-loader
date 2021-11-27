@@ -20,9 +20,9 @@ public class NightconfigReaderLoadTest extends ClockworkTest {
     @Override
     protected Config buildPluginLayerConfig() {
         final var config = Config.newConfig(ClockworkConfig.SPEC);
-        config.put(ClockworkConfig.PLUGIN_READERS, List.of(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml")));
-        config.put(ClockworkConfig.PLUGIN_FINDERS, List.of(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR, false)));
-        config.put(ClockworkConfig.WANTED_PLUGINS, List.of(DependencyDescriptor.buildAnyVersion("test-plugin-a")));
+        config.put(ClockworkConfig.SPEC.PLUGIN_READERS, List.of(NightconfigPluginReader.newConfig("toml", "META-INF/plugin.toml")));
+        config.put(ClockworkConfig.SPEC.PLUGIN_FINDERS, List.of(ModulePathPluginFinder.newConfig("jars", TestEnvironment.PLUGINS_DIR.toPath(), false)));
+        config.put(ClockworkConfig.SPEC.WANTED_PLUGINS, List.of(DependencyDescriptor.buildAnyVersion("test-plugin-a")));
         return config;
     }
 

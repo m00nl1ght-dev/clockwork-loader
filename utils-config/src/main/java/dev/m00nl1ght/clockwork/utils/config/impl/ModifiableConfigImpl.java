@@ -77,7 +77,7 @@ public class ModifiableConfigImpl extends ConfigImpl implements ModifiableConfig
         if (entry != null) {
             final var exc = entry.getType().verify(this, key);
             if (exc != null) throw exc;
-        } else if (!spec.doesAllowAdditionalEntries()) {
+        } else if (!spec.areAdditionalEntriesAllowed()) {
             throw new ConfigException(this, "Unknown entry " + key + " in " + this + " but not in spec " + spec);
         }
     }

@@ -76,9 +76,9 @@ public final class ClockworkLoader implements ComponentTarget {
 
     public static @NotNull ClockworkLoader buildBootLayerDefault() {
         final var config = Config.newConfig(ClockworkConfig.SPEC);
-        config.put(ClockworkConfig.PLUGIN_READERS, List.of(PluginReader.DEFAULT));
-        config.put(ClockworkConfig.PLUGIN_FINDERS, List.of(ModuleLayerPluginFinder.newConfig("boot", true)));
-        config.put(ClockworkConfig.WANTED_PLUGINS, List.of(DependencyDescriptor.buildAnyVersion("clockwork")));
+        config.put(ClockworkConfig.SPEC.PLUGIN_READERS, List.of(PluginReader.DEFAULT));
+        config.put(ClockworkConfig.SPEC.PLUGIN_FINDERS, List.of(ModuleLayerPluginFinder.newConfig("boot", true)));
+        config.put(ClockworkConfig.SPEC.WANTED_PLUGINS, List.of(DependencyDescriptor.buildAnyVersion("clockwork")));
         return build(config);
     }
 
@@ -146,9 +146,9 @@ public final class ClockworkLoader implements ComponentTarget {
         featureProviders.lock();
 
         // Build all features defined in the config.
-        features.addAll(PluginFinder.class, featureProviders, config.get(ClockworkConfig.PLUGIN_FINDERS), this);
-        features.addAll(PluginReader.class, featureProviders, config.get(ClockworkConfig.PLUGIN_READERS), this);
-        features.addAll(ClassTransformer.class, featureProviders, config.get(ClockworkConfig.CLASS_TRANSFORMERS), this);
+        features.addAll(PluginFinder.class, featureProviders, config.get(ClockworkConfig.SPEC.PLUGIN_FINDERS), this);
+        features.addAll(PluginReader.class, featureProviders, config.get(ClockworkConfig.SPEC.PLUGIN_READERS), this);
+        features.addAll(ClassTransformer.class, featureProviders, config.get(ClockworkConfig.SPEC.CLASS_TRANSFORMERS), this);
         extensions.apply(this, LoaderExtension::initFeatures);
         features.lock();
 
@@ -163,7 +163,7 @@ public final class ClockworkLoader implements ComponentTarget {
         }
 
         // Compile a map of all plugins wanted by the config.
-        final var wantedPlugins = config.get(ClockworkConfig.WANTED_PLUGINS).stream()
+        final var wantedPlugins = config.get(ClockworkConfig.SPEC.WANTED_PLUGINS).stream()
                 .collect(Collectors.toMap(DependencyDescriptor::getPlugin, Function.identity(), (a, b) -> b, HashMap::new));
 
         // Add plugins found by wildcard finders.
@@ -358,9 +358,9 @@ public final class ClockworkLoader implements ComponentTarget {
             @NotNull List<@NotNull ClassTransformer> transformers) {
 
         try {
-            final var jigsawConfig = config.get(ClockworkConfig.JIGSAW_STRATEGY);
+            final var jigsawConfig = config.get(ClockworkConfig.SPEC.JIGSAW_STRATEGY);
             final var strategy = featureProviders.newFeature(JigsawStrategy.class, this, jigsawConfig);
-            return strategy.buildModuleLayers(plugins, config.get(ClockworkConfig.LIB_MODULE_PATH), transformers, parent);
+            return strategy.buildModuleLayers(plugins, config.get(ClockworkConfig.SPEC.LIB_MODULE_PATH), transformers, parent);
         } catch (Exception e) {
             throw PluginLoadingException.resolvingModules(e, null);
         }

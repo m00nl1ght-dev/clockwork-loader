@@ -6,9 +6,9 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.utils.config.*;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
+import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
+import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.nio.file.Files;
@@ -17,31 +17,30 @@ import java.util.List;
 import java.util.Objects;
 import java.util.Optional;
 
+import static dev.m00nl1ght.clockwork.utils.config.ConfigValue.*;
+
 public class NightconfigPluginReader implements PluginReader {
 
     public static final String TYPE = "extension.pluginreader.nightconfig";
-
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_DESCRIPTORPATH = CONFIG_SPEC.put("descriptorPath", ConfigValue.STRING).required();
-    public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
+    public static final Spec SPEC = new Spec();
 
     public static void registerTo(ClockworkLoader loader) {
         loader.getFeatureProviders().register(PluginReader.class, TYPE, NightconfigPluginReader::new);
     }
 
     public static ModifiableConfig newConfig(String name, String descriptorPath) {
-        return Config.newConfig(CONFIG_SPEC)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_TYPE, TYPE)
-                .put(ConfiguredFeatures.CONFIG_ENTRY_NAME, Objects.requireNonNull(name))
-                .put(CONFIG_ENTRY_DESCRIPTORPATH, Objects.requireNonNull(descriptorPath));
+        return Config.newConfig(SPEC)
+                .put(SPEC.FEATURE_TYPE, TYPE)
+                .put(SPEC.FEATURE_NAME, Objects.requireNonNull(name))
+                .put(SPEC.DESCRIPTOR_PATH, Objects.requireNonNull(descriptorPath));
     }
 
     protected final String name;
     protected final String descriptorFilePath;
 
     protected NightconfigPluginReader(ClockworkLoader loader, Config config) {
-        this.name = config.get(ConfiguredFeatures.CONFIG_ENTRY_NAME);
-        this.descriptorFilePath = config.get(CONFIG_ENTRY_DESCRIPTORPATH);
+        this.name = config.get(SPEC.FEATURE_NAME);
+        this.descriptorFilePath = config.get(SPEC.DESCRIPTOR_PATH);
     }
 
     @Override
@@ -118,6 +117,21 @@ public class NightconfigPluginReader implements PluginReader {
     @Override
     public String toString() {
         return TYPE + "[" + name +  "]";
+    }
+
+    public static class Spec extends ConfiguredFeatures.Spec {
+
+        public final Entry<String> DESCRIPTOR_PATH = entry("descriptorPath", T_STRING).required();
+
+        protected Spec(String specName) {
+            super(specName);
+        }
+
+        private Spec() {
+            super(TYPE);
+            initialize();
+        }
+
     }
 
 }

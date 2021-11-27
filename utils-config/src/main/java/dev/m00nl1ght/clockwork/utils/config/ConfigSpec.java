@@ -12,35 +12,31 @@ import java.util.function.BinaryOperator;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class ConfigSpec {
+public abstract class ConfigSpec {
 
-    protected final String specName;
-    protected final ConfigSpec extendsFrom;
-    protected final Map<String, Entry<?>> entryMap;
+    private final Map<String, Entry<?>> entryMap = new HashMap<>();
 
-    protected boolean allowAdditionalEntries;
+    private final String specName;
+    private final boolean allowAdditionalEntries;
 
-    protected boolean locked;
+    private boolean initialized = false;
 
-    public static ConfigSpec create(String specName) {
-        return new ConfigSpec(specName, null);
-    }
-
-    public static ConfigSpec create(String specName, ConfigSpec extendsFrom) {
-        return new ConfigSpec(specName, extendsFrom.lock());
-    }
-
-    protected ConfigSpec(String specName, ConfigSpec extendsFrom) {
+    protected ConfigSpec(String specName, boolean allowAdditionalEntries) {
         this.specName = Objects.requireNonNull(specName);
-        this.extendsFrom = extendsFrom;
-        this.entryMap = new HashMap<>();
-        if (extendsFrom != null) {
-            this.entryMap.putAll(extendsFrom.entryMap);
-        }
+        this.allowAdditionalEntries = allowAdditionalEntries;
+    }
+
+    protected ConfigSpec(String specName) {
+        this(specName, false);
+    }
+
+    protected void initialize() {
+        requireInitializing();
+        initialized = true;
     }
 
     public ConfigException verify(Config config, boolean requireCompleteness) {
-        this.lock();
+        this.requireInitialized();
         return entryMap.values().stream()
                 .map(entry -> verify(config, entry, requireCompleteness))
                 .filter(Objects::nonNull).findFirst().orElse(null);
@@ -56,12 +52,12 @@ public class ConfigSpec {
     }
 
     public Set<String> findAdditionalEntries(Config config) {
-        this.lock();
+        this.requireInitialized();
         return config.getKeys().stream().filter(k -> !entryMap.containsKey(k)).collect(Collectors.toSet());
     }
 
-    public <T> Entry<T> put(String key, Type<T> valueType) {
-        this.requireNotLocked();
+    public <T> Entry<T> entry(String key, Type<T> valueType) {
+        this.requireInitializing();
         final var existing = entryMap.get(key);
         if (existing != null) {
             if (existing.type.isCompatible(valueType)) {
@@ -79,14 +75,17 @@ public class ConfigSpec {
     }
 
     public Entry<?> getEntry(String key) {
+        requireInitialized();
         return entryMap.get(key);
     }
 
     public Set<Entry<?>> getEntries() {
+        requireInitialized();
         return Set.copyOf(entryMap.values());
     }
 
     public ConfigSpec forSubconfig(String key) {
+        requireInitialized();
         final var entry = entryMap.get(key);
         if (entry == null) return null;
         if (entry.type instanceof ConfigValue.TypeConfig)
@@ -96,51 +95,34 @@ public class ConfigSpec {
         return null;
     }
 
-    public void allowAdditionalEntries() {
-        this.allowAdditionalEntries(true);
-    }
-
-    public void allowAdditionalEntries(boolean allowAdditionalEntries) {
-        this.requireNotLocked();
-        this.allowAdditionalEntries = allowAdditionalEntries;
-    }
-
-    public boolean doesAllowAdditionalEntries() {
-        return allowAdditionalEntries;
-    }
-
-    public ConfigSpec getExtendsFrom() {
-        return extendsFrom;
-    }
-
     public String getName() {
         return specName;
     }
 
-    public ConfigSpec lock() {
-        this.locked = true;
-        return this;
+    public boolean areAdditionalEntriesAllowed() {
+        return allowAdditionalEntries;
     }
 
-    public boolean isLocked() {
-        return locked;
+    public boolean isInitialized() {
+        return initialized;
     }
 
-    protected void requireNotLocked() {
-        if (this.locked) throw new IllegalStateException("ConfigSpec is already in use and can no longer be modified");
+    protected void requireInitializing() {
+        if (this.initialized) throw new IllegalStateException("ConfigSpec is already initialised and can no longer be modified");
+    }
+
+    protected void requireInitialized() {
+        if (!this.initialized) throw new IllegalStateException("ConfigSpec is not fully initialised yet");
     }
 
     public boolean canApplyAs(@NotNull ConfigSpec other) {
-        return other == this || (extendsFrom != null && extendsFrom.canApplyAs(other));
+        // this.extendsFromOrEqual(other)
+        return other == this || other.getClass().isInstance(this);
     }
 
     public static boolean canApply(@Nullable ConfigSpec spec, @Nullable ConfigSpec applyAs) {
-        // spec may extend from applyAs
+        // spec.extendsFromOrEqual(applyAs)
         return applyAs == null || (spec != null && spec.canApplyAs(applyAs));
-    }
-
-    public ConfigValue.TypeConfig buildType() {
-        return ConfigValue.CONFIG(this);
     }
 
     @Override
@@ -159,7 +141,7 @@ public class ConfigSpec {
         protected Function<Config, T> defaultSupplier = c -> null;
         protected BinaryOperator<T> mergeFunction;
 
-        protected Entry(ConfigSpec spec, String key, Type<T> type, int sortIndex) {
+        private Entry(ConfigSpec spec, String key, Type<T> type, int sortIndex) {
             this.spec = Objects.requireNonNull(spec);
             this.key = Objects.requireNonNull(key);
             this.type = Objects.requireNonNull(type);
@@ -168,7 +150,7 @@ public class ConfigSpec {
         }
 
         public Entry<T> defaultValue(T defaultValue) {
-            spec.requireNotLocked();
+            spec.requireInitializing();
             this.defaultSupplier = c -> defaultValue;
             return this;
         }
@@ -182,7 +164,7 @@ public class ConfigSpec {
         }
 
         public Entry<T> defaultTo(Entry<T> other, T fallback) {
-            spec.requireNotLocked();
+            spec.requireInitializing();
             if (!spec.canApplyAs(other.spec))
                 throw new IllegalArgumentException("Config spec mismatch");
             this.defaultSupplier = c -> c == null ? fallback : c.get(other);
@@ -190,7 +172,7 @@ public class ConfigSpec {
         }
 
         public Entry<T> defaultTo(Function<Config, T> defaultSupplier) {
-            spec.requireNotLocked();
+            spec.requireInitializing();
             this.defaultSupplier = Objects.requireNonNull(defaultSupplier);
             return this;
         }
@@ -208,7 +190,7 @@ public class ConfigSpec {
         }
 
         public Entry<T> required(boolean required) {
-            spec.requireNotLocked();
+            spec.requireInitializing();
             this.required = required;
             return this;
         }

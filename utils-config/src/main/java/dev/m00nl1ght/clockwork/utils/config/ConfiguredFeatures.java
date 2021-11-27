@@ -1,8 +1,5 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.TypeConfig;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.TypeConfigList;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.*;
@@ -10,11 +7,7 @@ import java.util.stream.Collectors;
 
 public class ConfiguredFeatures {
 
-    public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create("configured_feature");
-    public static final Entry<String> CONFIG_ENTRY_TYPE = CONFIG_SPEC.put("type", ConfigValue.STRING).required();
-    public static final Entry<String> CONFIG_ENTRY_NAME = CONFIG_SPEC.put("name", ConfigValue.STRING).required();
-    public static final TypeConfig CONFIG_TYPE = CONFIG_SPEC.buildType();
-    public static final TypeConfigList CONFIG_LIST_TYPE = ConfigValue.CLISTF(CONFIG_SPEC);
+    public static final Spec SPEC = new Spec();
 
     private final Map<Class, Registry> registryMap = new HashMap<>();
 
@@ -33,7 +26,7 @@ public class ConfiguredFeatures {
                            @NotNull Config config,
                            @NotNull C context) {
 
-        final var featureName = config.get(CONFIG_ENTRY_NAME);
+        final var featureName = config.get(SPEC.FEATURE_NAME);
         add(featureType, featureName, providers.newFeature(featureType, context, config));
     }
 
@@ -73,6 +66,22 @@ public class ConfiguredFeatures {
     @SuppressWarnings("unchecked")
     private <T> @NotNull Registry<T> registryFor(@NotNull Class<T> forClass) {
         return (Registry<T>) registryMap.computeIfAbsent(forClass, Registry::new);
+    }
+
+    public static class Spec extends ConfigSpec {
+
+        public final Entry<String> FEATURE_TYPE = entry("type", ConfigValue.T_STRING).required();
+        public final Entry<String> FEATURE_NAME = entry("name", ConfigValue.T_STRING).required();
+
+        protected Spec(String specName) {
+            super(specName);
+        }
+
+        private Spec() {
+            super("configured_feature");
+            initialize();
+        }
+
     }
 
 }

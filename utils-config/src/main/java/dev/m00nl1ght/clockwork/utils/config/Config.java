@@ -208,7 +208,7 @@ public interface Config {
     static @NotNull Config merge(Config base, Config other) {
         final var spec = base.getSpec();
         final var merged = base.modifiableCopy();
-        final var allowAdditional = spec == null || spec.allowAdditionalEntries;
+        final var allowAdditional = spec == null || spec.areAdditionalEntriesAllowed();
 
         for (final var key : other.getKeys()) {
             final var entry = spec == null ? null : spec.getEntry(key);
@@ -246,14 +246,14 @@ public interface Config {
         final var asList = other.getStrings(key);
         if (asList != null) {
             final var base = config.getStrings(key);
-            config.putStrings(key, base == null ? asList : ConfigValue.JOIN(base, asList));
+            config.putStrings(key, base == null ? asList : ConfigValue.M_JOIN(base, asList));
             return;
         }
 
         final var asConfigList = other.getSubconfigs(key);
         if (asConfigList != null) {
             final var base = config.getSubconfigs(key);
-            config.putSubconfigs(key, base == null ? asConfigList : ConfigValue.JOIN(base, asConfigList));
+            config.putSubconfigs(key, base == null ? asConfigList : ConfigValue.M_JOIN(base, asConfigList));
         }
     }
 

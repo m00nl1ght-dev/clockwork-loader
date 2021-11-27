@@ -4,49 +4,43 @@ import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.loader.jigsaw.JigsawStrategy;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue.TypeParsed;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
-import dev.m00nl1ght.clockwork.utils.config.ConfigValue;
 import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
 
 import java.nio.file.Path;
-import java.util.*;
+import java.util.List;
 
-public final class ClockworkConfig {
+import static dev.m00nl1ght.clockwork.utils.config.ConfigValue.*;
 
-    public static final ConfigSpec SPEC = ConfigSpec.create("clockwork_config");
+public final class ClockworkConfig extends ConfigSpec {
 
-    public static final TypeParsed<Path>                    TYPE_PATH
-            = ConfigValue.CUSTOM(Path.class,                     Path::of);
+    public static final String SPEC_NAME = "clockwork_config";
 
-    public static final TypeParsed<DependencyDescriptor>    TYPE_DEPENDENCY
-            = ConfigValue.CUSTOM(DependencyDescriptor.class,     DependencyDescriptor::buildPlugin);
+    public final Entry<List<DependencyDescriptor>>              WANTED_PLUGINS = entry("plugins",
+            T_LIST_U(DependencyDescriptor.T_VALUE))             .defaultValue();
 
-    public static final Entry<List<DependencyDescriptor>>   WANTED_PLUGINS
-            = SPEC.put("plugins",                           ConfigValue.LIST_U(TYPE_DEPENDENCY))         .defaultValue();
+    public final Entry<List<Config>>                            PLUGIN_FINDERS = entry("pluginFinders",
+            T_CLIST_F(ConfiguredFeatures.SPEC))                 .defaultValue();
 
-    public static final Entry<List<Config>>                 PLUGIN_FINDERS
-            = SPEC.put("pluginFinders",                     ConfiguredFeatures.CONFIG_LIST_TYPE)    .defaultValue();
+    public final Entry<List<Config>>                            PLUGIN_READERS = entry("pluginReaders",
+            T_CLIST_F(ConfiguredFeatures.SPEC))                 .defaultValue(List.of(PluginReader.DEFAULT));
 
-    public static final Entry<List<Config>>                 PLUGIN_READERS
-            = SPEC.put("pluginReaders",                     ConfiguredFeatures.CONFIG_LIST_TYPE)    .defaultValue(List.of(PluginReader.DEFAULT));
+    public final Entry<Config>                                  JIGSAW_STRATEGY = entry("jigsawStrategy",
+            T_CONFIG(ConfiguredFeatures.SPEC))                  .defaultValue(JigsawStrategy.DEFAULT);
 
-    public static final Entry<List<Config>>                 CLASS_TRANSFORMERS
-            = SPEC.put("classTransformers",                 ConfiguredFeatures.CONFIG_LIST_TYPE)    .defaultValue();
+    public final Entry<List<Config>>                            CLASS_TRANSFORMERS = entry("classTransformers",
+            T_CLIST_F(ConfiguredFeatures.SPEC))                 .defaultValue();
 
-    public static final Entry<Config>                       JIGSAW_STRATEGY
-            = SPEC.put("jigsawStrategy",                    ConfiguredFeatures.CONFIG_TYPE)         .defaultValue(JigsawStrategy.DEFAULT);
+    public final Entry<List<Path>>                              LIB_MODULE_PATH = entry("libModulePath",
+            T_LIST_UF(T_PATH))                                  .defaultValue();
 
-    public static final Entry<List<Path>>                   LIB_MODULE_PATH
-            = SPEC.put("libModulePath",                     ConfigValue.LIST_UF(TYPE_PATH))              .defaultValue();
+    public final Entry<Config>                                  EXT_CONFIG = entry("ext",
+            T_CONFIG)                                           .defaultValue();
 
-    public static final Entry<Config>                       EXT_CONFIG
-            = SPEC.put("ext",                               ConfigValue.CONFIG)                          .defaultValue();
-
-    public static final Type<Config> TYPE = SPEC.buildType();
-
-    private ClockworkConfig() {}
+    public static final ClockworkConfig SPEC = new ClockworkConfig();
+    private ClockworkConfig() {
+        super(SPEC_NAME, true);
+        initialize();
+    }
 
 }
