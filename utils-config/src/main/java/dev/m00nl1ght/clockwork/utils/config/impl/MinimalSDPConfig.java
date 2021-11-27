@@ -27,10 +27,10 @@ public class MinimalSDPConfig extends AbstractSDPConfig {
                             @NotNull String name) {
 
         super(dataFormat);
-        this.valueProvider = valueProvider;
+        this.valueProvider = Objects.requireNonNull(valueProvider);
         this.keyProvider = keyProvider;
         this.keyPrefix = Objects.requireNonNull(keyPrefix);
-        this.name = name;
+        this.name = Objects.requireNonNull(name);
     }
 
     @Override

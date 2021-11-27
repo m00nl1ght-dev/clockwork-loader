@@ -6,12 +6,9 @@ import dev.m00nl1ght.clockwork.core.ClockworkCore;
 import dev.m00nl1ght.clockwork.descriptor.*;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.Config.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.*;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
-import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
-import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.nio.file.Files;
@@ -25,7 +22,7 @@ public class NightconfigPluginReader implements PluginReader {
     public static final String TYPE = "extension.pluginreader.nightconfig";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, ConfiguredFeatures.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_DESCRIPTORPATH = CONFIG_SPEC.put("descriptorPath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_DESCRIPTORPATH = CONFIG_SPEC.put("descriptorPath", ConfigValue.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     public static void registerTo(ClockworkLoader loader) {

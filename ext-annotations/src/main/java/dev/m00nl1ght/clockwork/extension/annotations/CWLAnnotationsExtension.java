@@ -7,7 +7,7 @@ import dev.m00nl1ght.clockwork.event.EventListener;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader.AccessLevel;
 import dev.m00nl1ght.clockwork.loader.LoaderExtension;
-import dev.m00nl1ght.clockwork.utils.config.Config;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue;
 import dev.m00nl1ght.clockwork.utils.config.MapToSet;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -39,7 +39,7 @@ public final class CWLAnnotationsExtension extends LoaderExtension {
     @Override
     public void onCoreInitialised() {
         for (final var plugin : target.getCore().getLoadedPlugins()) {
-            if (plugin.getDescriptor().getExtData().getOrDefault("usesEventHandlers", Config.BOOLEAN, false)) {
+            if (plugin.getDescriptor().getExtData().getOrDefault("usesEventHandlers", ConfigValue.BOOLEAN, false)) {
                 for (final var component : plugin.getComponentTypes()) {
                     try {
                         collectHandlers(plugin, component.getComponentClass());

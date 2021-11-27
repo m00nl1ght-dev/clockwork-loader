@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
-import dev.m00nl1ght.clockwork.utils.config.Config.TypeConfig;
-import dev.m00nl1ght.clockwork.utils.config.Config.TypeConfigList;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.TypeConfig;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.TypeConfigList;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
 import org.jetbrains.annotations.NotNull;
 
@@ -11,10 +11,10 @@ import java.util.stream.Collectors;
 public class ConfiguredFeatures {
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create("configured_feature");
-    public static final Entry<String> CONFIG_ENTRY_TYPE = CONFIG_SPEC.put("type", Config.STRING).required();
-    public static final Entry<String> CONFIG_ENTRY_NAME = CONFIG_SPEC.put("name", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_TYPE = CONFIG_SPEC.put("type", ConfigValue.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_NAME = CONFIG_SPEC.put("name", ConfigValue.STRING).required();
     public static final TypeConfig CONFIG_TYPE = CONFIG_SPEC.buildType();
-    public static final TypeConfigList CONFIG_LIST_TYPE = Config.CLISTF(CONFIG_SPEC);
+    public static final TypeConfigList CONFIG_LIST_TYPE = ConfigValue.CLISTF(CONFIG_SPEC);
 
     private final Map<Class, Registry> registryMap = new HashMap<>();
 

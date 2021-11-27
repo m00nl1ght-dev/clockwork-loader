@@ -5,12 +5,9 @@ import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.Config.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.*;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
-import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
-import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.io.IOException;
@@ -26,7 +23,7 @@ public class NestedPluginFinder extends AbstractIndexedPluginFinder {
     public static final String TYPE = "internal.pluginfinder.nested";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_PATH = CONFIG_SPEC.put("pathInModule", Config.STRING).defaultValue("libs/");
+    public static final Entry<String> CONFIG_ENTRY_PATH = CONFIG_SPEC.put("pathInModule", ConfigValue.STRING).defaultValue("libs/");
     public static final Entry<Config> CONFIG_ENTRY_INNER = CONFIG_SPEC.put("innerFinder", ConfiguredFeatures.CONFIG_TYPE).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 

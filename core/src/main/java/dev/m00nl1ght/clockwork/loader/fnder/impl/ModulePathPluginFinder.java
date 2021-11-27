@@ -5,12 +5,9 @@ import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.Config.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.*;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
-import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
-import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 
 import java.io.File;
 import java.lang.module.ModuleFinder;
@@ -23,7 +20,7 @@ public class ModulePathPluginFinder extends AbstractScanningPluginFinder {
     public static final String TYPE = "internal.pluginfinder.modulepath";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_MODULEPATH = CONFIG_SPEC.put("modulePath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_MODULEPATH = CONFIG_SPEC.put("modulePath", ConfigValue.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     protected final ModuleFinder moduleFinder;

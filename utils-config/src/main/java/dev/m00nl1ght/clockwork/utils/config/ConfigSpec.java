@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.utils.config;
 
-import dev.m00nl1ght.clockwork.utils.config.Config.Type;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -89,10 +89,10 @@ public class ConfigSpec {
     public ConfigSpec forSubconfig(String key) {
         final var entry = entryMap.get(key);
         if (entry == null) return null;
-        if (entry.type instanceof Config.TypeConfig)
-            return ((Config.TypeConfig) entry.type).spec;
-        if (entry.type instanceof Config.TypeConfigList)
-            return ((Config.TypeConfigList) entry.type).spec;
+        if (entry.type instanceof ConfigValue.TypeConfig)
+            return ((ConfigValue.TypeConfig) entry.type).spec;
+        if (entry.type instanceof ConfigValue.TypeConfigList)
+            return ((ConfigValue.TypeConfigList) entry.type).spec;
         return null;
     }
 
@@ -139,8 +139,8 @@ public class ConfigSpec {
         return applyAs == null || (spec != null && spec.canApplyAs(applyAs));
     }
 
-    public Config.TypeConfig buildType() {
-        return Config.CONFIG(this);
+    public ConfigValue.TypeConfig buildType() {
+        return ConfigValue.CONFIG(this);
     }
 
     @Override

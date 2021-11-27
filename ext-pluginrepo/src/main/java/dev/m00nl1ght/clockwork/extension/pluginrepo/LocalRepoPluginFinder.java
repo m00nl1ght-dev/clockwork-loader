@@ -7,12 +7,9 @@ import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractIndexedPluginFinder;
 import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.loader.reader.impl.PluginReaderUtil;
-import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.config.Config.Type;
-import dev.m00nl1ght.clockwork.utils.config.ConfigSpec;
+import dev.m00nl1ght.clockwork.utils.config.*;
+import dev.m00nl1ght.clockwork.utils.config.ConfigValue.Type;
 import dev.m00nl1ght.clockwork.utils.config.ConfigSpec.Entry;
-import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
-import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
 import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
@@ -28,7 +25,7 @@ public class LocalRepoPluginFinder extends AbstractIndexedPluginFinder {
     public static final String TYPE = "extension.pluginfinder.localrepo";
 
     public static final ConfigSpec CONFIG_SPEC = ConfigSpec.create(TYPE, AbstractPluginFinder.CONFIG_SPEC);
-    public static final Entry<String> CONFIG_ENTRY_ROOTPATH = CONFIG_SPEC.put("rootPath", Config.STRING).required();
+    public static final Entry<String> CONFIG_ENTRY_ROOTPATH = CONFIG_SPEC.put("rootPath", ConfigValue.STRING).required();
     public static final Type<Config> CONFIG_TYPE = CONFIG_SPEC.buildType();
 
     public static void registerTo(ClockworkLoader loader) {
