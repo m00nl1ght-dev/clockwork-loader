@@ -24,7 +24,6 @@ import dev.m00nl1ght.clockwork.loader.reader.impl.ManifestPluginReader;
 import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatureProviders;
 import dev.m00nl1ght.clockwork.utils.config.ConfiguredFeatures;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.logger.Logger;
 import dev.m00nl1ght.clockwork.utils.reflect.ReflectionUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
@@ -57,7 +56,7 @@ public final class ClockworkLoader implements ComponentTarget {
                     "CWL was developed for Java []. Using any other version can cause instability and crashes.",
                     version, TARGET_JAVA_VERSION);
         if (ClockworkLoader.class.getModule().getName() == null)
-            throw FormatUtil.rtExc("Core module was not loaded correctly (the module is unnamed)");
+            throw ClockworkException.generic("Core module was not loaded correctly (the module is unnamed)");
         if (Logger.isFallbackMode())
             LOGGER.warn("No supported logging framework detected. Printing logs to SYSOUT.");
     }
@@ -203,7 +202,7 @@ public final class ClockworkLoader implements ComponentTarget {
             } else {
                 final var finder = found.get(bestMatch.get());
                 final var ref = finder.find(this, wanted.getPlugin(), bestMatch.get())
-                        .orElseThrow(() -> FormatUtil.rtExc("PluginFinder [] failed to find []", finder, wanted));
+                        .orElseThrow(() -> ClockworkException.generic("PluginFinder [] failed to find []", finder, wanted));
                 LOGGER.info("Plugin [] was located by []", ref, finder);
                 pluginReferences.addLast(ref);
                 ref.getDescriptor().getComponentDescriptors().forEach(componentSorter::add);
@@ -260,7 +259,7 @@ public final class ClockworkLoader implements ComponentTarget {
 
             // Find the main module of the plugin, build the LoadedPlugin object and add it to the core.
             final var layer = layerMap.get(pluginReference);
-            if (layer == null) throw FormatUtil.rtExc("No module layer present for plugin []", pluginReference);
+            if (layer == null) throw ClockworkException.generic("No module layer present for plugin []", pluginReference);
             final var mainModule = layer.findModule(pluginReference.getModuleName()).orElseThrow();
             final var plugin = controller.definePlugin(pluginReference.getDescriptor(), mainModule);
             controller.addLoadedPlugin(plugin);
@@ -475,7 +474,7 @@ public final class ClockworkLoader implements ComponentTarget {
 
     public <T extends LoaderExtension> @NotNull T getExtension(@NotNull Class<T> extensionClass) {
         final var ext = extensions.getTargetType().getComponentTypeOrThrow(extensionClass).get(this);
-        if (ext == null) throw FormatUtil.rtExc("Extension from class [] missing", extensionClass.getSimpleName());
+        if (ext == null) throw ClockworkException.generic("Extension from class [] missing", extensionClass.getSimpleName());
         return ext;
     }
 
@@ -497,16 +496,16 @@ public final class ClockworkLoader implements ComponentTarget {
         final var targetModule = targetClass.getModule();
         if (plugin.getClockworkCore() != core) throw new IllegalArgumentException();
         if (targetModule != plugin.getMainModule())
-            throw FormatUtil.rtExc("Module [] is not accessible from plugin []", targetModule, plugin);
+            throw ClockworkException.generic("Module [] is not accessible from plugin []", targetModule, plugin);
 
         final var lookup = fetchLookup(plugin, targetClass);
 
         if (requiredLevel == AccessLevel.FULL && !lookup.hasFullPrivilegeAccess())
-            throw FormatUtil.rtExc("This operation requires full reflective access on plugin [], " +
+            throw ClockworkException.generic("This operation requires full reflective access on plugin [], " +
                     "but its module does not provide such access.", plugin);
 
         if (requiredLevel == AccessLevel.PRIVATE && (lookup.lookupModes() & Lookup.PRIVATE) == 0)
-            throw FormatUtil.rtExc("This operation requires private reflective access on plugin [], " +
+            throw ClockworkException.generic("This operation requires private reflective access on plugin [], " +
                     "but its module does not provide such access.", plugin);
 
         return lookup;

@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.event;
 
 import dev.m00nl1ght.clockwork.component.ComponentContainer;
-import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
 import org.jetbrains.annotations.NotNull;
 
@@ -18,11 +18,11 @@ public abstract class Event {
                 if (component != null) {
                     consumers[i].accept(component, this);
                 }
-            } catch (ExceptionInPlugin e) {
+            } catch (ClockworkException e) {
                 e.addComponentToStack(listeners.listeners[i].getComponentType());
                 throw e;
             } catch (Throwable e) {
-                throw ExceptionInPlugin.inEventListener(listeners.listeners[i], this, e);
+                throw ClockworkException.inEventListener(listeners.listeners[i], this, e);
             }
         }
     }

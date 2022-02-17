@@ -6,10 +6,7 @@ import dev.m00nl1ght.clockwork.extension.annotations.EventHandler;
 import dev.m00nl1ght.clockwork.test.env.*;
 import dev.m00nl1ght.clockwork.test.env.events.GenericTestEvent;
 import dev.m00nl1ght.clockwork.test.env.events.SimpleTestEvent;
-import dev.m00nl1ght.clockwork.test.env.security.PermissionTestEvent;
 
-import java.io.FileWriter;
-import java.io.IOException;
 import java.lang.invoke.MethodHandles;
 
 public class TestPlugin_A extends MainComponent {
@@ -97,24 +94,6 @@ public class TestPlugin_A extends MainComponent {
     @EventHandler
     static void onGenericTestEventForTargetB(TestTarget_B component, GenericTestEvent<String> event) {
         event.getTestContext().addMarker("TestPlugin_A#onGenericTestEventForTargetB");
-    }
-
-    @EventHandler
-    void onPermissionTest(PermissionTestEvent event) {
-        final var file = event.getTestFile();
-        file.getParentFile().mkdirs();
-
-        try {
-            file.createNewFile();
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to create test file", e);
-        }
-
-        try (var fileWriter = new FileWriter(file)) {
-            fileWriter.write("Hello from TestPlugin_A!");
-        } catch (IOException e) {
-            throw new RuntimeException("Failed to write test file", e);
-        }
     }
 
     @Override

@@ -1,13 +1,13 @@
 package dev.m00nl1ght.clockwork.extension.annotations;
 
-import dev.m00nl1ght.clockwork.core.Component;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.core.*;
+import dev.m00nl1ght.clockwork.core.ClockworkCore;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
+import dev.m00nl1ght.clockwork.core.Component;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
@@ -115,7 +115,7 @@ public final class EventHandlerMethod<E extends Event, T extends ComponentTarget
             final var consumer = (BiConsumer<C, E>) callsite.getTarget().invokeExact();
             return consumer;
         } catch (Throwable t) {
-            throw FormatUtil.rtExc(t, "Failed to build lambda for event handler [] using deep reflection", this);
+            throw ClockworkException.generic(componentType, t, "Failed to build lambda for event handler [] using deep reflection", this);
         }
     }
 

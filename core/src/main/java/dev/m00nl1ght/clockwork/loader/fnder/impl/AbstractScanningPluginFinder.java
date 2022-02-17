@@ -4,7 +4,6 @@ import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.utils.config.Config;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.util.*;
@@ -12,7 +11,7 @@ import java.util.stream.Collectors;
 
 public abstract class AbstractScanningPluginFinder extends AbstractPluginFinder {
 
-    private Map<String, Optional<PluginReference>> cache;
+    private Map<String, List<PluginReference>> cache;
 
     protected AbstractScanningPluginFinder(ClockworkLoader loader, Config config) {
         super(loader, config);
@@ -27,15 +26,15 @@ public abstract class AbstractScanningPluginFinder extends AbstractPluginFinder 
     @Override
     public Set<Version> getAvailableVersions(ClockworkLoader loader, String pluginId) {
         scanIfNeeded(loader);
-        final var ref = cache.getOrDefault(pluginId, Optional.empty());
-        return ref.isEmpty() ? Collections.emptySet() : Collections.singleton(ref.get().getVersion());
+        final var refs = cache.getOrDefault(pluginId, List.of());
+        return refs.stream().map(PluginReference::getVersion).collect(Collectors.toUnmodifiableSet());
     }
 
     @Override
     public Optional<PluginReference> find(ClockworkLoader loader, String pluginId, Version version) {
         scanIfNeeded(loader);
-        final var ref = cache.getOrDefault(pluginId, Optional.empty());
-        return ref.isPresent() && ref.get().getVersion().equals(version) ? ref : Optional.empty();
+        final List<PluginReference> refs = cache.getOrDefault(pluginId, List.of());
+        return refs.stream().filter(ref -> ref.getVersion().equals(version)).findFirst();
     }
 
     protected void scanIfNeeded(ClockworkLoader loader) {
@@ -43,15 +42,9 @@ public abstract class AbstractScanningPluginFinder extends AbstractPluginFinder 
         final var readers = readerNames == null
                 ? loader.getFeatures().getAll(PluginReader.class)
                 : loader.getFeatures().getAll(PluginReader.class, readerNames);
-        cache = scan(loader, readers).stream()
-                .collect(Collectors.groupingBy(PluginReference::getId,
-                        Collectors.reducing(this::onDuplicate)));
+        cache = scan(loader, readers).stream().collect(Collectors.groupingBy(PluginReference::getId));
     }
 
     protected abstract Set<PluginReference> scan(ClockworkLoader loader, Collection<PluginReader> readers);
-
-    protected PluginReference onDuplicate(PluginReference a, PluginReference b) {
-        throw FormatUtil.rtExc("[] found multiple versions of the same plugin: [] and []", this, a, b);
-    }
 
 }

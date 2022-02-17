@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.component.ComponentContainer;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.component.TargetType;
-import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 
 import java.util.Objects;
 
@@ -28,11 +28,11 @@ public class SimpleComponentContainer extends ComponentContainer {
                 if (components[idx] == null) {
                     components[idx] = buildComponent(comp, target);
                 }
-            } catch (ExceptionInPlugin e) {
+            } catch (ClockworkException e) {
                 e.addComponentToStack(comp);
                 throw e;
             } catch (Throwable t) {
-                throw ExceptionInPlugin.inComponentInit(comp, t);
+                throw ClockworkException.inComponentInit(comp, t);
             }
         }
     }

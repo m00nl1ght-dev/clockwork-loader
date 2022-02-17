@@ -1,16 +1,13 @@
 package dev.m00nl1ght.clockwork.utils.logger.impl;
 
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.logger.Logger;
 import org.apache.logging.log4j.Level;
 import org.apache.logging.log4j.LogManager;
 import org.jetbrains.annotations.NotNull;
 
-import java.security.AccessController;
-import java.security.PrivilegedAction;
 import java.util.Objects;
 
-public final class Log4jLogging implements Logger.Factory {
+public final class Log4jLogging implements Logger.Provider {
 
     static {
         LogManager.class.getModule();
@@ -18,10 +15,7 @@ public final class Log4jLogging implements Logger.Factory {
 
     @Override
     public Logger getLogger(@NotNull String loggerName) {
-        final var lambda = (PrivilegedAction<org.apache.logging.log4j.Logger>)
-                () -> LogManager.getLogger(loggerName);
-        final var log4j = AccessController.doPrivileged(lambda);
-        return new Log4jLogger(log4j);
+        return new Log4jLogger(LogManager.getLogger(loggerName));
     }
 
     public static Level toLog4j(@NotNull Logger.Level level) {
@@ -48,28 +42,28 @@ public final class Log4jLogging implements Logger.Factory {
         }
 
         @Override
-        public void log(@NotNull Level level, @NotNull String msg, Object... objects) {
-            log4j.log(toLog4j(level), FormatUtil.format(msg, objects));
+        public void log(@NotNull Level level, @NotNull String message, Object... objects) {
+            log4j.log(toLog4j(level), formatMessage(message, objects));
         }
 
         @Override
-        public void debug(@NotNull String msg, Object... objects) {
-            log4j.debug(FormatUtil.format(msg, objects));
+        public void debug(@NotNull String message, Object... objects) {
+            log4j.debug(formatMessage(message, objects));
         }
 
         @Override
-        public void info(@NotNull String msg, Object... objects) {
-            log4j.info(FormatUtil.format(msg, objects));
+        public void info(@NotNull String message, Object... objects) {
+            log4j.info(formatMessage(message, objects));
         }
 
         @Override
-        public void warn(@NotNull String msg, Object... objects) {
-            log4j.warn(FormatUtil.format(msg, objects));
+        public void warn(@NotNull String message, Object... objects) {
+            log4j.warn(formatMessage(message, objects));
         }
 
         @Override
-        public void error(@NotNull String msg, Object... objects) {
-            log4j.error(FormatUtil.format(msg, objects));
+        public void error(@NotNull String message, Object... objects) {
+            log4j.error(formatMessage(message, objects));
         }
 
         @Override

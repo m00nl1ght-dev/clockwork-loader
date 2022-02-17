@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.utils.reflect;
 
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 
 import java.lang.invoke.MethodHandle;
 import java.lang.invoke.MethodHandles;
@@ -25,7 +25,7 @@ public class ReflectionUtil {
         } catch (NoSuchMethodException e) {
             return null;
         } catch (Throwable t) {
-            throw FormatUtil.rtExc(t, "Failed to extract constructor from []", targetClass.getSimpleName());
+            throw ClockworkException.generic(t, "Failed to extract constructor from []", targetClass.getSimpleName());
         }
     }
 
@@ -39,7 +39,7 @@ public class ReflectionUtil {
             final T instance = (T) constr.newInstance(params.toArray());
             return instance;
         } catch (Throwable t) {
-            throw FormatUtil.rtExc(t, "Failed to create instance of [] with params []", className, params);
+            throw ClockworkException.generic(t, "Failed to create instance of [] with params []", className, params);
         }
     }
 

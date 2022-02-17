@@ -4,7 +4,7 @@ import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.utils.logger.Logger;
 
 public abstract class PluginLoadingProblem {
 
@@ -44,7 +44,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Could not find plugin []", missing);
+            return Logger.formatMessage("Could not find plugin []", missing);
         }
 
         public DependencyDescriptor getMissing() {
@@ -70,7 +70,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Version [] of inherited plugin clashes with wanted version []",
+            return Logger.formatMessage("Version [] of inherited plugin clashes with wanted version []",
                     inherited.getVersion(), wanted);
         }
 
@@ -108,11 +108,11 @@ public abstract class PluginLoadingProblem {
         @Override
         public String getMessage() {
             if (required == null) {
-                return FormatUtil.format("Required dependency [] was skipped", present);
+                return Logger.formatMessage("Required dependency [] was skipped", present);
             } else if (present == null) {
-                return FormatUtil.format("Missing required dependency []", required);
+                return Logger.formatMessage("Missing required dependency []", required);
             } else {
-                return FormatUtil.format("Found incorrect version [] of dependency []", present.getVersion(), required);
+                return Logger.formatMessage("Found incorrect version [] of dependency []", present.getVersion(), required);
             }
         }
 
@@ -150,7 +150,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Parent [] for target [] not found", target.getParent(), target);
+            return Logger.formatMessage("Parent [] for target [] not found", target.getParent(), target);
         }
 
         public TargetDescriptor getTarget() {
@@ -183,7 +183,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Registered [] but a [] with the same id is already present: []",
+            return Logger.formatMessage("Registered [] but a [] with the same id is already present: []",
                     current, current.getClass().getSimpleName(), present);
         }
 
@@ -204,7 +204,7 @@ public abstract class PluginLoadingProblem {
 
         @Override
         public String getMessage() {
-            return FormatUtil.format("Dependency cycle found, [] has a (transient) dependency on itself", tail);
+            return Logger.formatMessage("Dependency cycle found, [] has a (transient) dependency on itself", tail);
         }
 
     }

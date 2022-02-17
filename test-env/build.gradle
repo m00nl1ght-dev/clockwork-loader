@@ -22,7 +22,6 @@ dependencies {
     implementation project(':ext-mixin')
     implementation project(':ext-nightconfig')
     implementation project(':ext-pluginrepo')
-    implementation project(':ext-security')
 
     runtimeOnly group: 'org.apache.logging.log4j', name: 'log4j-core', version: log4jVersion
     runtimeOnly group: 'com.electronwill.night-config', name: 'toml', version: nightconfigVersion

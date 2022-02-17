@@ -1,11 +1,10 @@
 package dev.m00nl1ght.clockwork.event.impl.event;
 
 import dev.m00nl1ght.clockwork.component.ComponentContainer;
-import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.event.Event;
-import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
 import dev.m00nl1ght.clockwork.event.EventListener;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.event.impl.CompiledListeners;
 
 public abstract class EventWithContext extends Event {
 
@@ -26,11 +25,11 @@ public abstract class EventWithContext extends Event {
                 if (component != null) {
                     consumers[currentListenerIdx].accept(component, this);
                 }
-            } catch (ExceptionInPlugin e) {
+            } catch (ClockworkException e) {
                 e.addComponentToStack(listeners.listeners[currentListenerIdx].getComponentType());
                 throw e;
             } catch (Throwable e) {
-                throw ExceptionInPlugin.inEventListener(listeners.listeners[currentListenerIdx], this, e);
+                throw ClockworkException.inEventListener(listeners.listeners[currentListenerIdx], this, e);
             }
         }
     }
@@ -39,7 +38,7 @@ public abstract class EventWithContext extends Event {
         try {
             return currentListeners.listeners[currentListenerIdx];
         } catch (NullPointerException | IndexOutOfBoundsException e) {
-            throw FormatUtil.rtExc("Event listener context is missing or currupted", e);
+            throw ClockworkException.generic("Event listener context is missing or currupted", e);
         }
     }
 
@@ -47,7 +46,8 @@ public abstract class EventWithContext extends Event {
         if (currentListeners == null) return;
         final var priority = getCurrentListener().getPriority();
         if (!priority.isModificationAllowed()) {
-            throw FormatUtil.illStateExc("Event can not be modified in state []", priority);
+            throw ClockworkException.generic(getCurrentListener().getComponentType(),
+                    "Event can not be modified in state []", priority);
         }
     }
 

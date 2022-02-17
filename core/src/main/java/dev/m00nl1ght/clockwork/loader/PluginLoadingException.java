@@ -1,110 +1,145 @@
 package dev.m00nl1ght.clockwork.loader;
 
+import dev.m00nl1ght.clockwork.component.TargetType;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.core.LoadedPlugin;
 import dev.m00nl1ght.clockwork.core.RegisteredTargetType;
-import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.DependencyDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.PluginDescriptor;
 import dev.m00nl1ght.clockwork.descriptor.TargetDescriptor;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.utils.logger.Logger;
 
 import java.util.List;
 
-public class PluginLoadingException extends RuntimeException {
+public class PluginLoadingException extends ClockworkException {
 
-    private PluginLoadingException(String msg) {
-        super(msg);
+    private PluginLoadingException(String message) {
+        super(message);
     }
 
-    private PluginLoadingException(String msg, Throwable cause) {
-        super(msg, cause);
+    private PluginLoadingException(String message, Throwable cause) {
+        super(message, cause);
     }
 
-    public static PluginLoadingException generic(String msg, Object... objects) {
-        return new PluginLoadingException(FormatUtil.format(msg, objects));
+    public static ClockworkException generic(String message, Object... objects) {
+        return new PluginLoadingException(Logger.formatMessage(message, objects));
     }
 
-    public static PluginLoadingException generic(String msg, Throwable cause, Object... objects) {
-        return new PluginLoadingException(FormatUtil.format(msg, objects), cause);
+    public static ClockworkException generic(Throwable cause, String message, Object... objects) {
+        return new PluginLoadingException(Logger.formatMessage(message, objects), cause);
     }
 
-    public static PluginLoadingException fatalLoadingProblems(List<PluginLoadingProblem> problems) {
-        return generic("Fatal problems occured during dependency resolution");
+    public static ClockworkException fatalLoadingProblems(List<PluginLoadingProblem> problems) {
+        return new PluginLoadingException("Fatal problems occured during dependency resolution");
     }
 
-    public static PluginLoadingException resolvingModules(Exception exception, PluginDescriptor blame) {
+    public static ClockworkException resolvingModules(Exception exception, PluginDescriptor blame) {
         if (blame == null) {
-            return generic("An exception was thrown while resolving modules", exception);
+            return new PluginLoadingException("An exception was thrown while resolving modules", exception);
         } else {
-            return generic("Failed to resolve modules for plugin []", exception, blame.getId());
+            return new PluginLoadingException(Logger.formatMessage(
+                    "Failed to resolve modules for plugin []",
+                    blame.getId()), exception).addToStack(blame.getId());
         }
     }
 
-    public static PluginLoadingException componentMissingTarget(ComponentDescriptor component) {
-        return generic("Could not find target [] for component []", component.getTargetId(), component.getId());
+    public static ClockworkException componentMissingTarget(ComponentDescriptor component) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Could not find target [] for component []",
+                component.getTargetId(), component.getId())).addToStack(component.getId());
     }
 
-    public static PluginLoadingException targetMissingParent(TargetDescriptor target) {
-        return generic("Could not find parent [] for target []", target.getParent(), target.getId());
+    public static ClockworkException targetMissingParent(TargetDescriptor target) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Could not find parent [] for target []",
+                target.getParent(), target.getId())).addToStack(target.getId());
     }
 
-    public static PluginLoadingException pluginClassIllegal(Class<?> clazz, LoadedPlugin plugin) {
+    public static ClockworkException pluginClassIllegal(Class<?> clazz, LoadedPlugin plugin) {
         final var expectedName = plugin.getMainModule().getName() != null ? plugin.getMainModule().getName() : "UNNAMED";
         final var actualName = clazz.getModule().getName() != null ? clazz.getModule().getName() : "UNNAMED";
-        return generic("Class [] for plugin [] was expected in its main module [], but was found in module []", clazz, plugin.getId(), expectedName, actualName);
+        return new PluginLoadingException(Logger.formatMessage(
+                "Class [] for plugin [] was expected in its main module [], but was found in module []",
+                clazz, plugin.getId(), expectedName, actualName)).addPluginToStack(plugin);
     }
 
-    public static PluginLoadingException pluginClassNotFound(String className, PluginDescriptor plugin) {
-        return generic("Class [] for plugin [] not found", className, plugin.getId());
+    public static ClockworkException pluginClassNotFound(String className, PluginDescriptor plugin) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Class [] for plugin [] not found",
+                className, plugin.getId())).addToStack(plugin.getId());
     }
 
-    public static PluginLoadingException componentClassDuplicate(ComponentDescriptor component, String existing) {
-        return generic("Component class [] defined for component type [] is already defined for component []", component.getComponentClass(), component.getId(), existing);
+    public static ClockworkException componentClassDuplicate(ComponentDescriptor component, String existing) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Component class [] defined for component type [] is already defined for component []",
+                component.getComponentClass(), component.getId(), existing)).addToStack(component.getId());
     }
 
-    public static PluginLoadingException componentIdDuplicate(ComponentDescriptor component, String existing) {
-        return generic("Multiple component definitions with the same id [] are present", existing);
+    public static ClockworkException componentIdDuplicate(ComponentDescriptor component, String existing) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Multiple component definitions with the same id [] are present",
+                existing)).addToStack(component.getId());
     }
 
-    public static PluginLoadingException targetClassDuplicate(TargetDescriptor target, String existing) {
-        return generic("Target class [] defined for target type [] is already defined for target []", target.getTargetClass(), target.getId(), existing);
+    public static ClockworkException targetClassDuplicate(TargetDescriptor target, String existing) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Target class [] defined for target type [] is already defined for target []",
+                target.getTargetClass(), target.getId(), existing)).addToStack(target.getId());
     }
 
-    public static PluginLoadingException targetIdDuplicate(TargetDescriptor target, String existing) {
-        return generic("Multiple target definitions with the same id [] are present", existing);
+    public static ClockworkException targetIdDuplicate(TargetDescriptor target, String existing) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Multiple target definitions with the same id [] are present",
+                existing)).addToStack(target.getId());
     }
 
-    public static PluginLoadingException inProcessor(String processor, Throwable cause) {
-        return generic("PluginProcessor [] threw an exception", cause, processor);
+    public static ClockworkException inProcessor(String processor, Throwable cause) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "PluginProcessor [] threw an exception",
+                processor), cause);
     }
 
-    public static PluginLoadingException inProcessor(LoadedPlugin plugin, String processor, Throwable cause) {
-        return generic("PluginProcessor [] threw an exception while processing plugin []", cause, processor, plugin);
+    public static ClockworkException inProcessor(LoadedPlugin plugin, String processor, Throwable cause) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "PluginProcessor [] threw an exception while processing plugin []",
+                processor, plugin), cause).addPluginToStack(plugin);
     }
 
-    public static PluginLoadingException invalidParentForTarget(TargetDescriptor target, RegisteredTargetType<?> parent) {
-        return generic("Target [] cannot be set as parent for target [] (subclass mismatch)", parent.getId(), target.getId());
+    public static ClockworkException invalidParentForTarget(TargetDescriptor target, RegisteredTargetType<?> parent) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Target [] cannot be set as parent for target [] (subclass mismatch)",
+                parent.getId(), target.getId())).addToStack(target.getId());
     }
 
-    public static PluginLoadingException illegalSubtarget(TargetType<?> target, TargetType<?> other) {
-        return generic("Class [] extends class [], but respective target [] does not extend target []", other.getTargetClass().getSimpleName(), target.getTargetClass().getSimpleName(), other, target);
+    public static ClockworkException illegalSubtarget(TargetType<?> target, TargetType<?> other) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Class [] extends class [], but respective target [] does not extend target []",
+                other.getTargetClass().getSimpleName(), target.getTargetClass().getSimpleName(), other, target)).addTargetToStack(target);
     }
 
-    public static PluginLoadingException invalidTargetClass(TargetDescriptor target, Class<?> targetClass) {
-        return generic("Target class [] defined for target type [] does not implement ComponentTarget interface", targetClass.getSimpleName(), target.getId());
+    public static ClockworkException invalidTargetClass(TargetDescriptor target, Class<?> targetClass) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Target class [] defined for target type [] does not implement ComponentTarget interface",
+                targetClass.getSimpleName(), target.getId())).addToStack(target.getId());
     }
 
-    public static PluginLoadingException invalidComponentClass(ComponentDescriptor component, Class<?> componentClass) {
-        return generic("Component class [] defined for component type [] does not properly implement Component<T>", componentClass.getSimpleName(), component.getId());
+    public static ClockworkException invalidComponentClass(ComponentDescriptor component, Class<?> componentClass) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Component class [] defined for component type [] does not properly implement Component<T>",
+                componentClass.getSimpleName(), component.getId())).addToStack(component.getId());
     }
 
-    public static PluginLoadingException dependencyDuplicate(String of, DependencyDescriptor dependency, DependencyDescriptor existing) {
-        return generic("Duplicate dependency defined for []: [] vs. []", of, dependency, existing);
+    public static ClockworkException dependencyDuplicate(String of, DependencyDescriptor dependency, DependencyDescriptor existing) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Duplicate dependency defined for []: [] vs. []",
+                of, dependency, existing)).addToStack(of);
     }
 
-    public static PluginLoadingException pluginDuplicate(PluginDescriptor plugin, PluginDescriptor existing) {
-        return generic("Multiple plugins with the same id [] are present", plugin.getId());
+    public static ClockworkException pluginDuplicate(PluginDescriptor plugin, PluginDescriptor existing) {
+        return new PluginLoadingException(Logger.formatMessage(
+                "Multiple plugins with the same id [] are present",
+                plugin.getId())).addToStack(plugin.getId());
     }
 
 }

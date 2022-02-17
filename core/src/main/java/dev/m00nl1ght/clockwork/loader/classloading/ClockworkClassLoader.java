@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.loader.classloading;
 
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -117,7 +117,7 @@ public class ClockworkClassLoader extends SecureClassLoader {
                             .orElseThrow(() -> new InternalError("Unable to find parent layer"));
 
                     // Find the class loader for the module.
-                    // For now we use the platform loader for modules defined to the boot loader.
+                    // For now, we use the platform loader for modules defined to the boot loader.
                     assert layer.findModule(mn).isPresent();
                     loader = layer.findLoader(mn);
                     if (loader == null) loader = parent;
@@ -467,7 +467,7 @@ public class ClockworkClassLoader extends SecureClassLoader {
             try {
                 classBytes = transformer.transform(cn, classBytes);
             } catch (Throwable t) {
-                throw FormatUtil.rtExc(t, "Exception in [] while transforming []", transformer, cn);
+                throw ClockworkException.generic(t, "Exception in [] while transforming []", transformer, cn);
             }
         }
         return classBytes;

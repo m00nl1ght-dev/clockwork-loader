@@ -1,7 +1,7 @@
 package dev.m00nl1ght.clockwork.component;
 
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.loader.PluginLoadingException;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 
 import java.util.*;
 import java.util.stream.Collectors;
@@ -32,9 +32,9 @@ public class TargetType<T extends ComponentTarget> {
             synchronized (this.parent) {
                 this.root = this.parent.root;
                 if (!this.parent.targetClass.isAssignableFrom(targetClass))
-                    throw FormatUtil.illArgExc("Incompatible parent target [] for []", parent, this);
+                    throw ClockworkException.generic("Incompatible parent target [] for []", parent, this);
                 if (this.parent.isLocked())
-                    throw FormatUtil.illStateExc("Parent TargetType [] is locked", this.parent);
+                    throw ClockworkException.generic("Parent TargetType [] is locked", this.parent);
                 this.parent.directSubtargets.add(this);
                 this.allSubtargets = this.parent.allSubtargets;
             }
@@ -141,11 +141,11 @@ public class TargetType<T extends ComponentTarget> {
     }
 
     public final void requireLocked() {
-        if (componentTypes == null) throw FormatUtil.illStateExc("TargetType [] is not locked yet", this);
+        if (componentTypes == null) throw ClockworkException.generic("TargetType [] is not locked yet", this);
     }
 
     public final void requireNotLocked() {
-        if (componentTypes != null) throw FormatUtil.illStateExc("TargetType [] is locked", this);
+        if (componentTypes != null) throw ClockworkException.generic("TargetType [] is locked", this);
     }
 
     @Override
@@ -155,14 +155,14 @@ public class TargetType<T extends ComponentTarget> {
 
     public synchronized void lock() {
         if (this.componentTypes != null)
-            throw FormatUtil.illStateExc("TargetType [] is already locked", this);
+            throw ClockworkException.generic("TargetType [] is already locked", this);
 
         final var componentList = new LinkedList<ComponentType<?, ? super T>>();
         if (parent == null) {
             this.populateSubtargets();
         } else {
             if (parent.componentTypes == null)
-                throw FormatUtil.illStateExc("Parent TargetType [] is not locked", parent);
+                throw ClockworkException.generic("Parent TargetType [] is not locked", parent);
             componentList.addAll(parent.componentTypes);
             this.verifySiblings();
         }

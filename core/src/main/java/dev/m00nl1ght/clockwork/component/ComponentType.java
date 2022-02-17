@@ -1,6 +1,6 @@
 package dev.m00nl1ght.clockwork.component;
 
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 
 import java.util.Objects;
 
@@ -71,8 +71,8 @@ public class ComponentType<C, T extends ComponentTarget> {
         targetType.requireLocked();
         if (this.internalIdx < 0) throw new IllegalStateException();
         if (!otherTarget.isEquivalentTo(this.targetType)) {
-            final var msg = "Cannot access component [] (registered to target []) from different target []";
-            throw new IllegalArgumentException(FormatUtil.format(msg, "[]", this, targetType, otherTarget));
+            final var message = "Component [] is not compatible with different target []";
+            throw ClockworkException.illegalArgument(message, this, otherTarget);
         }
     }
 

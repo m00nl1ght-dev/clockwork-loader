@@ -2,7 +2,7 @@ package dev.m00nl1ght.clockwork.interfaces.impl;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
-import dev.m00nl1ght.clockwork.core.ExceptionInPlugin;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.component.TargetType;
 import dev.m00nl1ght.clockwork.interfaces.ComponentInterface;
 import dev.m00nl1ght.clockwork.utils.reflect.TypeRef;
@@ -51,12 +51,12 @@ public class ComponentInterfaceImplExact<I, T extends ComponentTarget> implement
                 final var comp = (I) container.getComponent(idx);
                 try {
                     if (comp != null) consumer.accept(comp);
-                } catch (ExceptionInPlugin e) {
+                } catch (ClockworkException e) {
                     e.addComponentToStack(target.getComponentTypes().get(idx));
                     throw e;
                 } catch (Throwable e) {
                     final var compType = target.getComponentTypes().get(idx);
-                    throw ExceptionInPlugin.inComponentInterface(compType, interfaceType, e);
+                    throw ClockworkException.inComponentInterface(compType, interfaceType, e);
                 }
             }
         } catch (Throwable t) {

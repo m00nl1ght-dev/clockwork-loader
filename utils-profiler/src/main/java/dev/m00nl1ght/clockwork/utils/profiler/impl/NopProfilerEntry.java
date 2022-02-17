@@ -35,7 +35,7 @@ public class NopProfilerEntry extends ProfilerEntry {
 
     @Override
     public long getAverage() {
-        return -1;
+        return 0;
     }
 
 }

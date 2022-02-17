@@ -4,7 +4,6 @@ import dev.m00nl1ght.clockwork.component.ComponentFactory;
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.ComponentType;
 import dev.m00nl1ght.clockwork.descriptor.ComponentDescriptor;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.lang.invoke.MethodHandles;
@@ -28,14 +27,14 @@ public final class RegisteredComponentType<C extends Component<T>, T extends Com
     public void checkValue(T target, C value) {
         final var actualClass = value.getClass();
         if (actualClass != componentClass) {
-            throw FormatUtil.rtExc("Unexpected component value of class [] in [], expected class []", actualClass, getId(), componentClass);
+            throw ClockworkException.generic(this, "Unexpected component value of class [] in [], expected class []", actualClass, getId(), componentClass);
         }
     }
 
     @Override
     public void setFactory(ComponentFactory<T, C> factory) {
         if (!descriptor.factoryChangesAllowed())
-            throw FormatUtil.illStateExc("Factory changes are not enabled on component []", this);
+            throw ClockworkException.generic("Factory changes are not enabled on component []", this);
         super.setFactory(factory);
     }
 

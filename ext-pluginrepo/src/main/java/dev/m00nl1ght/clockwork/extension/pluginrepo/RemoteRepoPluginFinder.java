@@ -1,5 +1,6 @@
 package dev.m00nl1ght.clockwork.extension.pluginrepo;
 
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.descriptor.PluginReference;
 import dev.m00nl1ght.clockwork.loader.ClockworkLoader;
 import dev.m00nl1ght.clockwork.loader.fnder.PluginFinder;
@@ -8,7 +9,6 @@ import dev.m00nl1ght.clockwork.loader.fnder.impl.AbstractPluginFinder;
 import dev.m00nl1ght.clockwork.loader.reader.PluginReader;
 import dev.m00nl1ght.clockwork.utils.config.Config;
 import dev.m00nl1ght.clockwork.utils.config.ModifiableConfig;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.version.Version;
 
 import java.io.FileOutputStream;
@@ -91,7 +91,7 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
                 fileOutputStream.getChannel().transferFrom(byteChannel, 0, Long.MAX_VALUE);
             }
         } catch (Exception e) {
-            throw FormatUtil.rtExc(e, "Failed to download plugin [] version [] from []", pluginId, version, rootURL);
+            throw ClockworkException.generic(e, "Failed to download plugin [] version [] from []", pluginId, version, rootURL);
         }
     }
 
@@ -101,7 +101,7 @@ public class RemoteRepoPluginFinder extends AbstractIndexedPluginFinder {
             if (str.length() >= MAX_META_SIZE) throw new IllegalStateException("max metadata size reached");
             return str;
         } catch (Exception e) {
-            throw FormatUtil.rtExc(e, "Failed to download metadata [] from []", location, rootURL);
+            throw ClockworkException.generic(e, "Failed to download metadata [] from []", location, rootURL);
         }
     }
 

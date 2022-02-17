@@ -2,9 +2,9 @@ package dev.m00nl1ght.clockwork.event.impl.listener;
 
 import dev.m00nl1ght.clockwork.component.ComponentTarget;
 import dev.m00nl1ght.clockwork.component.TargetType;
+import dev.m00nl1ght.clockwork.core.ClockworkException;
 import dev.m00nl1ght.clockwork.event.Event;
 import dev.m00nl1ght.clockwork.event.EventListener;
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
@@ -41,7 +41,7 @@ public class EventListenerForwardingByLambda<E extends Event, S extends Componen
         } else if (innerListener.getComponentType().getTargetType().isEquivalentTo(destinationTargetType)) {
             this.outerConsumer = this::invoke;
         } else {
-            throw FormatUtil.rtExc("Broken event forwarding, invalid listener []", this);
+            throw ClockworkException.generic("Broken event forwarding, invalid listener []", this);
         }
     }
 

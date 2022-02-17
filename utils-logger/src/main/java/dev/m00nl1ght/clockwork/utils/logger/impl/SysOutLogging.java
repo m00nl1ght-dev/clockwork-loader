@@ -1,12 +1,11 @@
 package dev.m00nl1ght.clockwork.utils.logger.impl;
 
-import dev.m00nl1ght.clockwork.utils.logger.FormatUtil;
 import dev.m00nl1ght.clockwork.utils.logger.Logger;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.Objects;
 
-public final class SysOutLogging implements Logger.Factory {
+public final class SysOutLogging implements Logger.Provider {
 
     @Override
     public Logger getLogger(String loggerName) {
@@ -27,8 +26,8 @@ public final class SysOutLogging implements Logger.Factory {
         }
 
         @Override
-        public void log(@NotNull Level level, @NotNull String msg, Object... objects) {
-            System.out.println("[" + name + "] " + level + ": " + FormatUtil.format(msg, objects));
+        public void log(@NotNull Level level, @NotNull String message, Object... objects) {
+            System.out.println("[" + name + "] " + level + ": " + formatMessage(message, objects));
         }
 
         @Override
